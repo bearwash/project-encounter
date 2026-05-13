@@ -1,0 +1,47 @@
+# Node / Next.js
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# pnpm
+.pnpm-store/
+
+# Rust / Tauri
+src-tauri/target/
+src-tauri/gen/
+src-tauri/Cargo.lock
+
+# Tauri build artifacts
+src-tauri/WixTools/
+src-tauri/.cargo/
+
+# SQLite (ローカルDB・テスト用)
+*.db
+*.db-journal
+*.sqlite
+*.sqlite-journal
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+
+# Logs / Env
+*.log
+.env
+.env.local
+.env.*.local
+
+# Misc
+coverage/
+dist/
+
+# Claude Code local settings
+.claude/

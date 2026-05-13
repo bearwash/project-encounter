@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://project-encounter.local/contracts/ble-payload.schema.json",
+  "title": "BLE Encounter Payload",
+  "description": "BLE すれ違い通信で 1 ハンドシェイクあたりに交換される最小ペイロード。要件定義 §4.2 準拠。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "name", "avatar"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "送信者の user_id（短縮形 8 桁 HEX を推奨。my_profile.user_id の派生）",
+      "minLength": 1,
+      "maxLength": 36
+    },
+    "name": {
+      "type": "string",
+      "description": "送信者の表示名",
+      "minLength": 1,
+      "maxLength": 16
+    },
+    "avatar": {
+      "type": "string",
+      "description": "アバターパーツ ID の連結文字列（例: base01_top03_bot02）",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "msg": {
+      "type": "string",
+      "description": "一言メッセージ（任意。長さは BLE advertise 容量に応じて切詰める）",
+      "maxLength": 30
+    }
+  },
+  "examples": [
+    {
+      "id": "A1B2C3D4",
+      "name": "Neko-9",
+      "avatar": "base01_top03_bot02",
+      "msg": "最近はRust勉強中！"
+    }
+  ]
+}
