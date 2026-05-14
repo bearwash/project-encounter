@@ -35,7 +35,7 @@ export function ProfileForm() {
   }, [profile]);
 
   if (isLoading) {
-    return <div className="text-neutral-400">読み込み中…</div>;
+    return <div className="text-ink-muted">読み込み中…</div>;
   }
 
   const errOf = (field: keyof ProfileInput) =>
@@ -71,7 +71,7 @@ export function ProfileForm() {
           value={form.display_name}
           onChange={update('display_name')}
           maxLength={PROFILE_LIMITS.DISPLAY_NAME_MAX}
-          className="w-full rounded border border-neutral-700 bg-black px-3 py-2 text-white focus:border-neon focus:outline-none"
+          className="w-full rounded-toy border border-cream-deep bg-cream-soft px-3 py-2 text-ink shadow-toy focus:border-pop-red focus:outline-none"
         />
       </Field>
 
@@ -86,7 +86,7 @@ export function ProfileForm() {
           value={form.avatar_code}
           onChange={update('avatar_code')}
           maxLength={PROFILE_LIMITS.AVATAR_CODE_MAX}
-          className="w-full rounded border border-neutral-700 bg-black px-3 py-2 font-mono text-sm text-white focus:border-neon focus:outline-none"
+          className="w-full rounded-toy border border-cream-deep bg-cream-soft px-3 py-2 font-mono text-sm text-ink shadow-toy focus:border-pop-red focus:outline-none"
           placeholder="base01_top03_bot02"
         />
       </Field>
@@ -102,7 +102,7 @@ export function ProfileForm() {
           value={form.message}
           onChange={update('message')}
           maxLength={PROFILE_LIMITS.MESSAGE_MAX}
-          className="w-full rounded border border-neutral-700 bg-black px-3 py-2 text-white focus:border-neon focus:outline-none"
+          className="w-full rounded-toy border border-cream-deep bg-cream-soft px-3 py-2 text-ink shadow-toy focus:border-pop-red focus:outline-none"
           placeholder="(空でも OK)"
         />
       </Field>
@@ -110,16 +110,18 @@ export function ProfileForm() {
       <button
         type="submit"
         disabled={save.isPending}
-        className="mt-2 rounded border border-neon bg-neon/10 px-4 py-2 font-bold tracking-widest text-neon transition hover:bg-neon hover:text-black disabled:opacity-50"
+        className="mt-2 rounded-toy border border-pop-red bg-pop-red px-4 py-2.5 font-bold tracking-wider text-cream-soft shadow-toy transition active:translate-y-[2px] active:shadow-none disabled:opacity-50"
       >
         {save.isPending ? '保存中…' : '保存'}
       </button>
 
       {save.isSuccess && (
-        <p className="text-sm text-neon-cyan">プロフィールを保存しました</p>
+        <p className="text-sm font-bold text-pop-green">
+          プロフィールを保存しました
+        </p>
       )}
       {save.isError && (
-        <p className="whitespace-pre-line text-sm text-neon-pink">
+        <p className="whitespace-pre-line text-sm font-bold text-pop-red">
           {save.error instanceof Error ? save.error.message : '保存に失敗しました'}
         </p>
       )}
@@ -143,13 +145,15 @@ function Field({
   return (
     <label className="flex flex-col gap-1.5">
       <div className="flex items-baseline justify-between">
-        <span className="text-sm tracking-wide text-neutral-300">{label}</span>
-        <span className="text-xs text-neutral-500">
+        <span className="text-sm font-bold tracking-wide text-ink-soft">
+          {label}
+        </span>
+        <span className="text-xs text-ink-muted">
           {value.length} / {max}
         </span>
       </div>
       {children}
-      {error && <span className="text-xs text-neon-pink">{error}</span>}
+      {error && <span className="text-xs font-bold text-pop-red">{error}</span>}
     </label>
   );
 }

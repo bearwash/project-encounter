@@ -50,14 +50,14 @@ export default function HomePage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col gap-6 p-5">
+    <main className="mx-auto flex min-h-screen max-w-md flex-col gap-5 p-5">
       <header className="flex items-center justify-between">
-        <h1 className="text-xl font-bold tracking-widest text-neon">
+        <h1 className="text-2xl font-black tracking-wide text-pop-red">
           ENCOUNTERS
         </h1>
         <Link
           href="/profile"
-          className="text-sm text-neutral-400 hover:text-neon-cyan"
+          className="rounded-toy border border-cream-deep bg-cream-soft px-3 py-1 text-xs font-bold text-ink-soft shadow-toy transition active:translate-y-[2px] active:shadow-none"
         >
           プロフィール
         </Link>
@@ -67,12 +67,12 @@ export default function HomePage() {
 
       <Link
         href="/walk"
-        className="block rounded border border-neon-cyan bg-neon-cyan/5 px-4 py-3 text-center font-bold tracking-widest text-neon-cyan transition hover:bg-neon-cyan hover:text-black"
+        className="block rounded-toy border border-pop-blue bg-pop-blue/10 px-4 py-3 text-center font-bold tracking-wide text-pop-blue shadow-toy transition active:translate-y-[2px] active:shadow-none"
       >
-        ウォークモード開始
+        ウォークモードへ →
       </Link>
 
-      <section>
+      <section className="rounded-toy border border-cream-deep bg-cream-soft p-3 shadow-toy">
         <EncounterList />
       </section>
 
@@ -119,22 +119,22 @@ function DevPanel({
   resetProfilePending: boolean;
 }) {
   return (
-    <section className="mt-auto flex flex-col gap-2 rounded border border-dashed border-neutral-800 p-3">
-      <span className="text-[10px] tracking-widest text-neutral-600">
+    <section className="mt-auto flex flex-col gap-2 rounded-toy border border-dashed border-cream-deep p-3">
+      <span className="text-[10px] tracking-widest text-ink-muted">
         DEV — BLE 実装までの検証用
       </span>
       <div className="flex gap-2">
         <button
           onClick={onSeed}
           disabled={seedPending}
-          className="flex-1 rounded border border-neon-cyan/50 px-3 py-1.5 text-xs text-neon-cyan transition hover:bg-neon-cyan/10 disabled:opacity-40"
+          className="flex-1 rounded-toy border border-pop-blue bg-cream-soft px-3 py-1.5 text-xs font-bold text-pop-blue shadow-toy transition active:translate-y-[2px] active:shadow-none disabled:opacity-50"
         >
           {seedPending ? '…' : '擬似エンカウント追加'}
         </button>
         <button
           onClick={onClear}
           disabled={clearPending}
-          className="rounded border border-neon-pink/40 px-3 py-1.5 text-xs text-neon-pink/80 transition hover:bg-neon-pink/10 disabled:opacity-40"
+          className="rounded-toy border border-pop-red bg-cream-soft px-3 py-1.5 text-xs font-bold text-pop-red shadow-toy transition active:translate-y-[2px] active:shadow-none disabled:opacity-50"
         >
           {clearPending ? '…' : 'クリア'}
         </button>
@@ -142,7 +142,7 @@ function DevPanel({
       <button
         onClick={onResetProfile}
         disabled={resetProfilePending}
-        className="rounded border border-neutral-800 px-3 py-1.5 text-xs text-neutral-500 transition hover:border-neutral-600 hover:text-neutral-300 disabled:opacity-40"
+        className="rounded-toy border border-cream-deep bg-cream-soft px-3 py-1.5 text-xs text-ink-soft shadow-toy transition active:translate-y-[2px] active:shadow-none disabled:opacity-50"
       >
         {resetProfilePending ? '…' : 'プロフィールをリセット (初回状態に戻す)'}
       </button>

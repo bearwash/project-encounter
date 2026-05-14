@@ -10,21 +10,20 @@ export function BlePanel({ status }: { status: BleStatus | undefined }) {
   const mode = status?.mode ?? 'idle';
   const pending = start.isPending || stop.isPending;
 
-  const tone =
-    mode === 'walk'
-      ? 'border-neon-pink/60 text-neon-pink'
-      : mode === 'normal'
-        ? 'border-neon/60 text-neon'
-        : 'border-neutral-800 text-neutral-500';
-
   return (
-    <section className={`flex items-center justify-between gap-3 rounded border px-3 py-2.5 ${tone}`}>
-      <div className="flex items-center gap-2.5">
+    <section className="flex items-center justify-between gap-3 rounded-toy border border-cream-deep bg-cream-soft px-4 py-3 shadow-toy">
+      <div className="flex items-center gap-3">
         <Indicator mode={mode} />
         <div className="flex flex-col">
-          <span className="text-[10px] tracking-widest opacity-70">BLE</span>
-          <span className="text-sm font-bold tracking-wider">
-            {mode === 'idle' ? '停止中' : mode === 'walk' ? 'WALK MODE' : 'すれ違い待機中'}
+          <span className="text-[10px] font-bold tracking-widest text-ink-muted">
+            BLE
+          </span>
+          <span className="text-sm font-bold text-ink">
+            {mode === 'idle'
+              ? '停止中'
+              : mode === 'walk'
+                ? 'ウォーキング中'
+                : 'すれ違い待機中'}
           </span>
         </div>
       </div>
@@ -33,7 +32,7 @@ export function BlePanel({ status }: { status: BleStatus | undefined }) {
           <button
             onClick={() => start.mutate()}
             disabled={pending}
-            className="rounded border border-neon px-3 py-1 text-xs font-bold tracking-widest text-neon transition hover:bg-neon hover:text-black disabled:opacity-50"
+            className="rounded-toy border border-pop-green bg-pop-green px-4 py-1.5 text-xs font-bold tracking-wider text-cream-soft shadow-toy transition active:translate-y-[2px] active:shadow-none disabled:opacity-50"
           >
             開始
           </button>
@@ -41,7 +40,7 @@ export function BlePanel({ status }: { status: BleStatus | undefined }) {
           <button
             onClick={() => stop.mutate()}
             disabled={pending}
-            className="rounded border border-neutral-700 px-3 py-1 text-xs tracking-widest text-neutral-400 transition hover:border-neutral-500 hover:text-neutral-200 disabled:opacity-50"
+            className="rounded-toy border border-cream-deep bg-cream px-4 py-1.5 text-xs font-bold tracking-wider text-ink-soft shadow-toy transition active:translate-y-[2px] active:shadow-none disabled:opacity-50"
           >
             停止
           </button>
@@ -53,11 +52,11 @@ export function BlePanel({ status }: { status: BleStatus | undefined }) {
 
 function Indicator({ mode }: { mode: BleStatus['mode'] }) {
   if (mode === 'idle') {
-    return <span className="block h-2 w-2 rounded-full bg-neutral-700" />;
+    return <span className="block h-2.5 w-2.5 rounded-full bg-cream-deep" />;
   }
-  const dotColor = mode === 'walk' ? 'bg-neon-pink' : 'bg-neon';
+  const dotColor = mode === 'walk' ? 'bg-pop-orange' : 'bg-pop-green';
   return (
-    <span className="relative block h-2 w-2">
+    <span className="relative block h-2.5 w-2.5">
       <span className={`absolute inset-0 rounded-full ${dotColor}`} />
       <span className={`absolute inset-0 animate-ping rounded-full ${dotColor} opacity-60`} />
     </span>

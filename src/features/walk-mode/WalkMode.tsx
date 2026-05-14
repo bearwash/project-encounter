@@ -24,15 +24,6 @@ export function WalkMode() {
     return () => window.clearInterval(id);
   }, []);
 
-  // ウォークモード中は BLE を高頻度モードに切り替える (spec §4.4)
-  useEffect(() => {
-    ble.walkStart().catch((e) => console.warn('[walk-mode] walkStart:', e));
-    return () => {
-      // 通常モードへ戻す。ユーザーが Home に戻った後も BLE は走り続ける。
-      ble.start().catch((e) => console.warn('[walk-mode] back to normal:', e));
-    };
-  }, []);
-
   // wake lock (spec §4.5)
   useEffect(() => {
     let cancelled = false;
@@ -56,7 +47,6 @@ export function WalkMode() {
 
     acquire();
 
-    // 一度 release されたら再取得 (タブ復帰等)
     const onVisibility = () => {
       if (document.visibilityState === 'visible' && wakeLockRef.current === null) {
         acquire();
@@ -69,6 +59,14 @@ export function WalkMode() {
       document.removeEventListener('visibilitychange', onVisibility);
       wakeLockRef.current?.release().catch(() => {});
       wakeLockRef.current = null;
+    };
+  }, []);
+
+  // ウォークモード中は BLE を高頻度モードに切り替える (spec §4.4)
+  useEffect(() => {
+    ble.walkStart().catch((e) => console.warn('[walk-mode] walkStart:', e));
+    return () => {
+      ble.start().catch((e) => console.warn('[walk-mode] back to normal:', e));
     };
   }, []);
 
@@ -93,26 +91,26 @@ export function WalkMode() {
   const cancelExit = () => setConfirming(false);
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center overflow-hidden bg-black p-8">
+    <div className="fixed inset-0 flex flex-col items-center justify-center overflow-hidden bg-cream p-8">
       {/* 終了ボタン (長押し) — spec §4.2 右上 */}
       <button
         onPointerDown={startPress}
         onPointerUp={cancelPress}
         onPointerCancel={cancelPress}
         onPointerLeave={cancelPress}
-        className="absolute right-4 top-4 select-none rounded border border-neutral-900 px-3 py-1.5 text-[10px] tracking-widest text-neutral-700 transition active:border-neutral-600 active:text-neutral-400"
+        className="absolute right-4 top-4 select-none rounded-toy border border-cream-deep bg-cream-soft px-3 py-1.5 text-[10px] font-bold tracking-widest text-ink-soft shadow-toy transition active:translate-y-[2px] active:shadow-none"
       >
         終了（長押し）
       </button>
 
       {/* 長押し進捗ゲージ */}
       <div
-        className="absolute right-4 top-12 h-0.5 w-20 overflow-hidden bg-neutral-900"
+        className="absolute right-4 top-12 h-1 w-20 overflow-hidden rounded-full bg-cream-deep"
         aria-hidden
         style={{ opacity: pressing ? 1 : 0, transition: 'opacity 120ms' }}
       >
         <div
-          className="h-full origin-left bg-neon-pink"
+          className="h-full origin-left rounded-full bg-pop-red"
           style={{
             transform: pressing ? 'scaleX(1)' : 'scaleX(0)',
             transition: pressing ? `transform ${LONG_PRESS_MS}ms linear` : 'none',
@@ -120,49 +118,55 @@ export function WalkMode() {
         />
       </div>
 
-      {/* 中央: 脈動アイコン — spec §4.2 中央 */}
-      <PulseHeartbeat />
+      {/* 中央: 脈動アイコン + メッセージ */}
+      <div className="flex flex-col items-center gap-5">
+        <PulseDot />
+        <span className="text-sm font-bold tracking-wider text-ink-soft">
+          すれ違いを待っています
+        </span>
+      </div>
 
       {/* 経過時間 — spec §4.2 下部 */}
-      <div className="absolute bottom-8 font-mono text-xs tracking-[0.3em] text-neutral-700">
+      <div className="absolute bottom-8 font-mono text-sm font-bold tracking-[0.25em] text-ink-muted">
         {formatTime(elapsed)}
       </div>
 
       {/* 確認ダイアログ — spec §4.3 step 2 */}
       {confirming && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-6 bg-black/85 backdrop-blur-sm">
-          <p className="text-base tracking-wider text-white">
-            ウォークモードを終了しますか?
-          </p>
-          <div className="flex gap-3">
-            <button
-              onClick={cancelExit}
-              className="rounded border border-neutral-700 px-5 py-2 text-sm text-neutral-300 hover:bg-neutral-900"
-            >
-              キャンセル
-            </button>
-            <button
-              onClick={confirmExit}
-              className="rounded border border-neon-pink bg-neon-pink/10 px-5 py-2 text-sm text-neon-pink hover:bg-neon-pink hover:text-black"
-            >
-              終了する
-            </button>
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-6 bg-cream/85 backdrop-blur-sm">
+          <div className="animate-bounce-in flex flex-col items-center gap-6 rounded-toy border border-cream-deep bg-cream-soft px-8 py-7 shadow-toy-lg">
+            <p className="font-bold tracking-wider text-ink">
+              ウォークモードを終了しますか?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={cancelExit}
+                className="rounded-toy border border-cream-deep bg-cream px-5 py-2 text-sm font-bold text-ink-soft shadow-toy transition active:translate-y-[2px] active:shadow-none"
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={confirmExit}
+                className="rounded-toy border-2 border-pop-red bg-pop-red px-5 py-2 text-sm font-bold text-cream-soft shadow-toy transition active:translate-y-[2px] active:shadow-none"
+              >
+                終了する
+              </button>
+            </div>
           </div>
         </div>
       )}
-
     </div>
   );
 }
 
-function PulseHeartbeat() {
+function PulseDot() {
   return (
-    <div className="relative h-3 w-3">
+    <div className="relative h-4 w-4">
       <span
-        className="absolute inset-0 rounded-full bg-neon"
-        style={{ boxShadow: '0 0 16px rgba(57,255,20,0.7)' }}
+        className="absolute inset-0 rounded-full bg-pop-green"
+        style={{ boxShadow: '0 0 8px rgba(118,194,91,0.4)' }}
       />
-      <span className="absolute inset-0 animate-ping rounded-full bg-neon/40" />
+      <span className="absolute inset-0 animate-ping rounded-full bg-pop-green/60" />
     </div>
   );
 }
