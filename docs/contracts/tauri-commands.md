@@ -12,17 +12,20 @@
 
 | ドット表記 (TS) | コマンド名 (実装) | 実装状況 |
 | --- | --- | --- |
-| `ble.start` | `ble_start` | ✅ mock |
-| `ble.stop` | `ble_stop` | ✅ mock |
-| `ble.walkStart` | `ble_walk_mode_start` | ✅ mock |
-| `ble.walkStop` | `ble_walk_mode_stop` | ✅ mock |
-| `ble.status` | `ble_status` | ✅ mock |
+| `ble.start` | `ble_start` | ✅ btleplug (macOS/Linux/Windows) / mock fallback |
+| `ble.stop` | `ble_stop` | ✅ |
+| `ble.walkStart` | `ble_walk_mode_start` | ✅ |
+| `ble.walkStop` | `ble_walk_mode_stop` | ✅ |
+| `ble.status` | `ble_status` | ✅ `backend` フィールドで実装種別を返す |
+| — | `profile_fetch_remote` | ✅ Supabase の代用 mock (Phase 2 で置換) |
 
 非同期イベント (Rust → TS) は Tauri event を使う:
 
 | event 名 | payload | 用途 |
 | --- | --- | --- |
-| `ble://encounter-found` | `BlePayload` | mock / 実 BLE 共通で peer 発見を通知 |
+| `ble://encounter-found` | `BlePayload = { user_id: string }` | mock / btleplug 共通で peer 発見を通知 |
+
+**バックエンド切り替え**: 環境変数 `BLE_BACKEND=mock` で mock 強制、`btleplug` で btleplug 強制、未指定だと対応 OS では btleplug、それ以外では mock fallback。
 
 ---
 
@@ -136,12 +139,38 @@ advertise + scan を停止する。
 ```ts
 type BleStatus = {
   mode: 'idle' | 'normal' | 'walk';
+  backend: 'mock' | 'btleplug';   // どの実装で動いているか
   bluetooth_on: boolean;
   permission_granted: boolean;
-  advertise_active: boolean;
+  advertise_active: boolean;      // btleplug では現状常に false (§4.7)
   scan_active: boolean;
 };
 ```
+
+---
+
+## プロフィール取得 (`profile.*`)
+
+### `profile_fetch_remote`
+他ユーザーの公開プロフィールを取得 (Supabase 連携の代用 mock)。
+spec: docs/specs/profile-sync.md §5.4
+
+| 引数 | 型 | 説明 |
+| --- | --- | --- |
+| `user_id` | string (UUID) | 取得対象 |
+
+**戻り値**
+```ts
+type RemoteProfile = {
+  user_id: string;
+  display_name: string;
+  avatar_code: string;     // b{NN}_h{NN}_o{NN}_f{NN}
+  message: string;
+} | null;
+```
+
+未登録なら `null`。本実装は mock で常に固定マッピングを返す。Phase 2 で
+Supabase REST `.in("id", [...])` 一括 fetch に置き換える。
 
 ---
 

@@ -29,6 +29,7 @@ pub fn run() {
             commands::ble::ble_walk_mode_start,
             commands::ble::ble_walk_mode_stop,
             commands::ble::ble_status,
+            commands::profile::profile_fetch_remote,
         ])
         .setup(|app| {
             if cfg!(debug_assertions) {

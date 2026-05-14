@@ -30,9 +30,12 @@ GPS を使わず、純粋な BLE 電波の物理的到達のみで「すれ違�
 ## 4. 仕様詳細
 
 ### 4.1 Service UUID
-アプリ専用の Service UUID を 1 つ確保する（具体値は実装時に `uuidgen` で確定し、本ドキュメントに固定値として記載する）。
+アプリ専用の Service UUID は以下で固定する。Advertise の Service Data
+Service UUID 兼 Scan のフィルタとして使う。
 
-- `SERVICE_UUID`: `TBD`（128-bit UUID、実装時確定）
+- `SERVICE_UUID`: `4a985948-3bc6-450b-80d2-04a8f98f83cb`
+
+Rust 側の正本は `src-tauri/src/ble/mod.rs` の `SERVICE_UUID` 定数。
 
 ### 4.2 Advertise ペイロード
 - **Service Data フィールドに 16 byte (バイナリ)** で `user_id`（Supabase Auth で発行された UUID）を乗せる。

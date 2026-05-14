@@ -5,25 +5,34 @@ import { isTauri, TauriUnavailableError } from './env';
 
 export type BleMode = 'idle' | 'normal' | 'walk';
 
+/** どの BLE 実装を使っているか (UI と BlePanel で見える化) */
+export type BleBackend = 'mock' | 'btleplug';
+
 export type BleStatus = {
   mode: BleMode;
+  backend: BleBackend;
   bluetooth_on: boolean;
   permission_granted: boolean;
   advertise_active: boolean;
   scan_active: boolean;
 };
 
+/**
+ * BLE Advertise / Scan のペイロード。
+ * spec: docs/specs/ble-handshake.md §4.2 / docs/contracts/ble-payload.schema.json
+ *
+ * user_id (UUID 文字列) のみ。プロフィール本体は profile.fetch_remote
+ * (= Supabase 代用 mock) 経由で別途取得する。
+ */
 export type BlePayload = {
-  id: string;
-  name: string;
-  avatar: string;
-  msg?: string;
+  user_id: string;
 };
 
 export const BLE_EVENT_ENCOUNTER_FOUND = 'ble://encounter-found';
 
 const OFFLINE_STATUS: BleStatus = {
   mode: 'idle',
+  backend: 'mock',
   bluetooth_on: false,
   permission_granted: false,
   advertise_active: false,

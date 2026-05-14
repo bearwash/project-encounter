@@ -15,9 +15,23 @@ export function BlePanel({ status }: { status: BleStatus | undefined }) {
       <div className="flex items-center gap-3">
         <Indicator mode={mode} />
         <div className="flex flex-col">
-          <span className="text-[10px] font-bold tracking-widest text-ink-muted">
-            BLE
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold tracking-widest text-ink-muted">
+              BLE
+            </span>
+            {status?.backend && (
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[9px] font-black tracking-widest ${
+                  status.backend === 'btleplug'
+                    ? 'bg-pop-green/15 text-pop-green'
+                    : 'bg-cream-deep text-ink-muted'
+                }`}
+                data-testid="ble-backend"
+              >
+                {status.backend.toUpperCase()}
+              </span>
+            )}
+          </div>
           <span className="text-sm font-bold text-ink">
             {mode === 'idle'
               ? '停止中'
