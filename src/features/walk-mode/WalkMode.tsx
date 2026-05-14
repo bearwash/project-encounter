@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { ble } from '@/lib/tauri/ble';
 
 // spec: docs/specs/walk-mode.md
 const LONG_PRESS_MS = 2000;
@@ -21,6 +22,15 @@ export function WalkMode() {
       setElapsed(Math.floor((Date.now() - start) / 1000));
     }, 1000);
     return () => window.clearInterval(id);
+  }, []);
+
+  // ウォークモード中は BLE を高頻度モードに切り替える (spec §4.4)
+  useEffect(() => {
+    ble.walkStart().catch((e) => console.warn('[walk-mode] walkStart:', e));
+    return () => {
+      // 通常モードへ戻す。ユーザーが Home に戻った後も BLE は走り続ける。
+      ble.start().catch((e) => console.warn('[walk-mode] back to normal:', e));
+    };
   }, []);
 
   // wake lock (spec §4.5)
