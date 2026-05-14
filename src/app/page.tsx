@@ -1,8 +1,19 @@
 'use client';
 
+/**
+ * ホーム画面 = 全画面の公園広場ビュー。
+ * spec: docs/specs/encounter-plaza.md §1 / §4.1.1
+ *
+ * - 中央: EncounterPlaza が画面全体に広がる (世界観の主役)
+ * - 上部 overlay: スコアバー (きょうのすれちがい / なかま) + プロフィールアイコン
+ * - 下部 overlay: ウォークモードの看板ボタン + Dev fab (折り畳み)
+ * - 起動時: 未読あれば EncounterPopup (公園入口の対面挨拶) で覆う
+ *
+ * dev panel は世界観を壊さないよう右下の小さな (?) fab に格納。
+ */
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { BlePanel } from '@/features/ble/BlePanel';
 import { useBleStatus } from '@/features/ble/use-ble-status';
 import { useEncounterListener } from '@/features/ble/use-encounter-listener';
@@ -15,7 +26,7 @@ import {
   useUnreadEncounters,
 } from '@/features/encounter/queries';
 import { useProfile, useResetProfile } from '@/features/profile/queries';
-import type { UnreadEncounter } from '@/types/encounter';
+import type { HistoryItem, UnreadEncounter } from '@/types/encounter';
 
 export default function HomePage() {
   const router = useRouter();
@@ -37,93 +48,194 @@ export default function HomePage() {
     }
   }, [profile.isLoading, profile.data, router]);
 
-  // 起動時 snapshot: popup 表示中に届いた新規はキューに追加しない (spec §4.6)
+  // 起動時 snapshot: popup 表示中に届いた新規はキューに追加しない (spec §5.9)
   const [snapshot, setSnapshot] = useState<UnreadEncounter[] | null>(null);
-
   useEffect(() => {
     if (snapshot === null && unread.data && unread.data.length > 0) {
       setSnapshot(unread.data);
     }
   }, [unread.data, snapshot]);
 
-  // プロフィール未設定 → リダイレクト中は何も描かない
-  if (profile.isLoading || profile.data === null) {
+  const residents = history.data ?? [];
+  const stats = useDailyStats(residents);
+
+  // Dev panel の折り畳み
+  const [devOpen, setDevOpen] = useState(false);
+
+  if (profile.isLoading || !profile.data) {
     return null;
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col gap-5 p-5">
-      <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-black tracking-wide text-pop-red">
-          ENCOUNTERS
-        </h1>
-        <Link
-          href="/profile"
-          className="rounded-toy border border-cream-deep bg-cream-soft px-3 py-1 text-xs font-bold text-ink-soft shadow-toy transition active:translate-y-[2px] active:shadow-none"
-        >
-          プロフィール
-        </Link>
-      </header>
+    <main className="fixed inset-0 overflow-hidden bg-cream">
+      {/* メインの広場ビュー (全画面) */}
+      <EncounterPlaza residents={residents} />
 
-      <BlePanel status={bleStatus.data} />
+      {/* 上部スコアバー */}
+      <PlazaTopBar today={stats.today} total={stats.total} />
 
-      <Link
-        href="/walk"
-        className="block rounded-toy border border-pop-blue bg-pop-blue/10 px-4 py-3 text-center font-bold tracking-wide text-pop-blue shadow-toy transition active:translate-y-[2px] active:shadow-none"
-      >
-        ウォークモードへ →
-      </Link>
-
-      <EncounterPlaza residents={history.data ?? []} />
-
-      <DevPanel
-        onSeed={() => seed.mutate()}
-        seedPending={seed.isPending}
-        onClear={() => {
-          if (confirm('すべてのすれ違いデータを削除しますか?')) {
-            clear.mutate();
-          }
-        }}
-        clearPending={clear.isPending}
-        onResetProfile={() => {
-          if (confirm('プロフィールを削除して初回起動状態に戻しますか?')) {
-            resetProfile.mutate();
-          }
-        }}
-        resetProfilePending={resetProfile.isPending}
+      {/* 下部のクイックアクション */}
+      <PlazaBottomActions
+        onOpenDev={() => setDevOpen((v) => !v)}
+        devOpen={devOpen}
       />
 
+      {/* Dev drawer (折り畳み) */}
+      {devOpen && (
+        <DevDrawer
+          bleStatusData={bleStatus.data}
+          onSeed={() => seed.mutate()}
+          seedPending={seed.isPending}
+          onClear={() => {
+            if (confirm('すべてのすれ違いデータを削除しますか?')) {
+              clear.mutate();
+            }
+          }}
+          clearPending={clear.isPending}
+          onResetProfile={() => {
+            if (confirm('プロフィールを削除して初回起動状態に戻しますか?')) {
+              resetProfile.mutate();
+            }
+          }}
+          resetProfilePending={resetProfile.isPending}
+          onClose={() => setDevOpen(false)}
+        />
+      )}
+
+      {/* 対面挨拶シーン (未読があるとき) */}
       {snapshot && snapshot.length > 0 && (
         <EncounterPopup
           items={snapshot}
+          myAvatarCode={profile.data.avatar_code}
           onClose={() => setSnapshot(null)}
+          onEnterPlaza={() => setSnapshot(null)}
         />
       )}
     </main>
   );
 }
 
-function DevPanel({
+// =============================================================
+// 上部スコアバー
+// =============================================================
+function PlazaTopBar({ today, total }: { today: number; total: number }) {
+  return (
+    <header className="pointer-events-none absolute left-3 right-3 top-3 z-20 flex items-center justify-between gap-3">
+      <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-cream-deep bg-cream-soft/85 px-3 py-1 shadow-toy backdrop-blur">
+        <span className="rounded-full bg-pop-red px-2 py-0.5 text-[10px] font-black tracking-widest text-cream-soft">
+          TODAY
+        </span>
+        <span className="text-[11px] font-black tracking-wider text-ink">
+          きょうのすれちがい {today} 人
+        </span>
+        <span className="h-3 w-px bg-cream-deep" />
+        <span className="text-[11px] font-bold tracking-wider text-ink-soft">
+          なかま {total} 人
+        </span>
+      </div>
+
+      <Link
+        href="/profile"
+        aria-label="プロフィール設定"
+        className="pointer-events-auto flex h-9 w-9 items-center justify-center rounded-full border-2 border-cream-deep bg-cream-soft shadow-toy transition active:translate-y-[2px] active:shadow-none"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <circle cx="12" cy="8" r="3.5" stroke="#3B3024" strokeWidth="2" />
+          <path
+            d="M4.5 20c1.4-3.6 4.3-5.5 7.5-5.5s6.1 1.9 7.5 5.5"
+            stroke="#3B3024"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+        </svg>
+      </Link>
+    </header>
+  );
+}
+
+// =============================================================
+// 下部のクイックアクション (ウォークモード看板 + Dev fab)
+// =============================================================
+function PlazaBottomActions({
+  onOpenDev,
+  devOpen,
+}: {
+  onOpenDev: () => void;
+  devOpen: boolean;
+}) {
+  return (
+    <div className="pointer-events-none absolute bottom-5 left-3 right-3 z-20 flex items-end justify-between gap-3">
+      <Link
+        href="/walk"
+        className="pointer-events-auto flex items-center gap-2 rounded-toy border-2 border-pop-blue bg-cream-soft px-4 py-2.5 font-black tracking-wider text-pop-blue shadow-toy-lg transition active:translate-y-[3px] active:shadow-none"
+      >
+        <span aria-hidden className="text-base">
+          👣
+        </span>
+        <span className="text-sm">ウォークモード</span>
+      </Link>
+
+      <button
+        type="button"
+        onClick={onOpenDev}
+        aria-label="Dev panel"
+        aria-pressed={devOpen}
+        className={`pointer-events-auto flex h-9 w-9 items-center justify-center rounded-full border-2 text-xs font-black shadow-toy transition active:translate-y-[2px] active:shadow-none ${
+          devOpen
+            ? 'border-pop-red bg-pop-red text-cream-soft'
+            : 'border-cream-deep bg-cream-soft/85 text-ink-soft backdrop-blur'
+        }`}
+      >
+        ?
+      </button>
+    </div>
+  );
+}
+
+// =============================================================
+// Dev drawer — 折り畳み式
+// =============================================================
+function DevDrawer({
+  bleStatusData,
   onSeed,
   seedPending,
   onClear,
   clearPending,
   onResetProfile,
   resetProfilePending,
+  onClose,
 }: {
+  bleStatusData: ReturnType<typeof useBleStatus>['data'];
   onSeed: () => void;
   seedPending: boolean;
   onClear: () => void;
   clearPending: boolean;
   onResetProfile: () => void;
   resetProfilePending: boolean;
+  onClose: () => void;
 }) {
   return (
-    <section className="mt-auto flex flex-col gap-2 rounded-toy border border-dashed border-cream-deep p-3">
-      <span className="text-[10px] tracking-widest text-ink-muted">
-        DEV — BLE 実装までの検証用
-      </span>
-      <div className="flex gap-2">
+    <div
+      className="absolute inset-x-3 bottom-16 z-30 max-h-[60vh] overflow-y-auto rounded-toy border-2 border-cream-deep bg-cream-soft/95 p-4 shadow-toy-lg backdrop-blur"
+      data-testid="dev-drawer"
+    >
+      <div className="mb-3 flex items-center justify-between">
+        <span className="text-[10px] tracking-widest text-ink-muted">
+          DEV — BLE 実装までの検証用
+        </span>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="閉じる"
+          className="rounded-full border border-cream-deep px-2 text-xs font-bold text-ink-muted"
+        >
+          ×
+        </button>
+      </div>
+
+      <BlePanel status={bleStatusData} />
+
+      <div className="mt-3 flex gap-2">
         <button
           onClick={onSeed}
           disabled={seedPending}
@@ -142,10 +254,27 @@ function DevPanel({
       <button
         onClick={onResetProfile}
         disabled={resetProfilePending}
-        className="rounded-toy border border-cream-deep bg-cream-soft px-3 py-1.5 text-xs text-ink-soft shadow-toy transition active:translate-y-[2px] active:shadow-none disabled:opacity-50"
+        className="mt-2 w-full rounded-toy border border-cream-deep bg-cream-soft px-3 py-1.5 text-xs text-ink-soft shadow-toy transition active:translate-y-[2px] active:shadow-none disabled:opacity-50"
       >
         {resetProfilePending ? '…' : 'プロフィールをリセット (初回状態に戻す)'}
       </button>
-    </section>
+    </div>
   );
+}
+
+// =============================================================
+// stats: 今日のすれちがい人数を residents から導出
+//   `last_seen_at` (unix sec) が当日 00:00 (ローカル) 以降のもの。
+// =============================================================
+function useDailyStats(residents: HistoryItem[]) {
+  return useMemo(() => {
+    const total = residents.length;
+    const startOfDay = (() => {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      return Math.floor(d.getTime() / 1000);
+    })();
+    const today = residents.filter((r) => r.last_seen_at >= startOfDay).length;
+    return { today, total };
+  }, [residents]);
 }

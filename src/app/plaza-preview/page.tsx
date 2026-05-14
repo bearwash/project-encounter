@@ -79,7 +79,9 @@ export default function PlazaPreviewPage() {
         ))}
       </div>
 
-      <EncounterPlaza residents={residents} />
+      <div className="h-[480px] overflow-hidden rounded-toy border border-cream-deep shadow-toy">
+        <EncounterPlaza residents={residents} />
+      </div>
     </main>
   );
 }

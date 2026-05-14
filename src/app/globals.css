@@ -89,3 +89,192 @@ body {
     animation: none !important;
   }
 }
+
+/* =========================================================================
+   Encounter Greeting (公園入口の対面挨拶シーン)
+   spec: docs/specs/encounter-popup.md §5.3-§5.7
+   ========================================================================= */
+
+/* 相手アバターが画面右奥(隊列)から手前(対面位置)に歩いてくる入場 */
+@keyframes greeting-peer-enter {
+  0%   { transform: translate(60px, -16px) scale(0.78); opacity: 0; }
+  100% { transform: translate(0, 0) scale(1); opacity: 1; }
+}
+
+/* 相手が右へハケる退場 */
+@keyframes greeting-peer-leave {
+  0%   { transform: translate(0, 0); opacity: 1; }
+  100% { transform: translate(110px, -4px); opacity: 0; }
+}
+
+/* ハイタッチ: 中央に向かって両者が一瞬寄る (自分側) */
+@keyframes greeting-highfive-me {
+  0%, 100% { transform: translateX(0) translateY(0); }
+  44%      { transform: translateX(18px) translateY(-6px); }
+  56%      { transform: translateX(18px) translateY(-6px); }
+}
+
+/* ハイタッチ: 中央に向かって両者が一瞬寄る (相手側) */
+@keyframes greeting-highfive-peer {
+  0%, 100% { transform: translateX(0) translateY(0); }
+  44%      { transform: translateX(-18px) translateY(-6px); }
+  56%      { transform: translateX(-18px) translateY(-6px); }
+}
+
+/* 腕の振り上げ: 内側の腕を斜め上に持ち上げる (肩を軸に rotate) */
+@keyframes greeting-arm-swing-l {
+  0%   { transform: rotate(0deg); }
+  44%  { transform: rotate(-120deg); }
+  56%  { transform: rotate(-120deg); }
+  100% { transform: rotate(0deg); }
+}
+@keyframes greeting-arm-swing-r {
+  0%   { transform: rotate(0deg); }
+  44%  { transform: rotate(120deg); }
+  56%  { transform: rotate(120deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* 自分: 内側の腕 = SVG の arm-l (画面の右方向に伸びる腕) を振り上げ */
+.greeting-highfive-me .arm-l {
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+  animation: greeting-arm-swing-l 450ms ease-in-out both;
+}
+
+/* 相手: scaleX(-1) で flip 済みなので、SVG の arm-r が画面の左方向に伸びる
+   = 内側の腕。回転は flip の外側で反転されるため keyframes は逆方向 (-r) を使う */
+.greeting-highfive-peer .arm-r {
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+  animation: greeting-arm-swing-r 450ms ease-in-out both;
+}
+
+/* 会釈: 体全体を少し前傾 + 軽くしゃがむ (頭ペコッ) */
+@keyframes greeting-bow {
+  0%   { transform: translateY(0) rotate(0); }
+  45%  { transform: translateY(8px) rotate(-12deg); }
+  60%  { transform: translateY(8px) rotate(-12deg); }
+  100% { transform: translateY(0) rotate(0); }
+}
+
+/* TAP! エフェクト: ポンッと拡縮しながら上に消える */
+@keyframes greeting-tap-flash {
+  0%   { transform: translate(-50%, 6px) scale(0.7); opacity: 0; }
+  30%  { transform: translate(-50%, -4px) scale(1.15); opacity: 1; }
+  70%  { transform: translate(-50%, -8px) scale(1.05); opacity: 1; }
+  100% { transform: translate(-50%, -22px) scale(1); opacity: 0; }
+}
+
+/* セッション終了 → ゲート通過時のクロスフェード (シーンが白く飛ぶ) */
+@keyframes greeting-gate-fade {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* 対面シーンのアニメ適用クラス */
+.greeting-peer-entering {
+  animation: greeting-peer-enter 500ms ease-out both;
+}
+.greeting-peer-leaving {
+  animation: greeting-peer-leave 300ms ease-in both;
+}
+.greeting-me-highfive {
+  animation: greeting-highfive-me 450ms ease-in-out both;
+}
+.greeting-peer-highfive {
+  animation: greeting-highfive-peer 450ms ease-in-out both;
+}
+.greeting-bow {
+  animation: greeting-bow 400ms ease-in-out both;
+  transform-origin: center bottom;
+}
+.greeting-tap-flash {
+  animation: greeting-tap-flash 300ms ease-out both;
+}
+.greeting-gate-fade {
+  animation: greeting-gate-fade 500ms ease-in 300ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .greeting-peer-entering,
+  .greeting-peer-leaving,
+  .greeting-me-highfive,
+  .greeting-peer-highfive,
+  .greeting-bow,
+  .greeting-tap-flash,
+  .greeting-gate-fade {
+    animation-duration: 1ms !important;
+  }
+}
+
+/* オープニング: 「きょうのすれちがい N 人」スタンプの落ちる演出 */
+@keyframes greeting-opening-stamp {
+  0%   { transform: translate(-50%, -120px) rotate(-12deg) scale(0.4); opacity: 0; }
+  40%  { transform: translate(-50%, 0) rotate(-6deg) scale(1.15); opacity: 1; }
+  55%  { transform: translate(-50%, 4px) rotate(-6deg) scale(1); opacity: 1; }
+  85%  { transform: translate(-50%, 4px) rotate(-6deg) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -8px) rotate(-6deg) scale(1); opacity: 0; }
+}
+.greeting-opening-stamp {
+  animation: greeting-opening-stamp 1200ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* 相手登場時の頭上「!」吹き出し */
+@keyframes greeting-exclaim {
+  0%   { transform: translate(-50%, 14px) scale(0.4); opacity: 0; }
+  30%  { transform: translate(-50%, -2px) scale(1.2); opacity: 1; }
+  60%  { transform: translate(-50%, 0) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -8px) scale(0.9); opacity: 0; }
+}
+.greeting-exclaim {
+  animation: greeting-exclaim 400ms ease-out both;
+}
+
+/* 紙吹雪: ドットがランダム方向に飛び散る (8 個 / インスタンス) */
+@keyframes greeting-confetti {
+  0%   { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  10%  { opacity: 1; }
+  100% {
+    transform:
+      translate(var(--confetti-dx, 60px), var(--confetti-dy, -50px))
+      rotate(var(--confetti-rot, 240deg));
+    opacity: 0;
+  }
+}
+.greeting-confetti-dot {
+  animation: greeting-confetti var(--confetti-dur, 700ms) cubic-bezier(0.2, 0.6, 0.4, 1) both;
+}
+
+/* タップ促進ヒント: ふわっと脈動 */
+@keyframes greeting-tap-hint {
+  0%, 100% { transform: scale(1); box-shadow: 0 6px 0 0 rgba(59,48,36,0.16); }
+  50%      { transform: scale(1.06); box-shadow: 0 8px 0 0 rgba(229,90,76,0.32); }
+}
+.greeting-tap-hint {
+  animation: greeting-tap-hint 1100ms ease-in-out infinite;
+}
+
+/* 桜の花びら: 落下 + スイング + 自転 */
+@keyframes sakura-fall {
+  0%   { transform: translate3d(0, -10vh, 0) rotate(0deg); }
+  50%  { transform: translate3d(var(--sakura-swing, 24px), 50vh, 0) rotate(180deg); }
+  100% { transform: translate3d(calc(var(--sakura-swing, 24px) * -1), 110vh, 0) rotate(360deg); }
+}
+.sakura-petal {
+  animation-name: sakura-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .greeting-opening-stamp,
+  .greeting-exclaim,
+  .greeting-confetti-dot,
+  .greeting-tap-hint,
+  .sakura-petal {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
