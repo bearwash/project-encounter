@@ -146,6 +146,12 @@ function DevPanel({
       >
         {resetProfilePending ? '…' : 'プロフィールをリセット (初回状態に戻す)'}
       </button>
+      <button
+        onClick={() => window.location.reload()}
+        className="rounded border border-neutral-800 px-3 py-1.5 text-xs text-neutral-500 transition hover:border-neutral-600 hover:text-neutral-300"
+      >
+        🔄 リロード (Cmd+R 代替)
+      </button>
     </section>
   );
 }
