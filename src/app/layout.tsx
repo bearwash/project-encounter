@@ -22,7 +22,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body className="min-h-screen bg-black text-white">
+      <body className="min-h-screen bg-cream text-ink">
         <QueryProvider>{children}</QueryProvider>
       </body>
     </html>

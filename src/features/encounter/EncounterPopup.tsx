@@ -7,8 +7,8 @@ import { useMarkRead } from './queries';
 
 type Phase = 'enter' | 'show' | 'leave';
 
-const ENTER_MS = 320;
-const LEAVE_MS = 180;
+const ENTER_MS = 380;
+const LEAVE_MS = 200;
 
 export function EncounterPopup({
   items,
@@ -52,31 +52,35 @@ export function EncounterPopup({
     }, LEAVE_MS);
   };
 
-  const phaseClass =
+  // 入場: 左から歩いてくる感じ
+  // 退場: 右にハケる
+  const characterStyle =
     phase === 'show'
-      ? 'opacity-100 scale-100 translate-y-0'
+      ? { transform: 'translateX(0) translateY(0)', opacity: 1 }
       : phase === 'leave'
-        ? 'opacity-0 scale-95 -translate-y-2'
-        : 'opacity-0 scale-90 translate-y-6';
+        ? { transform: 'translateX(40px) translateY(0)', opacity: 0 }
+        : { transform: 'translateX(-48px) translateY(0)', opacity: 0 };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-8 bg-black/95 p-8 backdrop-blur-sm">
-      <h2
-        className="text-5xl font-black tracking-[0.3em] text-neon"
-        style={{ textShadow: '0 0 12px rgba(57,255,20,0.7), 0 0 28px rgba(57,255,20,0.4)' }}
-      >
-        ENCOUNTER!
-      </h2>
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-7 bg-cream/95 p-8 backdrop-blur-sm">
+      <div className="animate-bounce-in rounded-toy border-2 border-pop-red bg-pop-red px-6 py-2 shadow-toy-lg">
+        <h2 className="text-2xl font-black tracking-[0.2em] text-cream-soft">
+          ENCOUNTER!
+        </h2>
+      </div>
 
       <div
-        className={`flex flex-col items-center gap-4 transition-all duration-300 ease-out ${phaseClass}`}
+        className="flex flex-col items-center gap-4 transition-all duration-300 ease-out"
+        style={characterStyle}
       >
-        <Avatar code={current.user.avatar_code} size={160} />
-        <div className="text-2xl font-bold tracking-wide text-white">
+        <div className={phase === 'show' ? 'animate-toddle' : ''}>
+          <Avatar code={current.user.avatar_code} size={160} animated />
+        </div>
+        <div className="text-2xl font-black tracking-wide text-ink">
           {current.user.display_name}
         </div>
         {current.user.message && (
-          <div className="max-w-xs text-center text-sm text-neutral-300">
+          <div className="max-w-xs rounded-toy border border-cream-deep bg-cream-soft px-4 py-2 text-center text-sm text-ink-soft shadow-toy">
             {current.user.message}
           </div>
         )}
@@ -85,11 +89,11 @@ export function EncounterPopup({
       <div className="flex flex-col items-center gap-3">
         <button
           onClick={handleNext}
-          className="rounded border border-neon bg-neon/10 px-8 py-2 font-bold tracking-widest text-neon transition hover:bg-neon hover:text-black"
+          className="rounded-toy border-2 border-pop-red bg-pop-red px-8 py-2.5 font-black tracking-wider text-cream-soft shadow-toy-lg transition active:translate-y-[3px] active:shadow-none"
         >
           {isLast ? '閉じる' : '次へ'}
         </button>
-        <span className="text-xs tracking-widest text-neutral-500">
+        <span className="text-xs font-bold tracking-widest text-ink-muted">
           {index + 1} / {items.length}
         </span>
       </div>
