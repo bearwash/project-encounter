@@ -6,7 +6,58 @@ import { ble } from '@/lib/tauri/ble';
 
 // spec: docs/specs/walk-mode.md
 const LONG_PRESS_MS = 2000;
+/** バッテリー警告の閾値 (%) — spec §4.4.1 */
+const LOW_BATTERY_PCT = 20;
 
+// =============================================================
+// Battery Status API (一部ブラウザ / WKWebView では非対応 → null fallback)
+// =============================================================
+type BatteryManager = {
+  level: number;
+  addEventListener: (event: 'levelchange', handler: () => void) => void;
+  removeEventListener: (event: 'levelchange', handler: () => void) => void;
+};
+type NavigatorWithBattery = Navigator & {
+  getBattery?: () => Promise<BatteryManager>;
+};
+
+function useBatteryLevel(): number | null {
+  const [level, setLevel] = useState<number | null>(null);
+
+  useEffect(() => {
+    const nav = navigator as NavigatorWithBattery;
+    if (typeof nav.getBattery !== 'function') return;
+
+    let battery: BatteryManager | null = null;
+    let cancelled = false;
+    const update = () => {
+      if (battery && !cancelled) {
+        setLevel(Math.round(battery.level * 100));
+      }
+    };
+
+    nav
+      .getBattery()
+      .then((b) => {
+        if (cancelled) return;
+        battery = b;
+        update();
+        b.addEventListener('levelchange', update);
+      })
+      .catch(() => {
+        // 取得失敗は静かに無視 (UI は経過時間のみ)
+      });
+
+    return () => {
+      cancelled = true;
+      battery?.removeEventListener('levelchange', update);
+    };
+  }, []);
+
+  return level;
+}
+
+// =============================================================
 export function WalkMode() {
   const router = useRouter();
   const [elapsed, setElapsed] = useState(0); // seconds
@@ -14,6 +65,9 @@ export function WalkMode() {
   const [pressing, setPressing] = useState(false);
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
   const pressTimer = useRef<number | null>(null);
+
+  const battery = useBatteryLevel();
+  const lowBattery = battery !== null && battery <= LOW_BATTERY_PCT;
 
   // 経過時間カウント
   useEffect(() => {
@@ -91,21 +145,21 @@ export function WalkMode() {
   const cancelExit = () => setConfirming(false);
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center overflow-hidden bg-cream p-8">
+    <div className="fixed inset-0 flex flex-col items-center justify-center overflow-hidden bg-black p-8 text-white/70">
       {/* 終了ボタン (長押し) — spec §4.2 右上 */}
       <button
         onPointerDown={startPress}
         onPointerUp={cancelPress}
         onPointerCancel={cancelPress}
         onPointerLeave={cancelPress}
-        className="absolute right-4 top-4 select-none rounded-toy border border-cream-deep bg-cream-soft px-3 py-1.5 text-[10px] font-bold tracking-widest text-ink-soft shadow-toy transition active:translate-y-[2px] active:shadow-none"
+        className="absolute right-4 top-4 select-none rounded-toy border border-white/20 bg-white/5 px-3 py-1.5 text-[10px] font-bold tracking-widest text-white/70 transition active:translate-y-[2px]"
       >
         終了（長押し）
       </button>
 
       {/* 長押し進捗ゲージ */}
       <div
-        className="absolute right-4 top-12 h-1 w-20 overflow-hidden rounded-full bg-cream-deep"
+        className="absolute right-4 top-12 h-1 w-20 overflow-hidden rounded-full bg-white/10"
         aria-hidden
         style={{ opacity: pressing ? 1 : 0, transition: 'opacity 120ms' }}
       >
@@ -120,20 +174,32 @@ export function WalkMode() {
 
       {/* 中央: 脈動アイコン + メッセージ */}
       <div className="flex flex-col items-center gap-5">
-        <PulseDot />
-        <span className="text-sm font-bold tracking-wider text-ink-soft">
-          すれ違いを待っています
+        <PulseDot warning={lowBattery} />
+        <span className="text-sm font-bold tracking-wider text-white/55">
+          すれちがいを待っています
         </span>
       </div>
 
-      {/* 経過時間 — spec §4.2 下部 */}
-      <div className="absolute bottom-8 font-mono text-sm font-bold tracking-[0.25em] text-ink-muted">
-        {formatTime(elapsed)}
+      {/* 下部: 経過時間 + バッテリー残量 (spec §4.2 / §4.4.1) */}
+      <div className="absolute bottom-8 flex items-center gap-4 text-xs font-mono font-bold tracking-[0.25em]">
+        <span className="text-white/45" data-testid="walk-elapsed">
+          {formatTime(elapsed)}
+        </span>
+        {battery !== null && (
+          <span
+            className={
+              lowBattery ? 'text-pop-orange' : 'text-white/45'
+            }
+            data-testid="walk-battery"
+          >
+            電池 {battery}%
+          </span>
+        )}
       </div>
 
       {/* 確認ダイアログ — spec §4.3 step 2 */}
       {confirming && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-6 bg-cream/85 backdrop-blur-sm">
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-6 bg-black/60 backdrop-blur-sm">
           <div className="animate-bounce-in flex flex-col items-center gap-6 rounded-toy border border-cream-deep bg-cream-soft px-8 py-7 shadow-toy-lg">
             <p className="font-bold tracking-wider text-ink">
               ウォークモードを終了しますか?
@@ -159,14 +225,19 @@ export function WalkMode() {
   );
 }
 
-function PulseDot() {
+/** 脈動アイコン。warning=true でオレンジに切り替え (spec §4.4.1 / §4.6) */
+function PulseDot({ warning = false }: { warning?: boolean }) {
+  const dotColor = warning ? 'bg-pop-orange' : 'bg-pop-green';
+  const glow = warning
+    ? '0 0 12px rgba(245,166,35,0.55)'
+    : '0 0 8px rgba(118,194,91,0.45)';
   return (
-    <div className="relative h-4 w-4">
+    <div className="relative h-4 w-4" data-testid="walk-pulse-dot" data-warning={warning}>
       <span
-        className="absolute inset-0 rounded-full bg-pop-green"
-        style={{ boxShadow: '0 0 8px rgba(118,194,91,0.4)' }}
+        className={`absolute inset-0 rounded-full ${dotColor}`}
+        style={{ boxShadow: glow }}
       />
-      <span className="absolute inset-0 animate-ping rounded-full bg-pop-green/60" />
+      <span className={`absolute inset-0 animate-ping rounded-full ${dotColor} opacity-60`} />
     </div>
   );
 }
