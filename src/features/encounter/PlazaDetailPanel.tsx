@@ -59,9 +59,14 @@ export function PlazaDetailPanel({ resident, onClose }: Props) {
                   {resident.display_name}
                 </h2>
                 <span className="text-xs font-bold text-ink-muted">
-                  最終すれ違い: {formatRelativeTime(resident.last_encountered_at)}
+                  最終すれちがい: {formatRelativeTime(resident.last_encountered_at)}
                 </span>
-                <span className="text-xs font-bold text-ink-muted">
+                {resident.first_seen_at !== resident.last_encountered_at && (
+                  <span className="text-xs font-bold text-ink-muted">
+                    初対面: {formatRelativeTime(resident.first_seen_at)}
+                  </span>
+                )}
+                <span className="text-xs font-black text-pop-red">
                   累計 {resident.encounter_count} 回
                 </span>
               </div>

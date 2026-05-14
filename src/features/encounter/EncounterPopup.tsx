@@ -284,8 +284,8 @@ export function EncounterPopup({
       <SakuraPetals count={12} durationRange={[10, 18]} />
 
       <GreetingStrip
-        total={session.length}
-        index={Math.min(index, session.length - 1)}
+        totalToday={items.length}
+        doneCount={sessionStart + Math.min(index, session.length - 1)}
       />
 
       {/* 隊列 (次以降の相手たち) */}

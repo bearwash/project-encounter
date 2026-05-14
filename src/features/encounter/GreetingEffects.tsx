@@ -53,7 +53,7 @@ export function GreetingExclaim() {
 }
 
 // =============================================================
-// ConfettiBurst — ハイタッチ瞬間に 8 個のドットが飛び散る
+// ConfettiBurst — ハイタッチ瞬間に 14 個の紙吹雪が飛び散る
 // =============================================================
 const CONFETTI_COLORS = [
   '#E55A4C', // pop-red
@@ -69,20 +69,25 @@ type ConfettiBurstProps = {
   origin?: React.CSSProperties;
 };
 
+type ConfettiShape = 'square' | 'circle' | 'bar';
+
 export function GreetingConfetti({ origin }: ConfettiBurstProps) {
-  const dots = useMemo(() => {
-    return Array.from({ length: 8 }, (_, i) => {
-      // 8 方向に均等 + ばらつき
-      const baseAngle = (i / 8) * Math.PI * 2;
-      const angle = baseAngle + (Math.random() - 0.5) * 0.4;
-      const dist = 55 + Math.random() * 35;
+  const pieces = useMemo(() => {
+    const COUNT = 14;
+    return Array.from({ length: COUNT }, (_, i) => {
+      // 14 方向に均等 + ばらつき
+      const baseAngle = (i / COUNT) * Math.PI * 2;
+      const angle = baseAngle + (Math.random() - 0.5) * 0.5;
+      const dist = 70 + Math.random() * 60;
       const dx = Math.cos(angle) * dist;
-      const dy = Math.sin(angle) * dist - 14; // 少し上方向にバイアス
-      const rot = (Math.random() * 540 - 270).toFixed(0);
-      const dur = 560 + Math.random() * 240;
+      const dy = Math.sin(angle) * dist - 22; // 上にバイアス強め (放物線感)
+      const rot = (Math.random() * 720 - 360).toFixed(0);
+      const dur = 620 + Math.random() * 360;
       const color = CONFETTI_COLORS[i % CONFETTI_COLORS.length]!;
-      const size = 6 + Math.random() * 4;
-      return { dx, dy, rot, dur, color, size };
+      const size = 8 + Math.random() * 6;
+      const shapes: ConfettiShape[] = ['square', 'circle', 'bar'];
+      const shape = shapes[i % shapes.length]!;
+      return { dx, dy, rot, dur, color, size, shape };
     });
   }, []);
 
@@ -93,25 +98,37 @@ export function GreetingConfetti({ origin }: ConfettiBurstProps) {
       style={{ left: '50%', top: '46%', ...origin }}
       aria-hidden
     >
-      {dots.map((d, i) => (
-        <span
-          key={i}
-          className="greeting-confetti-dot absolute block rounded-sm"
-          style={
-            {
-              width: `${d.size}px`,
-              height: `${d.size}px`,
-              backgroundColor: d.color,
-              left: '-3px',
-              top: '-3px',
-              ['--confetti-dx' as string]: `${d.dx}px`,
-              ['--confetti-dy' as string]: `${d.dy}px`,
-              ['--confetti-rot' as string]: `${d.rot}deg`,
-              ['--confetti-dur' as string]: `${d.dur}ms`,
-            } as React.CSSProperties
-          }
-        />
-      ))}
+      {pieces.map((p, i) => {
+        const w = p.shape === 'bar' ? p.size * 0.6 : p.size;
+        const h = p.shape === 'bar' ? p.size * 1.6 : p.size;
+        const radius =
+          p.shape === 'circle'
+            ? '999px'
+            : p.shape === 'bar'
+              ? '2px'
+              : '2px';
+        return (
+          <span
+            key={i}
+            className="greeting-confetti-dot absolute block"
+            style={
+              {
+                width: `${w}px`,
+                height: `${h}px`,
+                backgroundColor: p.color,
+                borderRadius: radius,
+                left: `${-w / 2}px`,
+                top: `${-h / 2}px`,
+                boxShadow: '0 1px 0 rgba(59,48,36,0.18)',
+                ['--confetti-dx' as string]: `${p.dx}px`,
+                ['--confetti-dy' as string]: `${p.dy}px`,
+                ['--confetti-rot' as string]: `${p.rot}deg`,
+                ['--confetti-dur' as string]: `${p.dur}ms`,
+              } as React.CSSProperties
+            }
+          />
+        );
+      })}
     </div>
   );
 }

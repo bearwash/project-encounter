@@ -37,8 +37,9 @@ type Props = {
 
 /** ゲートの x 座標 (画面左端から少し内側) */
 const GATE_X = 20;
-/** 合流時に initialX まで歩いてくる時間 */
-const JOIN_WALK_MS = 1400;
+/** 合流時に initialX まで歩いてくる時間 (個体ごとにジッタを乗せる) */
+const JOIN_WALK_MS_BASE = 1400;
+const JOIN_WALK_MS_JITTER = 500;
 /** join walk 完了後、アイドリング開始までの余裕 */
 const JOIN_REST_MS = 300;
 
@@ -92,10 +93,12 @@ export function PlazaResident({
 
     if (isJoining) {
       // 合流アニメ: GATE_X → initialX (右へ) → 通常 tick
+      // 個体差ジッタ: user_id シードで歩行速度をばらつかせて群衆感を出す
+      const walkMs = JOIN_WALK_MS_BASE + Math.floor(rng() * JOIN_WALK_MS_JITTER);
       timerRef.current = window.setTimeout(() => {
         setVisible(true);
         setDirection(initialX > GATE_X ? 1 : -1);
-        setTransitionMs(JOIN_WALK_MS);
+        setTransitionMs(walkMs);
         setX(initialX);
         xRef.current = initialX;
         // walking 表示
@@ -104,7 +107,7 @@ export function PlazaResident({
         // フレームイン完了後にアイドリングへ
         timerRef.current = window.setTimeout(() => {
           tick('standing');
-        }, JOIN_WALK_MS + JOIN_REST_MS);
+        }, walkMs + JOIN_REST_MS);
       }, joinDelayMs);
     } else {
       // 通常: 0-1.5s ずらしてアイドリング開始

@@ -10,26 +10,26 @@
  */
 
 type Props = {
-  /** このセッションで挨拶する総人数 */
-  total: number;
-  /** 現在の表示人数 (0-based) */
-  index: number;
+  /** 今日の累計すれちがい人数 (全セッションを通した総数) */
+  totalToday: number;
+  /** 今これまで挨拶を済ませた人数 (0-based の "n 人目に対面中" を out) */
+  doneCount: number;
 };
 
-export function GreetingStrip({ total, index }: Props) {
+export function GreetingStrip({ totalToday, doneCount }: Props) {
   return (
     <div
       className="absolute left-3 right-3 top-3 z-10 flex h-8 items-center justify-between rounded-full border border-cream-deep bg-cream-soft/85 px-4 shadow-toy backdrop-blur"
       data-testid="greeting-strip"
     >
       <span className="text-[11px] font-black tracking-widest text-ink">
-        きょうのすれちがい {total} 人
+        きょうのすれちがい {totalToday} 人
       </span>
       <span
         className="font-mono text-[11px] font-bold tracking-widest text-ink-muted"
         data-testid="greeting-strip-progress"
       >
-        {Math.min(index + 1, total)} / {total}
+        {Math.min(doneCount + 1, totalToday)} / {totalToday}
       </span>
     </div>
   );
