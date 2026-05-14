@@ -25,7 +25,13 @@ import {
   useSeedEncounter,
   useUnreadEncounters,
 } from '@/features/encounter/queries';
-import { useProfile, useResetProfile } from '@/features/profile/queries';
+import { CloudConsentDialog } from '@/features/profile/CloudConsentDialog';
+import { useCloudConsent } from '@/features/profile/consent';
+import {
+  flushProfileSyncQueue,
+  useProfile,
+  useResetProfile,
+} from '@/features/profile/queries';
 import type { HistoryItem, UnreadEncounter } from '@/types/encounter';
 
 export default function HomePage() {
@@ -37,16 +43,34 @@ export default function HomePage() {
   const clear = useClearEncounters();
   const resetProfile = useResetProfile();
   const bleStatus = useBleStatus();
+  const consent = useCloudConsent();
 
   // BLE mock peer 発見イベントを購読 → DB 永続化 + クールダウン制御
   useEncounterListener();
 
-  // spec/profile.md §5: 初回起動時、プロフィール未設定なら必ず設定画面に誘導
+  // 同意済みでフォアグラウンドに来たタイミングで profile_sync_queue を flush
+  // (spec §5.5 オンライン復帰時のフロー、簡易版)
   useEffect(() => {
-    if (!profile.isLoading && profile.data === null) {
+    if (consent.data?.status !== 'granted') return;
+    flushProfileSyncQueue().catch(() => {});
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        flushProfileSyncQueue().catch(() => {});
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [consent.data?.status]);
+
+  // spec/profile.md §5: 初回起動時、プロフィール未設定なら必ず設定画面に誘導
+  // ただし同意ダイアログが pending のときは先に同意を取る
+  useEffect(() => {
+    if (profile.isLoading || consent.isLoading) return;
+    if (consent.data?.status === 'pending') return; // ダイアログ優先
+    if (profile.data === null) {
       router.replace('/profile');
     }
-  }, [profile.isLoading, profile.data, router]);
+  }, [profile.isLoading, profile.data, consent.isLoading, consent.data?.status, router]);
 
   // 起動時 snapshot: popup 表示中に届いた新規はキューに追加しない (spec §5.9)
   const [snapshot, setSnapshot] = useState<UnreadEncounter[] | null>(null);
@@ -71,6 +95,16 @@ export default function HomePage() {
 
   // Dev panel の折り畳み
   const [devOpen, setDevOpen] = useState(false);
+
+  // 同意ダイアログを先に出すケース
+  if (consent.isLoading) return null;
+  if (consent.data?.status === 'pending') {
+    return (
+      <main className="fixed inset-0 overflow-hidden bg-cream">
+        <CloudConsentDialog onDecided={() => consent.refetch()} />
+      </main>
+    );
+  }
 
   if (profile.isLoading || !profile.data) {
     return null;

@@ -267,3 +267,17 @@ on_fetch_success(rows):
 - ~~匿名 Auth 永続化方法~~ → **諦める。再インストール = 新生スタート** で確定
 - ~~プロフィール非公開モード~~ → **MVP では不要**（公開 or 退会の 2 択）
 - ~~アバター素材ホスティング~~ → **クライアント同梱**（[avatar.md](avatar.md)）
+
+## 9. 実装状況
+
+| 項目 | 状況 |
+| --- | --- |
+| supabase-js クライアント + 匿名 Auth | ✅ src/lib/supabase/{client,auth}.ts |
+| profiles upsert / single fetch / bulk fetch / delete | ✅ src/lib/supabase/profiles.ts |
+| `profile_fetch_remote` (Rust mock) | ✅ Supabase 未設定時のフォールバック |
+| 公開同意ダイアログ (cloud_profile_consent_at) | ✅ pending / granted / declined の 3 値、§5.7 通り |
+| 自プロフィール PUT + オフライン send queue (§5.3) | ✅ 簡易リトライ (起動時 + visibility 復帰時に flush) |
+| 退会・削除 (§5.8) | ✅ Supabase delete + local DB 初期化 |
+| Supabase スキーマ + RLS デプロイ用 SQL | ✅ docs/contracts/supabase-schema.sql |
+| 指数バックオフ・全自動リトライ (§5.5) | ❌ Phase 2 |
+| トースト UI (§5.5) | ❌ Phase 2 |

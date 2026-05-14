@@ -13,6 +13,7 @@
     "tauri:build": "tauri build"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.105.4",
     "@tanstack/react-query": "^5.59.0",
     "@tauri-apps/api": "^2.1.0",
     "@tauri-apps/plugin-log": "^2.8.0",

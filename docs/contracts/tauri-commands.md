@@ -169,8 +169,12 @@ type RemoteProfile = {
 } | null;
 ```
 
-未登録なら `null`。本実装は mock で常に固定マッピングを返す。Phase 2 で
-Supabase REST `.in("id", [...])` 一括 fetch に置き換える。
+未登録なら `null`。Rust 側の mock は固定マッピングを返す。フロント TS の
+`fetchRemoteProfile` (src/lib/tauri/profile.ts) は **環境変数で切り替え**:
+
+- `NEXT_PUBLIC_SUPABASE_URL` / `_ANON_KEY` 設定済み + サインイン済み:
+  Supabase の `profiles` テーブルから fetch (src/lib/supabase/profiles.ts)
+- それ以外: この Rust mock コマンドへフォールバック (デバッグ用)
 
 ---
 
