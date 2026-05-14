@@ -32,10 +32,28 @@ const GROUND_HEIGHT_PCT = 28; // ステージ高さに対する地面の比率
 
 type Props = {
   residents: HistoryItem[];
+  /**
+   * 直近で対面挨拶を済ませて広場に合流したばかりの user_id 集合。
+   * spec: docs/specs/encounter-plaza.md §4.4
+   * 含まれる住人だけ「ゲートから順次フレームイン」する。
+   */
+  joiningIds?: string[];
 };
 
-export function EncounterPlaza({ residents }: Props) {
+/** 合流アニメで 1 人ずつフレームインする間隔 (§4.4 ステップ 1) */
+const JOIN_STAGGER_MS = 200;
+
+export function EncounterPlaza({ residents, joiningIds }: Props) {
   const [selected, setSelected] = useState<HistoryItem | null>(null);
+
+  // 合流対象を順序付きの Map に変換 (user_id → 何番目)
+  const joinOrder = useMemo(() => {
+    const map = new Map<string, number>();
+    if (joiningIds) {
+      joiningIds.forEach((id, i) => map.set(id, i));
+    }
+    return map;
+  }, [joiningIds]);
 
   return (
     <div
@@ -55,6 +73,7 @@ export function EncounterPlaza({ residents }: Props) {
       {/* 横スクロールの中景〜前景 */}
       <PlazaStage
         residents={residents}
+        joinOrder={joinOrder}
         onTap={setSelected}
       />
 
@@ -116,9 +135,11 @@ function EmptyOverlay() {
 // =============================================================
 function PlazaStage({
   residents,
+  joinOrder,
   onTap,
 }: {
   residents: HistoryItem[];
+  joinOrder: Map<string, number>;
   onTap: (r: HistoryItem) => void;
 }) {
   const stageWidth = Math.max(MIN_STAGE_WIDTH, residents.length * PX_PER_RESIDENT);
@@ -170,17 +191,24 @@ function PlazaStage({
         <PlazaSakuraTree xPct={70} />
 
         {/* 住人レイヤ */}
-        {residents.map((r, i) => (
-          <PlazaResident
-            key={r.user_id}
-            userId={r.user_id}
-            avatarCode={r.avatar_code}
-            initialX={positions[i]!}
-            stageWidth={stageWidth}
-            size={RESIDENT_SIZE}
-            onTap={() => onTap(r)}
-          />
-        ))}
+        {residents.map((r, i) => {
+          const joinIndex = joinOrder.get(r.user_id);
+          // 合流対象なら index に応じて 200ms ずつ遅延 (§4.4)
+          const joinDelayMs =
+            joinIndex !== undefined ? joinIndex * JOIN_STAGGER_MS : 0;
+          return (
+            <PlazaResident
+              key={r.user_id}
+              userId={r.user_id}
+              avatarCode={r.avatar_code}
+              initialX={positions[i]!}
+              stageWidth={stageWidth}
+              size={RESIDENT_SIZE}
+              onTap={() => onTap(r)}
+              joinDelayMs={joinDelayMs}
+            />
+          );
+        })}
       </div>
     </div>
   );

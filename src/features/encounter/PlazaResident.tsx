@@ -27,7 +27,20 @@ type Props = {
   stageWidth: number;
   size?: number;
   onTap?: () => void;
+  /**
+   * 合流アニメ (encounter-plaza.md §4.4) の遅延 ms。
+   * > 0 のときは画面左端 (ゲート位置) から walking で initialX へ歩いてくる
+   * 演出を入れる。0 / undefined のときは通常通り initialX で出現。
+   */
+  joinDelayMs?: number;
 };
+
+/** ゲートの x 座標 (画面左端から少し内側) */
+const GATE_X = 20;
+/** 合流時に initialX まで歩いてくる時間 */
+const JOIN_WALK_MS = 1400;
+/** join walk 完了後、アイドリング開始までの余裕 */
+const JOIN_REST_MS = 300;
 
 export function PlazaResident({
   userId,
@@ -36,13 +49,19 @@ export function PlazaResident({
   stageWidth,
   size = 64,
   onTap,
+  joinDelayMs = 0,
 }: Props) {
-  const [state, setState] = useState<PlazaBehaviorState>('standing');
-  const [x, setX] = useState(initialX);
+  const isJoining = joinDelayMs > 0;
+  const [state, setState] = useState<PlazaBehaviorState>(
+    isJoining ? 'walking' : 'standing',
+  );
+  const [x, setX] = useState(isJoining ? GATE_X : initialX);
   const [direction, setDirection] = useState<1 | -1>(1);
   const [transitionMs, setTransitionMs] = useState(0);
+  // joining 中は最初に透明 → フレームインで opacity 1
+  const [visible, setVisible] = useState(!isJoining);
 
-  const xRef = useRef(initialX);
+  const xRef = useRef(isJoining ? GATE_X : initialX);
   const stageWidthRef = useRef(stageWidth);
   stageWidthRef.current = stageWidth;
   const timerRef = useRef<number | null>(null);
@@ -71,9 +90,27 @@ export function PlazaResident({
       timerRef.current = window.setTimeout(() => tick(next), dur);
     };
 
-    // 個体差: 0-1.5s ずらして開始 (全員一斉に動き出すのを避ける)
-    const startDelay = rng() * 1500;
-    timerRef.current = window.setTimeout(() => tick('standing'), startDelay);
+    if (isJoining) {
+      // 合流アニメ: GATE_X → initialX (右へ) → 通常 tick
+      timerRef.current = window.setTimeout(() => {
+        setVisible(true);
+        setDirection(initialX > GATE_X ? 1 : -1);
+        setTransitionMs(JOIN_WALK_MS);
+        setX(initialX);
+        xRef.current = initialX;
+        // walking 表示
+        setState('walking');
+
+        // フレームイン完了後にアイドリングへ
+        timerRef.current = window.setTimeout(() => {
+          tick('standing');
+        }, JOIN_WALK_MS + JOIN_REST_MS);
+      }, joinDelayMs);
+    } else {
+      // 通常: 0-1.5s ずらしてアイドリング開始
+      const startDelay = rng() * 1500;
+      timerRef.current = window.setTimeout(() => tick('standing'), startDelay);
+    }
 
     return () => {
       if (timerRef.current !== null) window.clearTimeout(timerRef.current);
@@ -90,10 +127,15 @@ export function PlazaResident({
       onClick={onTap}
       data-testid={`plaza-resident-${userId}`}
       data-state={state}
+      data-joining={isJoining ? 'true' : undefined}
       className="absolute bottom-0 left-0 origin-bottom focus:outline-none"
       style={{
         transform: `translateX(${x - size / 2}px) scaleX(${direction === -1 ? -1 : 1})`,
-        transition: transitionMs > 0 ? `transform ${transitionMs}ms linear` : 'none',
+        opacity: visible ? 1 : 0,
+        transition: [
+          transitionMs > 0 ? `transform ${transitionMs}ms linear` : 'transform 0ms',
+          `opacity 320ms ease-out`,
+        ].join(', '),
       }}
       aria-label={`avatar ${userId}`}
     >

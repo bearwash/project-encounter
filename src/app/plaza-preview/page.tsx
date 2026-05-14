@@ -53,6 +53,17 @@ function makeMockResidents(count: number): HistoryItem[] {
 export default function PlazaPreviewPage() {
   const [count, setCount] = useState<number>(8);
   const residents = useMemo(() => makeMockResidents(count), [count]);
+  // 合流アニメ検証用 (encounter-plaza.md §4.4)。
+  // 「合流テスト」ボタンで全住人を「ゲートからフレームイン」状態に戻す。
+  const [joiningIds, setJoiningIds] = useState<string[]>([]);
+  // mount 識別: residents が再生成されると key が変わるので合流アニメ自体は
+  // 自然にリセットされる。
+  const [generation, setGeneration] = useState(0);
+
+  const startJoinDemo = () => {
+    setJoiningIds(residents.map((r) => r.user_id));
+    setGeneration((g) => g + 1);
+  };
 
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-4 p-5">
@@ -66,7 +77,10 @@ export default function PlazaPreviewPage() {
           <button
             key={n}
             type="button"
-            onClick={() => setCount(n)}
+            onClick={() => {
+              setCount(n);
+              setJoiningIds([]);
+            }}
             data-testid={`count-${n}`}
             className={`rounded-toy border-2 px-3 py-1.5 text-xs font-black tracking-widest shadow-toy transition active:translate-y-[2px] active:shadow-none ${
               count === n
@@ -77,10 +91,21 @@ export default function PlazaPreviewPage() {
             {n}
           </button>
         ))}
+        <button
+          type="button"
+          onClick={startJoinDemo}
+          className="rounded-toy border-2 border-pop-blue bg-cream-soft px-3 py-1.5 text-xs font-black tracking-widest text-pop-blue shadow-toy transition active:translate-y-[2px] active:shadow-none"
+          data-testid="join-demo"
+        >
+          合流アニメを再生
+        </button>
       </div>
 
-      <div className="h-[480px] overflow-hidden rounded-toy border border-cream-deep shadow-toy">
-        <EncounterPlaza residents={residents} />
+      <div
+        key={generation}
+        className="h-[480px] overflow-hidden rounded-toy border border-cream-deep shadow-toy"
+      >
+        <EncounterPlaza residents={residents} joiningIds={joiningIds} />
       </div>
     </main>
   );

@@ -130,6 +130,8 @@ export default function EncounterPreviewPage() {
             onClose={() => setClosed(true)}
             onEnterPlaza={() => setClosed(true)}
           />
+          /* preview では合流アニメは検証しない (Plaza が同時に出ないため)。
+             ID 配列は捨てる */
         ) : (
           <div className="flex h-full items-center justify-center p-4 text-center text-sm text-ink-soft">
             シーンを閉じました。「再起動」で再表示。

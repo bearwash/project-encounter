@@ -66,8 +66,12 @@ type Props = {
   myAvatarCode: string;
   /** 「あとで広場で見る」 or items が空のとき (未表示分は次回起動で再提示) */
   onClose: () => void;
-  /** 「広場へはいる」 → ゲート通過完了後に呼ばれる */
-  onEnterPlaza: () => void;
+  /**
+   * 「広場へはいる」 → ゲート通過完了後に呼ばれる。
+   * これまでに挨拶を済ませた相手の user_id 一覧を渡す
+   * (広場側の合流アニメ — encounter-plaza.md §4.4 — の発火用)。
+   */
+  onEnterPlaza: (greetedUserIds: string[]) => void;
 };
 
 export function EncounterPopup({
@@ -94,6 +98,8 @@ export function EncounterPopup({
   const markRead = useMarkRead();
   // 既読化を相手ごとに 1 回だけにする (重複呼び出し防止 — §5.9 冪等性)
   const readSetRef = useRef<Set<number>>(new Set());
+  // 挨拶した相手の user_id 集合 (広場の合流アニメに渡す)
+  const greetedUserIdsRef = useRef<Set<string>>(new Set());
   // タップ連打のデバウンス
   const lastTapRef = useRef(0);
 
@@ -120,12 +126,14 @@ export function EncounterPopup({
     if (!current || phase === 'opening') return;
 
     if (phase === 'enter') {
-      // enter → meet (タップ待ちへ)。入場完了時に既読化 (§5.8)
+      // enter → meet (タップ待ちへ)。入場完了時に既読化 (§5.8) +
+      // 広場合流アニメの対象として user_id を記録
       const t = window.setTimeout(() => {
         setPhase('meet');
         const id = current.log_id;
         if (!readSetRef.current.has(id)) {
           readSetRef.current.add(id);
+          greetedUserIdsRef.current.add(current.user.user_id);
           markRead.mutate(id);
         }
       }, GREETING_TIMINGS.ENTER_MS);
@@ -217,8 +225,9 @@ export function EncounterPopup({
   // セッション終了 → 「広場へはいる」 → ゲート通過演出 → 広場へ遷移
   const handleEnterPlaza = () => {
     setPhase('gate-pass');
+    const ids = Array.from(greetedUserIdsRef.current);
     window.setTimeout(
-      () => onEnterPlaza(),
+      () => onEnterPlaza(ids),
       GREETING_TIMINGS.GATE_PASS_MS + GREETING_TIMINGS.CROSSFADE_MS,
     );
   };

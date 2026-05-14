@@ -56,6 +56,16 @@ export default function HomePage() {
     }
   }, [unread.data, snapshot]);
 
+  // 直近で対面挨拶を済ませた相手 (合流アニメ用、encounter-plaza.md §4.4)
+  const [joiningIds, setJoiningIds] = useState<string[]>([]);
+  useEffect(() => {
+    if (joiningIds.length === 0) return;
+    // 全員のフレームイン (200ms × 人数) + walk 1400ms + 余裕 1s
+    const ttl = joiningIds.length * 200 + 1400 + 1000;
+    const t = window.setTimeout(() => setJoiningIds([]), ttl);
+    return () => window.clearTimeout(t);
+  }, [joiningIds]);
+
   const residents = history.data ?? [];
   const stats = useDailyStats(residents);
 
@@ -69,7 +79,7 @@ export default function HomePage() {
   return (
     <main className="fixed inset-0 overflow-hidden bg-cream">
       {/* メインの広場ビュー (全画面) */}
-      <EncounterPlaza residents={residents} />
+      <EncounterPlaza residents={residents} joiningIds={joiningIds} />
 
       {/* 上部スコアバー */}
       <PlazaTopBar today={stats.today} total={stats.total} />
@@ -108,7 +118,10 @@ export default function HomePage() {
           items={snapshot}
           myAvatarCode={profile.data.avatar_code}
           onClose={() => setSnapshot(null)}
-          onEnterPlaza={() => setSnapshot(null)}
+          onEnterPlaza={(greetedUserIds) => {
+            setSnapshot(null);
+            setJoiningIds(greetedUserIds);
+          }}
         />
       )}
     </main>
