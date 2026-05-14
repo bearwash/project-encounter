@@ -1,0 +1,33 @@
+<!--
+  Phase 1 / 1.5 で `pnpm tauri ios init` を実行したら生成される
+  src-tauri/gen/apple/project_encounter_iOS/Info.plist の <dict> 内に
+  以下のスニペットをマージしてください。
+
+  spec: docs/specs/ble-handshake.md / docs/要件定義.md §3.2 §6
+-->
+
+<!-- 縦持ち固定 (UI 仕様、すべての画面が縦長前提) -->
+<key>UISupportedInterfaceOrientations</key>
+<array>
+    <string>UIInterfaceOrientationPortrait</string>
+</array>
+<key>UISupportedInterfaceOrientations~ipad</key>
+<array>
+    <string>UIInterfaceOrientationPortrait</string>
+    <string>UIInterfaceOrientationPortraitUpsideDown</string>
+</array>
+
+<!-- BLE 権限文 (iOS 13+ 必須) -->
+<key>NSBluetoothAlwaysUsageDescription</key>
+<string>周りのこのアプリ利用者を BLE で発見し、すれちがいを記録するために使います。位置情報やマイクは使いません。</string>
+
+<!-- 互換 (iOS 12 以前) -->
+<key>NSBluetoothPeripheralUsageDescription</key>
+<string>あなたの user_id を周りに発信して、すれちがいを成立させるために使います。</string>
+
+<!-- BLE バックグラウンド動作 (Phase 1.5 Native プラグインで使用) -->
+<key>UIBackgroundModes</key>
+<array>
+    <string>bluetooth-central</string>
+    <string>bluetooth-peripheral</string>
+</array>

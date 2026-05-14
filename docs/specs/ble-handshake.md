@@ -119,7 +119,23 @@ on_advertisement_received(service_data):
 - 下流: [profile-sync.md](profile-sync.md)（受信した user_id をプロフィールに紐付ける）, [encounter-popup.md](encounter-popup.md), [encounter-plaza.md](encounter-plaza.md), [walk-mode.md](walk-mode.md)
 
 ## 7. オープン課題
-- [ ] Service UUID の確定（実装時 `uuidgen` で発行 → ここに固定値として記載）
-- [ ] Android 12+ の `BLUETOOTH_ADVERTISE` / `BLUETOOTH_SCAN` 権限フロー
-- [ ] iOS バックグラウンドの実測検出率の計測方法
+
+### 解消済み
+- ~~Service UUID の確定~~ → `4a985948-3bc6-450b-80d2-04a8f98f83cb` (§4.1)
+- ~~Android 12+ の `BLUETOOTH_ADVERTISE` / `BLUETOOTH_SCAN` 権限フロー~~
+  → [`docs/contracts/android/AndroidManifest.snippet.xml`](../contracts/android/AndroidManifest.snippet.xml) に
+  雛形を用意。`BLUETOOTH_SCAN` には `neverForLocation` を明示する (要件定義 §6 の
+  位置情報非取得を担保)。`tauri android init` 実行後、生成された
+  `AndroidManifest.xml` の `<manifest>` 直下にマージする運用。
+- ~~iOS バックグラウンド対応~~ → `Info.plist` に `UIBackgroundModes`
+  (`bluetooth-central` / `bluetooth-peripheral`) を設定済み。実測検出率は
+  Phase 1.5 の Native プラグイン実装後に計測する。
+
+### 残課題 (Phase 1.5)
+- [ ] iOS / Android Native BLE プラグインの実装
+  ([要件定義 §7 Phase 1.5](../要件定義.md))
+  - 現状: btleplug が iOS/Android 非対応のため、mobile では mock fallback
+  - 解決: `tauri-plugin-encounter-ble` を新規実装し、`BleBackend::TauriPlugin`
+    バリアントを追加 → mobile では自動採用
 - [ ] 同時に複数の `user_id` が検出された場合のキューイング戦略
+  - 現状: btleplug 側で 5 秒の dedup window のみ。実機計測後に再検討

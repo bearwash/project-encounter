@@ -113,7 +113,14 @@ impl BleService {
                     {
                         btleplug_scan_loop(app, mode).await;
                     }
-                    #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
+                    #[cfg(any(target_os = "ios", target_os = "android"))]
+                    {
+                        log::warn!(
+                            "[ble] iOS/Android では Phase 1.5 の Native プラグインが未実装のため mock fallback で動作します"
+                        );
+                        mock_loop(app, mode).await;
+                    }
+                    #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows", target_os = "ios", target_os = "android")))]
                     {
                         log::warn!("[ble] btleplug not supported on this platform, falling back to mock");
                         mock_loop(app, mode).await;
@@ -141,8 +148,11 @@ impl Default for BleService {
 
 /// 既定バックエンドを env で決定。
 /// - `BLE_BACKEND=mock`     → Mock 強制
-/// - `BLE_BACKEND=btleplug` → Btleplug 強制
-/// - 未指定                  → 対応 OS なら Btleplug、それ以外は Mock
+/// - `BLE_BACKEND=btleplug` → Btleplug 強制 (iOS/Android では mock fallback)
+/// - 未指定                  → 対応 OS なら Btleplug、iOS/Android / 他は Mock
+///
+/// Phase 1.5 で iOS / Android Native プラグインが入ったら、ここに
+/// `BleBackend::TauriPlugin` を追加して mobile では自動的にそれを選ぶ。
 fn default_backend() -> BleBackend {
     match std::env::var("BLE_BACKEND").as_deref() {
         Ok("mock") => BleBackend::Mock,
@@ -151,6 +161,7 @@ fn default_backend() -> BleBackend {
             if cfg!(any(target_os = "macos", target_os = "linux", target_os = "windows")) {
                 BleBackend::Btleplug
             } else {
+                // iOS / Android はネイティブ実装まで mock
                 BleBackend::Mock
             }
         }

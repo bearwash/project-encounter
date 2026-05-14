@@ -1,0 +1,27 @@
+<!--
+  Phase 1.5 で `pnpm tauri android init` を実行したら生成される
+  src-tauri/gen/android/app/src/main/AndroidManifest.xml に
+  以下のスニペットを <manifest> 要素直下にマージしてください。
+
+  spec: docs/specs/ble-handshake.md / docs/要件定義.md §4.1, §6
+-->
+
+<!-- 旧 API 互換 (API 30 以前) -->
+<uses-permission android:name="android.permission.BLUETOOTH"
+    android:maxSdkVersion="30" />
+<uses-permission android:name="android.permission.BLUETOOTH_ADMIN"
+    android:maxSdkVersion="30" />
+
+<!-- API 31+ (Android 12+) -->
+<!-- BLUETOOTH_SCAN は neverForLocation を必ず付ける (要件定義 §6:
+     位置情報の非取得を担保。Android では BLE Scan で
+     周囲の BLE デバイスから位置を推定可能とみなされるため、
+     アプリが位置情報を導出しないことを宣言する必要がある) -->
+<uses-permission android:name="android.permission.BLUETOOTH_SCAN"
+    android:usesPermissionFlags="neverForLocation" />
+<uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
+<uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
+<!-- BLE 必須デバイスの宣言 (BLE 非対応端末では Play Store 上で除外される) -->
+<uses-feature android:name="android.hardware.bluetooth_le"
+    android:required="true" />
