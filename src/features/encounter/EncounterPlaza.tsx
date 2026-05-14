@@ -45,6 +45,8 @@ const JOIN_STAGGER_MS = 200;
 
 export function EncounterPlaza({ residents, joiningIds }: Props) {
   const [selected, setSelected] = useState<HistoryItem | null>(null);
+  // 3 層パララックス用: ステージのスクロール量を保持し、遠景に slow factor を当てる
+  const [scrollX, setScrollX] = useState(0);
 
   // 合流対象を順序付きの Map に変換 (user_id → 何番目)
   const joinOrder = useMemo(() => {
@@ -64,17 +66,18 @@ export function EncounterPlaza({ residents, joiningIds }: Props) {
           'linear-gradient(to bottom, #FFB07A 0%, #FFC9B0 30%, #FFE9CE 60%, #FAF1E0 95%)',
       }}
     >
-      {/* 遠景: 木立シルエット (スクロール非追従) */}
-      <DistantTrees />
+      {/* 遠景: 木立シルエット (パララックス遅め、スクロールに対して 0.3 倍) */}
+      <DistantTrees scrollX={scrollX} />
 
-      {/* 桜の花びら */}
+      {/* 桜の花びら (中景手前) */}
       <SakuraPetals count={18} durationRange={[12, 22]} className="z-[1]" />
 
-      {/* 横スクロールの中景〜前景 */}
+      {/* 中景〜前景: 横スクロールの公園ステージ */}
       <PlazaStage
         residents={residents}
         joinOrder={joinOrder}
         onTap={setSelected}
+        onScrollChange={setScrollX}
       />
 
       {/* 空状態 overlay (residents 0 のとき) */}
@@ -87,22 +90,36 @@ export function EncounterPlaza({ residents, joiningIds }: Props) {
 }
 
 // =============================================================
-// 遠景: 木立シルエット — 横一杯に並び、スクロール非追従 (画面端固定)
+// 遠景: 木立シルエット — 中景より遅くスクロールするパララックス。
+// 視差効果のため translateX(-scrollX * factor) を当てる。factor は 0.3 = 観察者
+// から見ると遠くの木がゆっくり流れる感じ。
 // =============================================================
-function DistantTrees() {
+const PARALLAX_FACTOR = 0.3;
+
+function DistantTrees({ scrollX }: { scrollX: number }) {
   return (
-    <svg
-      className="pointer-events-none absolute left-0 right-0 top-[44%] h-[18%] w-full"
-      viewBox="0 0 240 40"
-      preserveAspectRatio="none"
+    <div
+      className="pointer-events-none absolute left-0 right-0 top-[44%] h-[18%]"
       aria-hidden
+      style={{
+        transform: `translateX(${-scrollX * PARALLAX_FACTOR}px)`,
+        willChange: 'transform',
+      }}
     >
-      <path
-        d="M0 40 L8 28 L16 32 L26 18 L40 30 L52 22 L64 30 L78 14 L92 28 L106 22 L120 30 L134 18 L148 28 L162 22 L178 30 L194 18 L210 28 L224 22 L240 28 L240 40 Z"
-        fill="#7A5A8C"
-        opacity="0.55"
-      />
-    </svg>
+      <svg
+        // 中景より広めの SVG にして横スクロール時の "切れ" を防ぐ (1.5x)
+        className="absolute left-0 h-full"
+        style={{ width: '150%' }}
+        viewBox="0 0 360 40"
+        preserveAspectRatio="none"
+      >
+        <path
+          d="M0 40 L8 28 L16 32 L26 18 L40 30 L52 22 L64 30 L78 14 L92 28 L106 22 L120 30 L134 18 L148 28 L162 22 L178 30 L194 18 L210 28 L224 22 L240 28 L254 22 L268 30 L282 16 L298 28 L312 22 L326 28 L344 18 L360 28 L360 40 Z"
+          fill="#7A5A8C"
+          opacity="0.55"
+        />
+      </svg>
+    </div>
   );
 }
 
@@ -137,10 +154,12 @@ function PlazaStage({
   residents,
   joinOrder,
   onTap,
+  onScrollChange,
 }: {
   residents: HistoryItem[];
   joinOrder: Map<string, number>;
   onTap: (r: HistoryItem) => void;
+  onScrollChange: (x: number) => void;
 }) {
   const stageWidth = Math.max(MIN_STAGE_WIDTH, residents.length * PX_PER_RESIDENT);
 
@@ -161,6 +180,7 @@ function PlazaStage({
     <div
       className="absolute inset-0 overflow-x-auto overflow-y-hidden"
       data-testid="plaza-stage-scroll"
+      onScroll={(e) => onScrollChange(e.currentTarget.scrollLeft)}
     >
       <div
         className="relative h-full"

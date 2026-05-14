@@ -7,6 +7,7 @@ import {
   upsertMyProfile as supabaseUpsert,
 } from '@/lib/supabase/profiles';
 import { isTauri, TauriUnavailableError } from '@/lib/tauri/env';
+import { showToast } from '@/lib/ui/toast';
 import type { MyProfile } from '@/types/profile';
 import { validateProfile, type ProfileInput } from './validation';
 
@@ -124,12 +125,21 @@ async function enqueueSyncPending(
 }
 
 /**
- * Online 復帰時に呼ぶ flush。最新のキューを 1 件だけ送って、成功したら DELETE。
- * spec §5.5 リトライ戦略の簡易版 (本格的な指数バックオフは Phase 2)。
+ * Online 復帰時に呼ぶ flush。最新のキューを 1 件送る。
+ * spec §5.5 リトライ戦略: 5s → 30s → 5min → 30min (上限) の指数バックオフ。
+ * 同時呼び出しは module-level の in-flight フラグで抑止。
  */
+const RETRY_STEPS_MS = [5_000, 30_000, 5 * 60_000, 30 * 60_000];
+let retryStep = 0;
+let retryTimer: number | null = null;
+let flushInflight = false;
+let offlineToastShown = false;
+
 export async function flushProfileSyncQueue(): Promise<void> {
   if (!isTauri()) return;
   if (!isSupabaseEnabled()) return;
+  if (flushInflight) return;
+  flushInflight = true;
   try {
     const db = await getDb();
     const me = await fetchProfile();
@@ -142,17 +152,40 @@ export async function flushProfileSyncQueue(): Promise<void> {
     }[]>(
       'SELECT queue_id, display_name, avatar_code, message FROM profile_sync_queue ORDER BY queue_id DESC LIMIT 1',
     );
-    if (rows.length === 0) return;
+    if (rows.length === 0) {
+      // 何も送るものが無い = 成功扱いで backoff をリセット
+      retryStep = 0;
+      return;
+    }
     const latest = rows[0]!;
-    await supabaseUpsert({
-      user_id: me.user_id,
-      display_name: latest.display_name,
-      avatar_code: latest.avatar_code,
-      message: latest.message,
-    });
-    await db.execute('DELETE FROM profile_sync_queue');
-  } catch (e) {
-    console.warn('[profile.flush] failed (will retry):', e);
+    try {
+      await supabaseUpsert({
+        user_id: me.user_id,
+        display_name: latest.display_name,
+        avatar_code: latest.avatar_code,
+        message: latest.message,
+      });
+      await db.execute('DELETE FROM profile_sync_queue');
+      retryStep = 0;
+      offlineToastShown = false;
+    } catch (e) {
+      console.warn('[profile.flush] failed, will retry:', e);
+      // 1 回だけ控えめなトースト (5 分間連発抑止は toast 側でも担保)
+      if (!offlineToastShown) {
+        showToast('オフラインのため、プロフィールを送信できません', 'warn');
+        offlineToastShown = true;
+      }
+      // 指数バックオフでリトライ予約
+      const delay = RETRY_STEPS_MS[Math.min(retryStep, RETRY_STEPS_MS.length - 1)]!;
+      retryStep = Math.min(retryStep + 1, RETRY_STEPS_MS.length - 1);
+      if (retryTimer !== null) window.clearTimeout(retryTimer);
+      retryTimer = window.setTimeout(() => {
+        retryTimer = null;
+        flushProfileSyncQueue().catch(() => {});
+      }, delay);
+    }
+  } finally {
+    flushInflight = false;
   }
 }
 

@@ -14,9 +14,13 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+import { Toaster } from '@/components/Toaster';
 import { BlePanel } from '@/features/ble/BlePanel';
 import { useBleStatus } from '@/features/ble/use-ble-status';
-import { useEncounterListener } from '@/features/ble/use-encounter-listener';
+import {
+  flushPendingProfiles,
+  useEncounterListener,
+} from '@/features/ble/use-encounter-listener';
 import { EncounterPlaza } from '@/features/encounter/EncounterPlaza';
 import { EncounterPopup } from '@/features/encounter/EncounterPopup';
 import {
@@ -48,15 +52,27 @@ export default function HomePage() {
   // BLE mock peer 発見イベントを購読 → DB 永続化 + クールダウン制御
   useEncounterListener();
 
-  // 同意済みでフォアグラウンドに来たタイミングで profile_sync_queue を flush
-  // (spec §5.5 オンライン復帰時のフロー、簡易版)
+  // 同意済みでフォアグラウンドに来たタイミングで:
+  //   - profile_sync_queue を flush (自プロフィール送信、§5.5)
+  //   - 未取得 user_id を即時一括 fetch (§5.4.1 トリガ "フォアグラウンド復帰")
   useEffect(() => {
     if (consent.data?.status !== 'granted') return;
-    flushProfileSyncQueue().catch(() => {});
+
+    const runOnce = () => {
+      flushProfileSyncQueue().catch(() => {});
+      flushPendingProfiles()
+        .then((r) => {
+          if (r.fetchedCount > 0) {
+            // users_cache が増えたので unread / history を invalidate
+            // (Toaster 等は別途。listener が同等の invalidate を呼ぶので二重投資)
+          }
+        })
+        .catch(() => {});
+    };
+
+    runOnce();
     const onVisible = () => {
-      if (document.visibilityState === 'visible') {
-        flushProfileSyncQueue().catch(() => {});
-      }
+      if (document.visibilityState === 'visible') runOnce();
     };
     document.addEventListener('visibilitychange', onVisible);
     return () => document.removeEventListener('visibilitychange', onVisible);
@@ -158,6 +174,9 @@ export default function HomePage() {
           }}
         />
       )}
+
+      {/* 共通トースト (オフライン警告など) */}
+      <Toaster />
     </main>
   );
 }
