@@ -1,111 +1,119 @@
+'use client';
+
 /**
- * avatar_code (例: base01_top03_bot02) を分解して表示する暫定アバター。
- * 要件定義 §3.3 のボクセル/ピクセルアート方針への布石として、
- * パーツコードから決定的にパステル配色のキャラクターを描く。
+ * Avatar — avatar_code を 4 軸 SVG パーツに分解し、重ね合わせて表示する。
  *
- * トコトコ歩く / きょろきょろ等の本格的な動的挙動は次フェーズで実装する。
- * spec: docs/specs/profile.md §4.4
+ * 描画方式: SVG パーツの重ね合わせ + CSS @keyframes アニメーション
+ * (spec: docs/specs/avatar.md §2)
+ *
+ * - mode='idle'    : 呼吸 + まばたき
+ * - mode='walking' : idle + 足踏み
+ * - mode='popup'   : 左から入場 → 足踏み → 呼吸 + まばたき
+ *
+ * パーツ SVG は public/avatars/{file} を fetch し、`<svg>` の中身だけを
+ * `<g class="layer-{axis}">` に展開する。同パスは Map でキャッシュ。
  */
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { AXES, manifest, type AxisKey } from '@/lib/avatar/manifest';
+import { resolveAvatarCode } from '@/lib/avatar/fallback';
 
-const PALETTE = [
-  '#E55A4C', // pop-red
-  '#F5A623', // pop-orange
-  '#FFD23F', // pop-yellow
-  '#76C25B', // pop-green
-  '#5DA9E9', // pop-blue
-  '#A47BC0', // pop-purple
-];
+export type AvatarMode = 'idle' | 'walking' | 'popup';
 
-function hashCode(s: string): number {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
-
-function colorFor(part: string): string {
-  return PALETTE[hashCode(part) % PALETTE.length]!;
-}
-
-export function Avatar({
-  code,
-  size = 64,
-  animated = true,
-}: {
+type Props = {
   code: string;
+  mode?: AvatarMode;
+  /** 描画幅 (px)。高さは viewBox 比率 (64:96) に合わせる */
   size?: number;
-  /** 待機モーション (呼吸) を有効化。リストでは false にしても良い */
-  animated?: boolean;
-}) {
-  const parts = code.split('_');
-  const [base = 'base', top = 'top', bot = 'bot'] = parts;
-  const hairColor = colorFor(top);
-  const shirtColor = colorFor(base);
-  const pantsColor = colorFor(bot);
+  className?: string;
+};
 
-  // 8x8 ピクセル風キャラ — 各要素は size の 1/8 単位
-  const u = size / 8;
+const svgInnerCache = new Map<string, Promise<string>>();
+
+function extractSvgInner(raw: string): string {
+  const match = raw.match(/<svg\b[^>]*>([\s\S]*?)<\/svg>/i);
+  return match ? match[1]! : '';
+}
+
+function loadPartInner(file: string): Promise<string> {
+  let cached = svgInnerCache.get(file);
+  if (!cached) {
+    cached = fetch(`/avatars/${file}`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`avatar part ${file}: ${r.status}`);
+        return r.text();
+      })
+      .then(extractSvgInner)
+      .catch((err) => {
+        // 失敗時は空文字を返してクラッシュ禁止 (spec §6)
+        // eslint-disable-next-line no-console
+        console.warn('[Avatar] failed to load part', file, err);
+        return '';
+      });
+    svgInnerCache.set(file, cached);
+  }
+  return cached;
+}
+
+export function Avatar({ code, mode = 'idle', size = 64, className = '' }: Props) {
+  const resolved = useMemo(() => resolveAvatarCode(code), [code]);
+
+  const [layers, setLayers] = useState<Record<AxisKey, string>>({
+    base: '',
+    hair: '',
+    outfit: '',
+    face: '',
+  });
+
+  // 古い fetch が後から resolve して新しい code を上書きしないよう、世代でガード
+  const genRef = useRef(0);
+
+  useEffect(() => {
+    const myGen = ++genRef.current;
+
+    Promise.all(
+      manifest.layerOrder.map(async (axis) => {
+        const part = manifest.axes[axis].find((p) => p.id === resolved[axis]);
+        const html = part ? await loadPartInner(part.file) : '';
+        return [axis, html] as const;
+      })
+    ).then((entries) => {
+      if (myGen !== genRef.current) return;
+      const next = { base: '', hair: '', outfit: '', face: '' } as Record<AxisKey, string>;
+      for (const [a, h] of entries) next[a] = h;
+      setLayers(next);
+    });
+  }, [resolved]);
+
+  const height = Math.round((size * 96) / 64);
 
   return (
     <div
-      className={`relative shrink-0 ${animated ? 'animate-breath' : ''}`}
-      style={{ width: size, height: size }}
+      className={`avatar-root avatar-mode-${mode} ${className}`}
+      style={{ width: size, height }}
       aria-label={`avatar ${code}`}
+      role="img"
     >
-      {/* hair */}
-      <div
-        className="absolute rounded-[20%]"
-        style={{
-          left: u * 2,
-          top: u * 0.5,
-          width: u * 4,
-          height: u * 2.2,
-          background: hairColor,
-        }}
-      />
-      {/* face */}
-      <div
-        className="absolute rounded-[28%] bg-[#FFE3C9]"
-        style={{
-          left: u * 2.3,
-          top: u * 1.6,
-          width: u * 3.4,
-          height: u * 2.2,
-        }}
-      />
-      {/* eyes */}
-      <div
-        className="absolute rounded-full bg-ink"
-        style={{ left: u * 3.0, top: u * 2.4, width: u * 0.5, height: u * 0.5 }}
-      />
-      <div
-        className="absolute rounded-full bg-ink"
-        style={{ left: u * 4.5, top: u * 2.4, width: u * 0.5, height: u * 0.5 }}
-      />
-      {/* shirt */}
-      <div
-        className="absolute rounded-[18%]"
-        style={{
-          left: u * 1.6,
-          top: u * 4.0,
-          width: u * 4.8,
-          height: u * 2.4,
-          background: shirtColor,
-        }}
-      />
-      {/* pants */}
-      <div
-        className="absolute rounded-b-[18%]"
-        style={{
-          left: u * 2.2,
-          top: u * 6.0,
-          width: u * 3.6,
-          height: u * 1.8,
-          background: pantsColor,
-        }}
-      />
+      <svg
+        className="avatar-figure"
+        viewBox={manifest.viewBox}
+        width={size}
+        height={height}
+        preserveAspectRatio="xMidYMid meet"
+      >
+        {AXES.map((axis) => {
+          const anchorName = manifest.layerAnchor[axis];
+          const anchor = anchorName ? manifest.anchors[anchorName] : null;
+          const transform = anchor ? `translate(${anchor.x} ${anchor.y})` : undefined;
+          return (
+            <g
+              key={axis}
+              className={`layer-${axis}`}
+              transform={transform}
+              dangerouslySetInnerHTML={{ __html: layers[axis] }}
+            />
+          );
+        })}
+      </svg>
     </div>
   );
 }

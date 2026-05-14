@@ -22,3 +22,70 @@ body {
   outline: 2px solid #E55A4C;
   outline-offset: 2px;
 }
+
+/* =========================================================================
+   Avatar アニメーション
+   spec: docs/specs/avatar.md §4, §5
+   SVG パーツ内の class (`.avatar-figure`, `.leg-l`, `.leg-r`, `.eyes`) を
+   ターゲットに、CSS @keyframes だけで全身呼吸 / まばたき / 歩行を出す。
+   ========================================================================= */
+
+@keyframes avatar-breath {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-2px); }
+}
+
+@keyframes avatar-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  94%           { transform: scaleY(0.1); }
+  98%           { transform: scaleY(1); }
+}
+
+@keyframes avatar-step-l {
+  0%, 100% { transform: rotate(15deg); }
+  50%      { transform: rotate(-15deg); }
+}
+
+@keyframes avatar-step-r {
+  0%, 100% { transform: rotate(-15deg); }
+  50%      { transform: rotate(15deg); }
+}
+
+/* 全身呼吸: avatar 全体をふわっと上下 */
+.avatar-figure {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: avatar-breath 2.2s ease-in-out infinite;
+}
+
+/* まばたき: face SVG 内の <g class="eyes"> をスケール */
+.avatar-figure .eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: avatar-blink 6s ease-in-out infinite;
+}
+
+/* 歩行: base SVG 内の足を股関節 (上端中央) を軸に揺らす */
+.avatar-mode-walking .leg-l,
+.avatar-mode-walking .leg-r,
+.avatar-mode-popup .leg-l,
+.avatar-mode-popup .leg-r {
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+}
+.avatar-mode-walking .leg-l,
+.avatar-mode-popup .leg-l { animation: avatar-step-l 0.4s linear infinite; }
+.avatar-mode-walking .leg-r,
+.avatar-mode-popup .leg-r { animation: avatar-step-r 0.4s linear infinite; }
+
+/* モーション削減設定への配慮 */
+@media (prefers-reduced-motion: reduce) {
+  .avatar-figure,
+  .avatar-figure .eyes,
+  .avatar-mode-walking .leg-l,
+  .avatar-mode-walking .leg-r,
+  .avatar-mode-popup .leg-l,
+  .avatar-mode-popup .leg-r {
+    animation: none !important;
+  }
+}

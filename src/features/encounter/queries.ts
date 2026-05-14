@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getDb } from '@/lib/db/client';
+import { isTauri, TauriUnavailableError } from '@/lib/tauri/env';
 import type { HistoryItem, UnreadEncounter } from '@/types/encounter';
 
 const UNREAD_KEY = ['encounters', 'unread'] as const;
@@ -32,6 +33,7 @@ type UnreadRow = {
 };
 
 async function fetchUnread(): Promise<UnreadEncounter[]> {
+  if (!isTauri()) return [];
   try {
     const db = await getDb();
     const rows = await db.select<UnreadRow[]>(
@@ -71,6 +73,7 @@ async function fetchUnread(): Promise<UnreadEncounter[]> {
 }
 
 async function markRead(logId: number): Promise<void> {
+  if (!isTauri()) return;
   try {
     const db = await getDb();
     await db.execute('UPDATE encounter_logs SET is_read = 1 WHERE log_id = $1', [
@@ -102,6 +105,7 @@ export function useMarkRead() {
 // =============================================================
 
 async function fetchHistory(): Promise<HistoryItem[]> {
+  if (!isTauri()) return [];
   try {
     const db = await getDb();
     const rows = await db.select<HistoryItem[]>(
@@ -135,11 +139,14 @@ export function useEncounterHistory() {
 // =============================================================
 
 const SAMPLE_NAMES = ['Neko-9', 'Riku', 'sora', 'Pixel.42', 'mion', 'zoo', 'Hex'];
+// avatar.md §3.2: b{NN}_h{NN}_o{NN}_f{NN}
 const SAMPLE_AVATARS = [
-  'base01_top01_bot01',
-  'base02_top03_bot02',
-  'base01_top05_bot04',
-  'base03_top02_bot01',
+  'b01_h01_o01_f01',
+  'b02_h03_o02_f02',
+  'b01_h04_o04_f04',
+  'b03_h02_o03_f03',
+  'b04_h03_o01_f01',
+  'b02_h01_o04_f04',
 ];
 const SAMPLE_MESSAGES = [
   '最近はRust勉強中！',
@@ -155,6 +162,7 @@ function pick<T>(arr: readonly T[]): T {
 }
 
 async function seedOneEncounter(): Promise<void> {
+  if (!isTauri()) throw new TauriUnavailableError();
   try {
     const db = await getDb();
     const now = Math.floor(Date.now() / 1000);
@@ -182,6 +190,7 @@ async function seedOneEncounter(): Promise<void> {
 }
 
 async function clearAllEncounters(): Promise<void> {
+  if (!isTauri()) return;
   try {
     const db = await getDb();
     // FK ON DELETE CASCADE が効くように encounter_logs を先に

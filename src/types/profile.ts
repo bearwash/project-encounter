@@ -15,4 +15,5 @@ export const PROFILE_LIMITS = {
   MESSAGE_MAX: 30,
 } as const;
 
-export const DEFAULT_AVATAR_CODE = 'base01_top01_bot01';
+// docs/specs/avatar.md §3.2: b{NN}_h{NN}_o{NN}_f{NN} 形式 (固定 15 文字)
+export const DEFAULT_AVATAR_CODE = 'b01_h01_o01_f01';

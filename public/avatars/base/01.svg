@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 96">
+  <defs>
+    <radialGradient id="b01-shade" cx="0.7" cy="0.7" r="0.8">
+      <stop offset="0.4" stop-color="#FFD9B3" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0.32"/>
+    </radialGradient>
+    <radialGradient id="b01-light" cx="0.3" cy="0.25" r="0.5">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.7"/>
+      <stop offset="0.7" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="b01-body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.28"/>
+      <stop offset="0.5" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0.22"/>
+    </linearGradient>
+    <linearGradient id="b01-arm-l" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.3"/>
+      <stop offset="0.6" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0.22"/>
+    </linearGradient>
+    <linearGradient id="b01-arm-r" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.18"/>
+      <stop offset="0.6" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0.28"/>
+    </linearGradient>
+  </defs>
+
+  <ellipse cx="32" cy="92" rx="14" ry="2.5" fill="#000" fill-opacity="0.22"/>
+
+  <g class="avatar-body">
+    <g class="leg-l">
+      <rect x="25" y="78" width="6" height="14" rx="3" fill="#3A3A4A" stroke="#1a1a24" stroke-width="2"/>
+    </g>
+    <g class="leg-r">
+      <rect x="33" y="78" width="6" height="14" rx="3" fill="#3A3A4A" stroke="#1a1a24" stroke-width="2"/>
+    </g>
+
+    <rect x="20" y="46" width="24" height="34" rx="10" fill="#FFD9B3" stroke="#1a1a24" stroke-width="2"/>
+    <rect x="20" y="46" width="24" height="34" rx="10" fill="url(#b01-body)"/>
+
+    <g class="arm-l">
+      <rect x="14" y="48" width="6" height="22" rx="3" fill="#FFD9B3" stroke="#1a1a24" stroke-width="2"/>
+      <rect x="14" y="48" width="6" height="22" rx="3" fill="url(#b01-arm-l)"/>
+    </g>
+    <g class="arm-r">
+      <rect x="44" y="48" width="6" height="22" rx="3" fill="#FFD9B3" stroke="#1a1a24" stroke-width="2"/>
+      <rect x="44" y="48" width="6" height="22" rx="3" fill="url(#b01-arm-r)"/>
+    </g>
+
+    <rect x="28" y="42" width="8" height="6" fill="#FFD9B3" stroke="#1a1a24" stroke-width="2"/>
+    <rect x="28" y="42" width="8" height="6" fill="#000" fill-opacity="0.12"/>
+
+    <ellipse cx="32" cy="26" rx="16" ry="17" fill="#FFD9B3" stroke="#1a1a24" stroke-width="2"/>
+    <ellipse cx="32" cy="26" rx="16" ry="17" fill="url(#b01-shade)"/>
+    <ellipse cx="32" cy="26" rx="16" ry="17" fill="url(#b01-light)"/>
+
+    <circle cx="22" cy="30" r="2.6" fill="#FF9AA2" fill-opacity="0.6"/>
+    <circle cx="42" cy="30" r="2.6" fill="#FF9AA2" fill-opacity="0.6"/>
+  </g>
+</svg>

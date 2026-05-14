@@ -1,0 +1,48 @@
+{
+  "version": 2,
+  "viewBox": "0 0 64 96",
+  "anchors": {
+    "head": { "x": 32, "y": 26 },
+    "shoulder": { "x": 32, "y": 46 }
+  },
+  "sizes": {
+    "headRx": 16,
+    "headRy": 17,
+    "bodyWidth": 24,
+    "bodyHeight": 34
+  },
+  "layerAnchor": {
+    "base": null,
+    "outfit": "shoulder",
+    "face": "head",
+    "hair": "head"
+  },
+  "axes": {
+    "base": [
+      { "id": "01", "file": "base/01.svg", "label": "標準体型・標準肌" },
+      { "id": "02", "file": "base/02.svg", "label": "小柄・標準肌" },
+      { "id": "03", "file": "base/03.svg", "label": "標準体型・明るい肌" },
+      { "id": "04", "file": "base/04.svg", "label": "標準体型・褐色肌" }
+    ],
+    "hair": [
+      { "id": "01", "file": "hair/01.svg", "label": "ショート(茶)" },
+      { "id": "02", "file": "hair/02.svg", "label": "ロング(黒)" },
+      { "id": "03", "file": "hair/03.svg", "label": "ツンツン(金)" },
+      { "id": "04", "file": "hair/04.svg", "label": "ベリーショート(赤)" }
+    ],
+    "outfit": [
+      { "id": "01", "file": "outfit/01.svg", "label": "T シャツ(青)" },
+      { "id": "02", "file": "outfit/02.svg", "label": "パーカー(グレー)" },
+      { "id": "03", "file": "outfit/03.svg", "label": "ワンピース(黄)" },
+      { "id": "04", "file": "outfit/04.svg", "label": "シャツ + サスペンダー(緑)" }
+    ],
+    "face": [
+      { "id": "01", "file": "face/01.svg", "label": "スマイル" },
+      { "id": "02", "file": "face/02.svg", "label": "驚き" },
+      { "id": "03", "file": "face/03.svg", "label": "どや顔" },
+      { "id": "04", "file": "face/04.svg", "label": "ウインク" }
+    ]
+  },
+  "defaultCode": "b01_h01_o01_f01",
+  "layerOrder": ["base", "outfit", "face", "hair"]
+}

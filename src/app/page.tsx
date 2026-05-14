@@ -6,10 +6,11 @@ import { useEffect, useState } from 'react';
 import { BlePanel } from '@/features/ble/BlePanel';
 import { useBleStatus } from '@/features/ble/use-ble-status';
 import { useEncounterListener } from '@/features/ble/use-encounter-listener';
-import { EncounterList } from '@/features/encounter/EncounterList';
+import { EncounterPlaza } from '@/features/encounter/EncounterPlaza';
 import { EncounterPopup } from '@/features/encounter/EncounterPopup';
 import {
   useClearEncounters,
+  useEncounterHistory,
   useSeedEncounter,
   useUnreadEncounters,
 } from '@/features/encounter/queries';
@@ -20,6 +21,7 @@ export default function HomePage() {
   const router = useRouter();
   const profile = useProfile();
   const unread = useUnreadEncounters();
+  const history = useEncounterHistory();
   const seed = useSeedEncounter();
   const clear = useClearEncounters();
   const resetProfile = useResetProfile();
@@ -72,9 +74,7 @@ export default function HomePage() {
         ウォークモードへ →
       </Link>
 
-      <section className="rounded-toy border border-cream-deep bg-cream-soft p-3 shadow-toy">
-        <EncounterList />
-      </section>
+      <EncounterPlaza residents={history.data ?? []} />
 
       <DevPanel
         onSeed={() => seed.mutate()}

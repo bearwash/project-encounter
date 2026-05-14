@@ -1,11 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getDb } from '@/lib/db/client';
+import { isTauri, TauriUnavailableError } from '@/lib/tauri/env';
 import type { MyProfile } from '@/types/profile';
 import { validateProfile, type ProfileInput } from './validation';
 
 const QUERY_KEY = ['profile'] as const;
 
 async function fetchProfile(): Promise<MyProfile | null> {
+  if (!isTauri()) return null;
   try {
     const db = await getDb();
     const rows = await db.select<MyProfile[]>(
@@ -33,6 +35,7 @@ async function saveProfile(input: ProfileInput): Promise<MyProfile> {
   if (errors.length > 0) {
     throw new Error(errors.map((e) => `${e.field}: ${e.message}`).join('\n'));
   }
+  if (!isTauri()) throw new TauriUnavailableError();
 
   try {
     const db = await getDb();
@@ -82,6 +85,7 @@ export function useSaveProfile() {
 }
 
 async function resetProfile(): Promise<void> {
+  if (!isTauri()) return;
   try {
     const db = await getDb();
     await db.execute('DELETE FROM my_profile');

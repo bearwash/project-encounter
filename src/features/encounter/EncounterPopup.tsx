@@ -73,9 +73,7 @@ export function EncounterPopup({
         className="flex flex-col items-center gap-4 transition-all duration-300 ease-out"
         style={characterStyle}
       >
-        <div className={phase === 'show' ? 'animate-toddle' : ''}>
-          <Avatar code={current.user.avatar_code} size={160} animated />
-        </div>
+        <Avatar code={current.user.avatar_code} size={160} mode="popup" />
         <div className="text-2xl font-black tracking-wide text-ink">
           {current.user.display_name}
         </div>

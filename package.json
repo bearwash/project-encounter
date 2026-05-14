@@ -17,6 +17,7 @@
     "@tauri-apps/api": "^2.1.0",
     "@tauri-apps/plugin-log": "^2.8.0",
     "@tauri-apps/plugin-sql": "^2.4.0",
+    "framer-motion": "^12.38.0",
     "next": "^15.0.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
@@ -29,6 +30,7 @@
     "autoprefixer": "^10.4.20",
     "eslint": "^9.14.0",
     "eslint-config-next": "^15.0.3",
+    "playwright": "^1.60.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.14",
     "typescript": "^5.6.3"

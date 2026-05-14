@@ -6,6 +6,7 @@ import { listen } from '@tauri-apps/api/event';
 import { useEffect } from 'react';
 import { getDb } from '@/lib/db/client';
 import { BLE_EVENT_ENCOUNTER_FOUND, type BlePayload } from '@/lib/tauri/ble';
+import { isTauri } from '@/lib/tauri/env';
 
 /**
  * Tauri event `ble://encounter-found` を購読し、
@@ -19,6 +20,7 @@ export function useEncounterListener() {
   const qc = useQueryClient();
 
   useEffect(() => {
+    if (!isTauri()) return;
     const unlistenPromise = listen<BlePayload>(
       BLE_EVENT_ENCOUNTER_FOUND,
       async (event) => {

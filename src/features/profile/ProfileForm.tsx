@@ -1,7 +1,9 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { Avatar } from '@/features/encounter/Avatar';
 import { DEFAULT_AVATAR_CODE, PROFILE_LIMITS } from '@/types/profile';
 import { useProfile, useSaveProfile } from './queries';
 import {
@@ -75,21 +77,26 @@ export function ProfileForm() {
         />
       </Field>
 
-      <Field
-        label="アバターコード"
-        max={PROFILE_LIMITS.AVATAR_CODE_MAX}
-        value={form.avatar_code}
-        error={errOf('avatar_code')}
-      >
-        <input
-          type="text"
-          value={form.avatar_code}
-          onChange={update('avatar_code')}
-          maxLength={PROFILE_LIMITS.AVATAR_CODE_MAX}
-          className="w-full rounded-toy border border-cream-deep bg-cream-soft px-3 py-2 font-mono text-sm text-ink shadow-toy focus:border-pop-red focus:outline-none"
-          placeholder="base01_top03_bot02"
-        />
-      </Field>
+      <div className="flex flex-col gap-2">
+        <span className="text-sm font-bold tracking-wide text-ink-soft">アバター</span>
+        <div className="flex items-center gap-3 rounded-toy border border-cream-deep bg-cream-soft p-3 shadow-toy">
+          <Avatar code={form.avatar_code} size={64} />
+          <div className="flex-1 min-w-0">
+            <code className="block truncate font-mono text-xs text-ink-muted">
+              {form.avatar_code}
+            </code>
+          </div>
+          <Link
+            href="/profile/avatar-editor"
+            className="rounded-toy border-2 border-pop-blue bg-pop-blue/10 px-3 py-1.5 text-xs font-bold text-pop-blue shadow-toy transition active:translate-y-[2px] active:shadow-none"
+          >
+            編集
+          </Link>
+        </div>
+        {errOf('avatar_code') && (
+          <span className="text-xs font-bold text-pop-red">{errOf('avatar_code')}</span>
+        )}
+      </div>
 
       <Field
         label="一言メッセージ"

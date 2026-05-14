@@ -38,7 +38,7 @@ export function EncounterList() {
     <ul className="flex flex-col divide-y divide-cream-deep">
       {items.map((u) => (
         <li key={u.user_id} className="flex items-center gap-3 py-3 first:pt-1 last:pb-1">
-          <Avatar code={u.avatar_code} size={48} animated={false} />
+          <Avatar code={u.avatar_code} size={48} />
           <div className="min-w-0 flex-1">
             <div className="flex items-baseline justify-between gap-2">
               <span className="truncate font-bold text-ink">
