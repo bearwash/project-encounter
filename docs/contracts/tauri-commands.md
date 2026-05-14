@@ -6,8 +6,23 @@
 呼び出し規約:
 - TS 側: `@tauri-apps/api/core` の `invoke(name, args)`
 - Rust 側: `#[tauri::command]` 関数として実装し、`tauri::Builder::default().invoke_handler(tauri::generate_handler![...])` に登録
+- 実コマンド名は **Rust 関数名をそのまま** 使う（snake_case）。ドット表記の `ble.start` 等は **TS 側ラッパ** での見せ方 (`src/lib/tauri/*.ts`)。
 
-エラーは `Result<T, AppError>` を返し、TS 側で `Promise.reject` として扱う。
+エラーは `Result<T, String>` を返し、TS 側で `Promise.reject` として扱う（メッセージは string）。
+
+| ドット表記 (TS) | コマンド名 (実装) | 実装状況 |
+| --- | --- | --- |
+| `ble.start` | `ble_start` | ✅ mock |
+| `ble.stop` | `ble_stop` | ✅ mock |
+| `ble.walkStart` | `ble_walk_mode_start` | ✅ mock |
+| `ble.walkStop` | `ble_walk_mode_stop` | ✅ mock |
+| `ble.status` | `ble_status` | ✅ mock |
+
+非同期イベント (Rust → TS) は Tauri event を使う:
+
+| event 名 | payload | 用途 |
+| --- | --- | --- |
+| `ble://encounter-found` | `BlePayload` | mock / 実 BLE 共通で peer 発見を通知 |
 
 ---
 

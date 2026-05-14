@@ -3,6 +3,9 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { BlePanel } from '@/features/ble/BlePanel';
+import { useBleStatus } from '@/features/ble/use-ble-status';
+import { useEncounterListener } from '@/features/ble/use-encounter-listener';
 import { EncounterList } from '@/features/encounter/EncounterList';
 import { EncounterPopup } from '@/features/encounter/EncounterPopup';
 import {
@@ -20,6 +23,10 @@ export default function HomePage() {
   const seed = useSeedEncounter();
   const clear = useClearEncounters();
   const resetProfile = useResetProfile();
+  const bleStatus = useBleStatus();
+
+  // BLE mock peer 発見イベントを購読 → DB 永続化 + クールダウン制御
+  useEncounterListener();
 
   // spec/profile.md §5: 初回起動時、プロフィール未設定なら必ず設定画面に誘導
   useEffect(() => {
@@ -55,6 +62,8 @@ export default function HomePage() {
           プロフィール
         </Link>
       </header>
+
+      <BlePanel status={bleStatus.data} />
 
       <Link
         href="/walk"
