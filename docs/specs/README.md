@@ -55,8 +55,10 @@
 
 | ファイル | 概要 | 要件定義 §  |
 | --- | --- | --- |
-| [ble-handshake.md](ble-handshake.md) | BLE すれ違い通信（advertise / scan / payload） | §4 |
-| [encounter-popup.md](encounter-popup.md) | 起動時の連続エンカウントポップアップ | §3.1, §3.2 A |
-| [encounter-list.md](encounter-list.md) | ホーム画面（すれ違い履歴リスト） | §3.2 B |
-| [profile.md](profile.md) | 自己プロフィール設定 | §3.2 C, §5 |
-| [walk-mode.md](walk-mode.md) | iOS ウォークモード（省電力待機画面） | §3.2 D, §4.1 |
+| [ble-handshake.md](ble-handshake.md) | BLE ID-only Advertise / Scan（接続なし、Supabase Auth UUID 16 byte のみ） | §4.1, §4.2 |
+| [profile-sync.md](profile-sync.md) | Supabase 経由のプロフィール同期 + 公開同意 | §2, §4.3, §6 |
+| [encounter-popup.md](encounter-popup.md) | 公園入口での対面挨拶（隊列、ハイタッチ、20 人上限・会いにいく） | §3.1, §3.2 A, §4.4 |
+| [encounter-plaza.md](encounter-plaza.md) | ホーム画面（広場ビュー / アバターが歩き回る街並み） | §3.2 B |
+| [profile.md](profile.md) | 自己プロフィール設定（保存時に Supabase へ即同期） | §3.2 C, §5 |
+| [avatar.md](avatar.md) | アバター描画・パーツ体系・アニメ仕様（SVG + CSS） | §3.3, §4.2, §5 |
+| [walk-mode.md](walk-mode.md) | iOS ウォークモード（省電力待機画面、自動終了なし） | §3.2 D, §4.1 |
