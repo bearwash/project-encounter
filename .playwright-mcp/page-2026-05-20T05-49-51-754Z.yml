@@ -1,0 +1,66 @@
+- generic [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - heading "AVATAR PREVIEW" [level=1] [ref=e4]
+      - code [ref=e5]: b01_h05_o01_f01
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - img "avatar b01_h05_o01_f01" [ref=e128]
+        - generic [ref=e12]: idle
+      - generic [ref=e13]:
+        - img "avatar b01_h05_o01_f01" [ref=e129]
+        - generic [ref=e18]: walking
+      - generic [ref=e19]:
+        - img "avatar b01_h05_o01_f01" [ref=e130]
+        - generic [ref=e24]: popup
+    - generic [ref=e26]:
+      - img "avatar b01_h05_o01_f01" [ref=e132]
+      - generic [ref=e33]:
+        - button "Base" [ref=e34] [cursor=pointer]
+        - button "Hair" [ref=e35] [cursor=pointer]
+        - button "Outfit" [ref=e36] [cursor=pointer]
+        - button "Face" [ref=e37] [cursor=pointer]
+      - generic [ref=e97]:
+        - button "ショート(茶)" [ref=e98] [cursor=pointer]:
+          - generic:
+            - img "avatar b01_h01_o01_f01"
+          - generic [ref=e102]: "01"
+        - button "ロング(黒)" [ref=e103] [cursor=pointer]:
+          - generic:
+            - img "avatar b01_h02_o01_f01"
+          - generic [ref=e107]: "02"
+        - button "スパイク(金)" [ref=e108] [cursor=pointer]:
+          - generic:
+            - img "avatar b01_h03_o01_f01"
+          - generic [ref=e112]: "03"
+        - button "ベリーショート(赤)" [ref=e113] [cursor=pointer]:
+          - generic:
+            - img "avatar b01_h04_o01_f01"
+          - generic [ref=e117]: "04"
+        - button "バイカラー(緑/桃) — S001" [active] [pressed] [ref=e118] [cursor=pointer]:
+          - generic:
+            - img "avatar b01_h05_o01_f01"
+          - generic [ref=e122]: "05"
+        - button "ふんわり(銀)" [ref=e123] [cursor=pointer]:
+          - generic:
+            - img "avatar b01_h06_o01_f01"
+          - generic [ref=e127]: "06"
+      - code [ref=e60]: b01_h05_o01_f01
+    - generic [ref=e61]:
+      - text: "フォールバック確認: 不正コードでもクラッシュせずデフォルトに置換"
+      - generic [ref=e62]:
+        - generic [ref=e63]:
+          - img "avatar" [ref=e64]
+          - code [ref=e68]: (empty)
+        - generic [ref=e69]:
+          - img "avatar xyz" [ref=e70]
+          - code [ref=e74]: xyz
+        - generic [ref=e75]:
+          - img "avatar b01_h99_o03_f01" [ref=e76]
+          - code [ref=e80]: b01_h99_o03_f01
+        - generic [ref=e81]:
+          - img "avatar b01_h02_o03" [ref=e82]
+          - code [ref=e86]: b01_h02_o03
+  - button "Open Next.js Dev Tools" [ref=e92] [cursor=pointer]:
+    - img [ref=e93]
+  - alert [ref=e96]

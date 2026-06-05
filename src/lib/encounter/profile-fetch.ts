@@ -105,16 +105,27 @@ async function runFlush(): Promise<FetchResult> {
 
     await db.execute(
       `INSERT INTO users_cache
-         (user_id, display_name, avatar_code, message, encounter_count, first_seen_at, last_seen_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+         (user_id, display_name, avatar_code, message, home_prefecture,
+          encounter_count, first_seen_at, last_seen_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        ON CONFLICT(user_id) DO UPDATE SET
-         display_name    = excluded.display_name,
-         avatar_code     = excluded.avatar_code,
-         message         = excluded.message,
-         encounter_count = excluded.encounter_count,
-         first_seen_at   = MIN(users_cache.first_seen_at, excluded.first_seen_at),
-         last_seen_at    = MAX(users_cache.last_seen_at, excluded.last_seen_at)`,
-      [p.user_id, p.display_name, p.avatar_code, p.message, cnt, minAt, maxAt],
+         display_name     = excluded.display_name,
+         avatar_code      = excluded.avatar_code,
+         message          = excluded.message,
+         home_prefecture  = excluded.home_prefecture,
+         encounter_count  = excluded.encounter_count,
+         first_seen_at    = MIN(users_cache.first_seen_at, excluded.first_seen_at),
+         last_seen_at     = MAX(users_cache.last_seen_at, excluded.last_seen_at)`,
+      [
+        p.user_id,
+        p.display_name,
+        p.avatar_code,
+        p.message,
+        p.home_prefecture,
+        cnt,
+        minAt,
+        maxAt,
+      ],
     );
   }
 

@@ -108,11 +108,13 @@ ORDER BY u.last_seen_at DESC;
 - ただし合流アニメはポップアップ側で完了させるため、戻ってきた時点では既に住人として存在する。
 
 ### 4.8 パフォーマンス指針
-- 同時アニメーション要素は最大 30 体 + 背景 3 層 = 33 要素。
-- アバター 1 体あたりの DOM ノード数は **30 個以下**（[avatar.md](avatar.md) §3）。
-- すべて CSS `@keyframes` で動かし、JS タイマーは状態遷移（数秒〜数十秒間隔）のみ。
-- スクロールは `overflow-x: auto` + `transform` ベースで GPU 合成を効かせる。
-- 中位 Android 端末（2 世代前）で **30fps 以上** を維持することを最低基準とする。
+- **Phase 2 で R3F (`<Canvas>`) ベースに移行済み** ([avatar.md](avatar.md) §10)。実装は `EncounterPlaza3D.tsx`。
+- 同時描画は最大 30 体 + 背景 (地面 / 街灯 3 / ベンチ 2 / 桜 2)。
+- アバター 1 体は R3F mesh ノード 約 10〜13 個 (Avatar3D の outfit + 頭 + 目 + 口 + 髪 + 足 2)。
+- 影は `directionalLight castShadow` 1 灯 + 1024 解像度の shadow map。
+- 中位 Android 端末 (2 世代前) で **30fps 以上** を維持することを最低基準とする。
+- 走り回るアバターの状態機械は CSS ではなく React state + `useFrame` lerp で動く ([avatar.md](avatar.md) §10.3)。
+- 横スクロールは `overflow-x` ではなく **camera.position.x のドラッグパン** で実現する (`<CameraPanController>`)。
 
 ## 5. 受入基準
 - [ ] 住人 0 人のとき、空状態 UI とウォークモード導線が表示される
@@ -140,3 +142,8 @@ ORDER BY u.last_seen_at DESC;
 - [ ] 日時の相対表記ルール（i18n 含む）
 - [ ] BGM / 環境音の有無（ノスタルジック・ポップ路線との整合）
 - [ ] 広場ビューでユーザー自身のアバターを表示するか（現状は観察者視点として非表示の想定）
+- [ ] 実機 (中位 Android) での 30 体 / 60 体時のフレームレート実測
+- [ ] 桜の花びら (`SakuraPetals`) を 2D HTML overlay のまま残すか、3D particle に置換するか
+
+## 8. 移行履歴
+- **Phase 2 中盤 (2026-05)**: 旧 2D 横スクロール実装 (`EncounterPlaza.tsx` / `PlazaResident.tsx`) を削除し、R3F ベース (`EncounterPlaza3D.tsx` / `PlazaResident3D.tsx` / `Plaza3DBackground.tsx`) に全面移行。HomePage / plaza-preview とも 3D 版を import している。

@@ -1,19 +1,19 @@
-# BLE Handshake — すれ違い検出（ID-only Advertise / Scan）
+# BLE Handshake — すれ違い検出（ID-only BLE）
 
 > 関連: [要件定義 §4.1, §4.2](../要件定義.md) / [contracts/ble-payload.schema.json](../contracts/ble-payload.schema.json) / [profile-sync.md](profile-sync.md)
 
 ## 1. ゴール (What & Why)
 GPS を使わず、純粋な BLE 電波の物理的到達のみで「すれ違い」を検出する。
-**接続は行わず、Advertise / Scan のみで `user_id` を交換する**ことで、検出時間を最短（数百 ms 以下）に抑え、すれ違い成功率と iOS バックグラウンド耐性を最大化する。プロフィール本体の取得は [profile-sync.md](profile-sync.md) のクラウド同期に委譲する。
+Android / desktop では **Advertise Service Data / Scan** で `user_id` を交換し、iOS では通常アプリの CoreBluetooth 制約に合わせて **Service UUID 検出 + GATT read fallback** で同じ `user_id` を取得する。プロフィール本体の取得は [profile-sync.md](profile-sync.md) のクラウド同期に委譲する。
 
 ## 2. ユーザーストーリー
 - ユーザーとして、アプリをポケットに入れたまま街を歩くだけで、近くを通った他ユーザーの `user_id` がローカルに記録されてほしい。
 - ユーザーとして、自分の位置情報は一切外部に取得されない安心感が欲しい。
-- ユーザーとして、すれ違いの "成立" が確実であってほしい（GATT 接続のような不安定な要素が入らない）。
+- ユーザーとして、すれ違いの "成立" が確実であってほしい。
 
 ## 3. スコープ
 ### In Scope
-- BLE Advertise の起動・停止（自端末の `user_id` を Service Data に乗せる）
+- BLE Advertise の起動・停止（自端末の `user_id` を Android では Service Data、iOS では GATT read characteristic に乗せる）
 - BLE Scan の起動・停止（他端末の Service UUID をフィルタにして `user_id` を抽出）
 - Service UUID によるアプリ識別
 - 受信した `user_id` と受信時刻を **`encounter_logs`** に保存（`users_cache` への書き込みは行わない — それは [profile-sync.md](profile-sync.md) の責務）
@@ -21,7 +21,6 @@ GPS を使わず、純粋な BLE 電波の物理的到達のみで「すれ違�
 - ローカル DB への記録（[db-schema.sql](../contracts/db-schema.sql)）
 
 ### Out of Scope
-- GATT 接続（このプロジェクトでは行わない）
 - プロフィール本体（display_name / avatar_code / message）の交換 → [profile-sync.md](profile-sync.md)
 - 中央サーバーへのすれ違い履歴のアップロード
 - 位置情報（GPS / CoreLocation）の利用
@@ -34,14 +33,22 @@ GPS を使わず、純粋な BLE 電波の物理的到達のみで「すれ違�
 Service UUID 兼 Scan のフィルタとして使う。
 
 - `SERVICE_UUID`: `4a985948-3bc6-450b-80d2-04a8f98f83cb`
+- `USER_ID_CHARACTERISTIC_UUID`: `4a985948-3bc6-450b-80d2-04a8f98f83cc`
 
-Rust 側の正本は `src-tauri/src/ble/mod.rs` の `SERVICE_UUID` 定数。
+Rust 側の正本は `src-tauri/src/ble/mod.rs` の `SERVICE_UUID` 定数。native plugin 側も同じ UUID を使う。
 
 ### 4.2 Advertise ペイロード
 - **Service Data フィールドに 16 byte (バイナリ)** で `user_id`（Supabase Auth で発行された UUID）を乗せる。
 - スキーマは [contracts/ble-payload.schema.json](../contracts/ble-payload.schema.json)。
 - 文字列形式（標準 UUID、ハイフン区切り 36 文字）はログ・ローカル DB・Supabase で使用するが、BLE 上はバイナリ 16 byte で送る。
 - BLE 4 Legacy Advertise の Service Data 上限（〜26 byte）に余裕で収まる。
+
+### 4.2.1 iOS / Android native 実装
+- 実装は `src-tauri/plugins/tauri-plugin-encounter-ble`。
+- Android: `BluetoothLeAdvertiser` で `SERVICE_UUID` の Service Data に 16 byte `user_id` を載せ、同時に GATT characteristic も公開する。
+- iOS: CoreBluetooth の通常アプリ制約により任意 Service Data advertise は使わず、`SERVICE_UUID` advertise + `USER_ID_CHARACTERISTIC_UUID` read characteristic で `user_id` を公開する。
+- Scanner は Service Data があれば即時保存し、無い場合は短時間だけ GATT 接続して characteristic を読む。
+- この fallback はプロフィール交換には使わない。交換する値は引き続き `user_id` のみ。
 
 ### 4.3 動作モード
 
@@ -54,7 +61,7 @@ Rust 側の正本は `src-tauri/src/ble/mod.rs` の `SERVICE_UUID` 定数。
 
 ```
 on_advertisement_received(service_data):
-  user_id = parse_user_id(service_data)
+  user_id = parse_user_id(service_data_or_gatt_characteristic)
   if user_id is invalid: return  # スキーマ違反は破棄
 
   last = db.last_encounter_at(user_id)
@@ -105,7 +112,8 @@ on_advertisement_received(service_data):
 
 ## 5. 受入基準
 - [ ] 2 台の端末を近づけたとき、双方の `encounter_logs` に 1 件ずつエントリが追加される
-- [ ] 検出から DB 書き込みまで 1 秒以内に完了する（GATT 接続を伴わない）
+- [ ] 検出から DB 書き込みまで 1 秒以内に完了する（Service Data 経路）
+- [ ] iOS fallback 経路では GATT read 完了後に DB 書き込みされる
 - [ ] 同じ相手と連続して近づいてもクールダウン中はログが増えない
 - [ ] クールダウン経過後の再受信でログが追加される
 - [ ] アプリがバックグラウンドにある状態でも iOS↔iOS でのすれ違いが成立する（OS 制約の範囲で）
@@ -129,13 +137,16 @@ on_advertisement_received(service_data):
   `AndroidManifest.xml` の `<manifest>` 直下にマージする運用。
 - ~~iOS バックグラウンド対応~~ → `Info.plist` に `UIBackgroundModes`
   (`bluetooth-central` / `bluetooth-peripheral`) を設定済み。実測検出率は
-  Phase 1.5 の Native プラグイン実装後に計測する。
-
-### 残課題 (Phase 1.5)
-- [ ] iOS / Android Native BLE プラグインの実装
+  実機テストで計測する。
+- ~~iOS / Android Native BLE プラグインの実装~~
   ([要件定義 §7 Phase 1.5](../要件定義.md))
-  - 現状: btleplug が iOS/Android 非対応のため、mobile では mock fallback
-  - 解決: `tauri-plugin-encounter-ble` を新規実装し、`BleBackend::TauriPlugin`
-    バリアントを追加 → mobile では自動採用
+  - `tauri-plugin-encounter-ble` を実装し、`BleBackend::TauriPlugin`
+    バリアントを追加。mobile では未指定時に自動採用する。
+
+### 残課題
+- [ ] iPhone / Android 実機の相互検出テスト
+  - Android APK build は通過済み。
+  - iOS simulator bundle / iPhoneOS `.ipa` build は通過済み。
+  - 残りは署名済み実機インストールと、端末間の advertise / scan / fallback GATT read の実測。
 - [ ] 同時に複数の `user_id` が検出された場合のキューイング戦略
   - 現状: btleplug 側で 5 秒の dedup window のみ。実機計測後に再検討

@@ -13,12 +13,83 @@
 -- =====================================================================
 
 CREATE TABLE IF NOT EXISTS public.profiles (
-    id           UUID    PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    display_name TEXT    NOT NULL,
-    avatar_code  TEXT    NOT NULL,
-    message      TEXT,
-    updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    id              UUID    PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    display_name    TEXT    NOT NULL,
+    avatar_code     TEXT    NOT NULL,
+    message         TEXT,
+    home_prefecture TEXT,                                            -- ISO 3166-2:JP 下 2 桁 ("01"〜"47") or NULL=非公開。spec: regional-map.md
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- 既存テーブルへの後付け列追加 (idempotent)
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS home_prefecture TEXT;
+
+-- クライアント validation と同じ公開プロフィール制約。
+-- Postgres には ADD CONSTRAINT IF NOT EXISTS がないため、DO block で冪等化する。
+-- NOT VALID で追加して既存の汚れた行によるデプロイ失敗を避ける。
+-- 新規 INSERT / UPDATE には追加直後から適用される。
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'profiles_display_name_valid'
+          AND conrelid = 'public.profiles'::regclass
+    ) THEN
+        ALTER TABLE public.profiles
+            ADD CONSTRAINT profiles_display_name_valid
+            CHECK (
+                char_length(btrim(display_name)) BETWEEN 1 AND 16
+                AND display_name !~ '[[:cntrl:]]'
+            ) NOT VALID;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'profiles_avatar_code_valid'
+          AND conrelid = 'public.profiles'::regclass
+    ) THEN
+        ALTER TABLE public.profiles
+            ADD CONSTRAINT profiles_avatar_code_valid
+            CHECK (
+                char_length(avatar_code) BETWEEN 1 AND 64
+                AND avatar_code ~ '^[A-Za-z0-9_-]+$'
+            ) NOT VALID;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'profiles_message_valid'
+          AND conrelid = 'public.profiles'::regclass
+    ) THEN
+        ALTER TABLE public.profiles
+            ADD CONSTRAINT profiles_message_valid
+            CHECK (
+                message IS NULL
+                OR (
+                    char_length(message) <= 30
+                    AND message !~ '[[:cntrl:]]'
+                )
+            ) NOT VALID;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'profiles_home_prefecture_valid'
+          AND conrelid = 'public.profiles'::regclass
+    ) THEN
+        ALTER TABLE public.profiles
+            ADD CONSTRAINT profiles_home_prefecture_valid
+            CHECK (
+                home_prefecture IS NULL
+                OR home_prefecture ~ '^(0[1-9]|[1-3][0-9]|4[0-7])$'
+            ) NOT VALID;
+    END IF;
+END
+$$;
 
 -- 安全策: RLS を有効化
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;

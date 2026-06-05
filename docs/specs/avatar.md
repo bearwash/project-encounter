@@ -238,6 +238,115 @@ walking ──5s後──┬──> standing ──3s後──┬──> walking
 - 上流: [contracts/ble-payload.schema.json](../contracts/ble-payload.schema.json)（user_id のみ受信）, [profile-sync.md](profile-sync.md)（avatar_code の取得元）
 - 下流: [encounter-popup.md](encounter-popup.md), [encounter-plaza.md](encounter-plaza.md), [profile.md](profile.md)
 
+## 10. Phase 2 プロトタイプ: 3D アバター (`Avatar3D`)
+
+要件定義 §7 Phase 2「アバターの完全 3D 化: React Three Fiber + glTF への進化」の前段階として、**幾何プリミティブだけで構成された 3D アバター** `src/features/encounter/Avatar3D.tsx` を用意する。MVP の 2.5D SVG (§2.0) と共存し、選択的に置換可能なインターフェースで設計する。
+
+### 10.1 設計方針
+- 既存の `<Avatar code="..." mode="..." />` (2.5D) と並列に、`<Avatar3D avatarCode="..." userId="..." mode="idle|walking" />` を提供。
+- 形状はすべて **R3F (`@react-three/fiber` v8) + drei (v9)** のプリミティブ (`sphere` / `cylinder` / `box` / `cone` / `torus` / `plane`) で構成。glTF / FBX は使わない (Phase 2 後半で導入)。
+- `<Canvas>` は呼び出し側が用意する想定で、`<Avatar3D>` 自身は **R3F group を返すコンポーネント**。複数アバターを 1 Canvas に並べる前提。
+- `avatar_code` のパースは既存の `parseAvatarCode` を流用 (`b/h/o/f` の 4 軸、未知 ID は `01` フォールバック)。
+- 個体差は `userId` をシード (`makeRng` = mulberry32 + fnv1a32) に決定論的に生成。同じ `userId` は再起動しても同じ姿。
+
+### 10.2 形状マッピング (V4 = ボックス voxel 化済み、2026-05-18)
+
+**設計方針**: 3.5 等身のずんぐり可愛い voxel キャラ (Crossy Road / Designer Toy 路線)。`sphereGeometry` は完全排除し、すべて `boxGeometry` または `cylinderGeometry radialSegments=6` で構成する。
+
+| 軸 | 値 | 形状 |
+| --- | --- | --- |
+| 頭 (固定) | — | `boxGeometry` 0.7×0.7×0.7 (大きく、ほぼ立方体) |
+| 首 (固定) | — | `boxGeometry` 0.22×0.1×0.22 (薄い箱、skin 色) |
+| 胴 (トップス) | outfit | `boxGeometry` 0.62-0.7 幅、高さ 0.55 |
+| 腰 | outfit と連動 | `boxGeometry` (ボトムス色)、トップスとの境界 |
+| 腕 | — | 肩 box (0.2×0.18×0.22) + 上腕 `cylinderGeometry` radialSegments=6 + 手 box (0.16³) |
+| 足 | — | 太もも〜脛 `cylinderGeometry` radialSegments=6 (太め) + 靴 box (0.22×0.14×0.34、つま先方向に伸びる) |
+| hair `h01` | 短髪 + バング | 扁平 box × 1 + バング box + ぴょこん box × 3 |
+| hair `h02` | 長めボブ | 大箱 + 左右の垂れ box × 2 + 流し前髪 box |
+| hair `h03` | ツンツン | 扁平 box + 縦長 box × 3 (中央 + 左右) |
+| hair `h04` | ふんわりショート | 扁平大箱 + V 字前髪 box × 2 |
+| face | 点目 + ミニマル口 | 黒 box × 2 (点目) + box (口) のみ。Sphere や torus は使わない |
+| outfit `o01` / `o03` | スタンダード / 細身 | `cylinderGeometry` (トップス、上下わずかに先細り) |
+| outfit `o02` / `o04` | スタンダード / 細身 | `boxGeometry` (トップス) |
+| ボトムス | outfit と連動 | デニム / チャコール / カーキ / ベージュの 4 色をボトムス + 足の cylinder に塗る |
+| hair `h01` | 短髪ぴょこん + 浅いサイドバング | 頭頂の `boxGeometry` × 4 + 前髪の薄い `boxGeometry` |
+| hair `h02` | 長めボブ | 頭を包む `sphereGeometry` + 左右に張り出した `boxGeometry` × 2 + サイドに流す前髪 |
+| hair `h03` | ツンツン | 扁平 `sphereGeometry` (頭頂ベース) + `coneGeometry` × 3 (棘) |
+| hair `h04` | ふんわりショート | 扁平 `cylinderGeometry` + 中央分け前髪 `boxGeometry` × 2 |
+| base `b01-b04` | 肌色 4 種 | 頭・首・手・耳 (将来) の色違い |
+| face `f01` スマイル | 丸い目 + 半 torus の U 字口 | `sphereGeometry` (R=0.05) + `torusGeometry` (半周) |
+| face `f02` 驚き | 大きい丸目 + 「o」型口 | `sphereGeometry` (R=0.07) + `torusGeometry` (1 周) |
+| face `f03` どや | 細目 (scaleY 0.3) + 斜めの口 | `sphereGeometry` + 細い `boxGeometry` を回転 |
+| face `f04` ウインク | 左目: 丸 / 右目: 横向き細線 | `sphereGeometry` + 横方向の `boxGeometry` |
+
+### 10.2.1 個体差ジッタ (userId シード)
+| パラメータ | 範囲 | 用途 |
+| --- | --- | --- |
+| `heightScale` | 0.92 〜 1.10 | 体全体の Y スケール (身長) |
+| `widthScale` | 0.94 〜 1.08 | 体全体の X / Z スケール (体格) |
+| `breathPhase` | 0 〜 2π | 呼吸の初期位相 |
+| `breathSpeed` | 1.8 〜 2.4 rad/s | 呼吸サイクルの速さ |
+| `walkPhase` | 0 〜 2π | 歩行サイクルの初期位相 |
+
+→ 30 体並べたとき、全員が同期して上下する不自然さを解消する。
+
+### 10.3 アニメーション
+
+`useFrame` で `mode` に応じて body group の transform を毎フレーム更新する。
+
+#### idle (デフォルト)
+- `position.y = sin(t * breathSpeed + breathPhase) * 0.05`
+- 足は静止 (`rotation.x = 0`)
+
+#### walking (V4 = 1 セグメント化)
+- `body.position.y = abs(sin(t * 4 + walkPhase)) * 0.06` (踏み込みで沈む)
+- `body.rotation.z = sin(walkT) * 0.03` (微小な傾き)
+- 股関節 (`hipLRef` / `hipRRef`) `rotation.x = ±sin(walkT) * 0.4` (前後スイング)
+- 肩 (`shoulderLRef` / `shoulderRRef`) `rotation.x = ±sin(walkT) * 0.36` (足と逆位相)
+
+V2 / V3 では膝・肘の屈伸も振っていたが、V4 (3.5 等身) ではシルエットを優先して **1 セグメント (肩-腕 / 股関節-脚)** に簡略化。voxel テイストにはこちらの方が合う。
+
+#### 共通: idle 時の腕の揺らぎ
+idle 時も呼吸に合わせて腕を ±0.03 rad 程度振らすことで「生きている感」を強化。
+
+30 体並べても **位相と速度が個体ごとに異なる** ので、群衆としての自然さが出る (10.2.1)。
+
+### 10.3.1 アウトライン (drei `<Outlines>` V4)
+- マテリアルは **`meshToonMaterial`**（フラットなアニメ塗り）。ライトに反応するが metalness / specular は 0。
+- すべての主要 mesh に drei `<Outlines thickness={0.03} color="#181410" />` を付ける (world-space)。
+- **`screenspace={true}` は使わない**: drei v10 + three 0.184 では画面全体を覆ってしまう挙動を確認 (要報告)。world-space で十分にローポリ・トゥーン感が出る。
+- 目・口 (点目 box) には輪郭をつけない (visibility 重視)。
+- drei v9 + three 0.169 では `Outlines` が `onFirstUse` で `.trim()` null crash していたが、**drei v10 + three 0.184 で解消済み**。当時暫定で実装した「背面フリンジ法」は撤去済み。
+
+### 10.4 影とライト
+- すべての `mesh` に `castShadow` と `receiveShadow` を設定。
+- 呼び出し側 (`/avatar3d-preview`) では:
+  - `<Canvas shadows>` を必須
+  - `<ambientLight>` + `<hemisphereLight>` + `<directionalLight castShadow>` (太陽光)
+  - 地面 `<planeGeometry>` (`receiveShadow`) で接地感を出す
+- Phase 2 で広場 (`EncounterPlaza`) を 3D 化する際は、上記 light setup を `EncounterPlaza` 側でも共通化する想定。
+
+### 10.5 検証ページ
+`/avatar3d-preview`:
+- **単体プレビュー** — avatar_code 直接入力 + `idle / walking` モード切替 + OrbitControls
+- **FACE 軸** — f01-f04 (スマイル / 驚き / どや / ウインク) を **1 Canvas に 4 体並列**
+- **SAMPLES** — 代表的なコード組み合わせ 8 種を **1 Canvas に 4×2 (前後 z 奥行き)** で並べる
+- **CROWD** — 30 体を 1 Canvas で生成 (40% を walking、残り idle)
+- **フォールバック** — 不正コードでも b01/h01/o01 にフォールバック (1 Canvas)
+
+#### Canvas 統合と WebGL context 上限
+Chromium の WebGL context は最大 16 個。各セクションが 1 個の Canvas を持つと容易に上限を超え、最初に作られた Canvas から context を奪われる (Avatar3D 単体プレビューが空表示になる)。V4 では **計 5 Canvas** に集約 (単体 1 + FACE 1 + SAMPLES 1 + CROWD 1 + Fallback 1) し、上限内に収めている。
+
+#### CameraLook ヘルパー
+`camera={{ position: [...] }}` だけだと PerspectiveCamera の forward が `(0,0,-1)` 固定で、アバター中心 (y ≈ 1.0) より高い位置に camera を置くと頭がフレームアウトする。`useThree` で camera を取って `camera.lookAt(at)` を明示的に呼ぶヘルパー `<CameraLook at={[0, 1.0, 0]} />` を全 Canvas に入れている。
+
+`avatar-preview/layout.tsx` と同じ dev ガード (`NEXT_PUBLIC_ENABLE_DEV_PAGES`) を適用。
+
+### 10.6 既存 2.5D との切替戦略 (Phase 2 計画)
+1. **Phase 2 前半 (現在)**: 既存 `<Avatar>` を主、`<Avatar3D>` はプレビューのみ。広場や挨拶シーンには未投入。
+2. **Phase 2 中盤**: 広場 (`EncounterPlaza`) を Canvas ベースに置き換え。`<Avatar3D>` を 30 体並べてフレームレートを実測する。
+3. **Phase 2 後半**: glTF + Mixamo アニメーションへ移行。`Avatar3D.tsx` は段階的に「プリミティブ → glTF ボーン」に置換する。
+
 ## 11. オープン課題
 - [ ] mulberry32 + FNV-1a の参照実装（Rust と TS の両方で揃える）
 - [ ] 個別パーツ SVG のデザインバリエーション最終確定（base/hair/outfit/face 各 4 種）

@@ -25,7 +25,7 @@ BLE による物理的すれ違いを再現する、位置情報非依存のア�
 
 - **アプリ**: Tauri v2 (macOS デスクトップ + iOS / Android)
 - **UI**: Next.js (App Router) + React + Tailwind CSS + @tanstack/react-query
-- **コア**: Rust (BLE: btleplug @ macOS、CoreBluetooth/Android Bluetooth は Phase 1.5)
+- **コア**: Rust (BLE: btleplug @ desktop、CoreBluetooth / Android Bluetooth は Tauri mobile plugin)
 - **DB ローカル**: SQLite (Tauri Plugin SQL)
 - **DB クラウド**: Supabase (Postgres + 匿名 Auth + RLS)
 - **パッケージマネージャ**: pnpm
@@ -43,6 +43,28 @@ cp .env.example .env.local
 ```
 
 Supabase 側のスキーマは [`docs/contracts/supabase-schema.sql`](docs/contracts/supabase-schema.sql) を Studio SQL Editor に貼って実行。Authentication > Providers で **Anonymous sign-ins を有効化**。
+
+サーバーサイドの責務と、将来 Supabase 直結を API サーバーへ置き換える場合の契約は [`docs/specs/server-side.md`](docs/specs/server-side.md) と [`docs/contracts/server-api.md`](docs/contracts/server-api.md) を参照。
+
+ローカル契約検査:
+
+```bash
+pnpm server:check
+```
+
+サーバー側の実機不要 preflight:
+
+```bash
+pnpm server:preflight
+```
+
+Supabase 実プロジェクトの疎通確認:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=... NEXT_PUBLIC_SUPABASE_ANON_KEY=... pnpm server:smoke
+```
+
+`server:smoke` は anonymous sign-in、プロフィール upsert / resolve / delete、RLS による他人プロフィール更新拒否、DB 制約による不正プロフィール拒否まで確認する。
 
 ### 1. 依存解決 / 整合チェック
 
@@ -105,15 +127,12 @@ rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-andro
 # Tauri Android プロジェクト生成
 pnpm tauri android init
 
-# 生成された AndroidManifest.xml に Bluetooth 権限を追加:
-# docs/contracts/android/AndroidManifest.snippet.xml の内容を <manifest> 直下にマージ
-
 pnpm tauri android dev                       # エミュレータ / 実機で起動
 ```
 
 ---
 
-## 現在の進捗 (2026-05 時点)
+## 現在の進捗 (2026-06 時点)
 
 ### ✅ Phase 1 完了
 
@@ -122,24 +141,29 @@ pnpm tauri android dev                       # エミュレータ / 実機で起
 | UI / 体験 (対面挨拶 / 広場 / プロフィール / ウォークモード) | 全機能実装済み |
 | Supabase 連携 (匿名 Auth / RLS / 同意 / 一括 fetch / バックオフ + トースト) | 実装済み |
 | ローカル DB (SQLite + migration 0001 / 0002) | 実装済み |
-| 実 BLE Scan (btleplug @ macOS) | 実装済み |
+| 実 BLE Scan (btleplug @ desktop) | 実装済み |
 | iOS プロジェクト + Bluetooth 権限 + 縦固定 | 生成済み |
-| Android Manifest 雛形 (`docs/contracts/android/`) | 用意済み |
+| Android Manifest / BLE permission | plugin 側に実装済み |
 
-### ⏳ Phase 1.5: iOS / Android Native BLE プラグイン
+### ✅ Phase 1.5: iOS / Android Native BLE プラグイン
 
-`btleplug` は iOS/Android 非対応のため、Mobile では mock fallback で動作する
-(= UI / Supabase は実機で確認できるが、実すれちがいは擬似発火)。実機 BLE を
-動かすには Tauri Mobile プラグインを実装する必要がある。
+`btleplug` は iOS/Android 非対応のため、Mobile では `tauri-plugin-encounter-ble`
+を使う。Android は Service Data + GATT characteristic、iOS は CoreBluetooth の
+制約に合わせて Service UUID advertise + GATT read fallback で `user_id` を交換する。
+
+実装済み:
+- `src-tauri/plugins/tauri-plugin-encounter-ble` に iOS Swift / Android Kotlin plugin を追加
+- `BleBackend::TauriPlugin` を追加し、mobile では未指定時に自動採用
+- native plugin event を既存の encounter 保存フローへ接続
+- Android debug APK build は通過済み
+- iOS simulator bundle / iPhoneOS `.ipa` build は通過済み
 
 残課題:
-- `pnpm tauri plugin new tauri-plugin-encounter-ble --android --ios`
-- iOS Swift で `CoreBluetooth` Central + Peripheral
-- Android Kotlin で `BluetoothLeScanner` + `BluetoothLeAdvertiser`
-- `BleBackend::TauriPlugin` バリアントを追加して mobile では自動採用
-- 実機 (iPhone × 2, Android × 1 程度) でキャンパス内テスト
+- 実機 (iPhone × 2, Android × 1 程度) で相互検出テスト
+- iOS 実機インストールには Apple Developer Team / signing 設定が必要
 
 詳細は [`docs/specs/ble-handshake.md`](docs/specs/ble-handshake.md) §7 を参照。
+実機検証手順は [`docs/specs/ble-real-device-test.md`](docs/specs/ble-real-device-test.md) を参照。
 
 ### Phase 2 (要件定義 §7)
 
@@ -173,7 +197,8 @@ pnpm tauri android dev                       # エミュレータ / 実機で起
 # BLE 実装
 BLE_BACKEND=mock pnpm tauri:dev      # mock peer ループ強制
 BLE_BACKEND=btleplug pnpm tauri:dev  # btleplug (macOS) 強制
-# 未指定は対応 OS なら btleplug、iOS/Android は mock fallback
+BLE_BACKEND=tauri-plugin pnpm tauri:dev  # mobile native plugin 強制
+# 未指定は desktop なら btleplug、iOS/Android は tauri-plugin
 
 # Supabase mock モード
 # .env.local の URL/ANON_KEY を空にすると Rust の profile_fetch_remote にフォールバック

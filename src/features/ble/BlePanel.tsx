@@ -12,9 +12,9 @@ export function BlePanel({ status }: { status: BleStatus | undefined }) {
 
   return (
     <section className="flex items-center justify-between gap-3 rounded-toy border border-cream-deep bg-cream-soft px-4 py-3 shadow-toy">
-      <div className="flex items-center gap-3">
+      <div className="flex min-w-0 items-center gap-3">
         <Indicator mode={mode} />
-        <div className="flex flex-col">
+        <div className="flex min-w-0 flex-col gap-1">
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-bold tracking-widest text-ink-muted">
               BLE
@@ -24,6 +24,8 @@ export function BlePanel({ status }: { status: BleStatus | undefined }) {
                 className={`rounded-full px-1.5 py-0.5 text-[9px] font-black tracking-widest ${
                   status.backend === 'btleplug'
                     ? 'bg-pop-green/15 text-pop-green'
+                    : status.backend === 'tauri-plugin'
+                      ? 'bg-pop-blue/15 text-pop-blue'
                     : 'bg-cream-deep text-ink-muted'
                 }`}
                 data-testid="ble-backend"
@@ -39,6 +41,22 @@ export function BlePanel({ status }: { status: BleStatus | undefined }) {
                 ? 'ウォーキング中'
                 : 'すれ違い待機中'}
           </span>
+          {status && (
+            <div className="flex flex-wrap gap-1">
+              <StateChip label="BT" active={status.bluetooth_on} />
+              <StateChip label="PERM" active={status.permission_granted} />
+              <StateChip label="ADV" active={status.advertise_active} />
+              <StateChip label="SCAN" active={status.scan_active} />
+              <span className="rounded-full bg-cream-deep px-1.5 py-0.5 text-[9px] font-black tracking-widest text-ink-muted">
+                SEEN {status.seen_count}
+              </span>
+            </div>
+          )}
+          {status?.last_error && (
+            <span className="max-w-[220px] truncate text-[10px] font-bold text-pop-red">
+              {status.last_error}
+            </span>
+          )}
         </div>
       </div>
       <div>
@@ -61,6 +79,18 @@ export function BlePanel({ status }: { status: BleStatus | undefined }) {
         ) : null}
       </div>
     </section>
+  );
+}
+
+function StateChip({ label, active }: { label: string; active: boolean }) {
+  return (
+    <span
+      className={`rounded-full px-1.5 py-0.5 text-[9px] font-black tracking-widest ${
+        active ? 'bg-pop-green/15 text-pop-green' : 'bg-cream-deep text-ink-muted'
+      }`}
+    >
+      {label}
+    </span>
   );
 }
 

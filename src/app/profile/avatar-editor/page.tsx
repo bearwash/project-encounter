@@ -44,6 +44,7 @@ export default function AvatarEditorPage() {
         display_name: profile.display_name,
         avatar_code: code,
         message: profile.message,
+        home_prefecture: profile.home_prefecture,
       },
       {
         onSuccess: () => router.replace('/profile'),

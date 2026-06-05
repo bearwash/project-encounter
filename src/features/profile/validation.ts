@@ -1,9 +1,12 @@
+import { lookupPrefecture } from '@/lib/prefecture/data';
 import { PROFILE_LIMITS } from '@/types/profile';
 
 export type ProfileInput = {
   display_name: string;
   avatar_code: string;
   message: string;
+  /** "01"〜"47" or null (= 未設定 = 非公開)。spec: regional-map.md */
+  home_prefecture: string | null;
 };
 
 export type ValidationError = {
@@ -12,7 +15,6 @@ export type ValidationError = {
 };
 
 const AVATAR_CODE_PATTERN = /^[A-Za-z0-9_-]+$/;
-// eslint-disable-next-line no-control-regex
 const CONTROL_CHAR_PATTERN = /[\x00-\x1f\x7f]/;
 
 export function validateProfile(input: ProfileInput): ValidationError[] {
@@ -60,6 +62,18 @@ export function validateProfile(input: ProfileInput): ValidationError[] {
     });
   } else if (CONTROL_CHAR_PATTERN.test(input.message)) {
     errors.push({ field: 'message', message: '改行や制御文字は使えません' });
+  }
+
+  // home_prefecture (optional)。null = 未設定 (= 非公開)。
+  // 値があるなら 47 都道府県のいずれかでなければならない。
+  if (
+    input.home_prefecture !== null &&
+    !lookupPrefecture(input.home_prefecture)
+  ) {
+    errors.push({
+      field: 'home_prefecture',
+      message: '未知の都道府県コードです',
+    });
   }
 
   return errors;

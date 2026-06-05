@@ -1,12 +1,12 @@
 // 契約: docs/contracts/tauri-commands.md (ble.*)
 
-import { invoke } from '@tauri-apps/api/core';
+import { invoke, requestPermissions } from '@tauri-apps/api/core';
 import { isTauri, TauriUnavailableError } from './env';
 
 export type BleMode = 'idle' | 'normal' | 'walk';
 
 /** どの BLE 実装を使っているか (UI と BlePanel で見える化) */
-export type BleBackend = 'mock' | 'btleplug';
+export type BleBackend = 'mock' | 'btleplug' | 'tauri-plugin';
 
 export type BleStatus = {
   mode: BleMode;
@@ -15,6 +15,8 @@ export type BleStatus = {
   permission_granted: boolean;
   advertise_active: boolean;
   scan_active: boolean;
+  seen_count: number;
+  last_error: string | null;
 };
 
 /**
@@ -37,15 +39,34 @@ const OFFLINE_STATUS: BleStatus = {
   permission_granted: false,
   advertise_active: false,
   scan_active: false,
+  seen_count: 0,
+  last_error: null,
 };
 
 const ifTauri = <T>(fn: () => Promise<T>): Promise<T> =>
   isTauri() ? fn() : Promise.reject(new TauriUnavailableError());
 
+async function requestNativeBlePermissions(): Promise<void> {
+  if (!isTauri()) return;
+  try {
+    await requestPermissions('encounter-ble');
+  } catch {
+    // Desktop / unsupported plugin path. Native start still reports hard failures.
+  }
+}
+
 export const ble = {
-  start: () => ifTauri(() => invoke<void>('ble_start')),
+  start: () =>
+    ifTauri(async () => {
+      await requestNativeBlePermissions();
+      return invoke<void>('ble_start');
+    }),
   stop: () => ifTauri(() => invoke<void>('ble_stop')),
-  walkStart: () => ifTauri(() => invoke<void>('ble_walk_mode_start')),
+  walkStart: () =>
+    ifTauri(async () => {
+      await requestNativeBlePermissions();
+      return invoke<void>('ble_walk_mode_start');
+    }),
   walkStop: () => ifTauri(() => invoke<void>('ble_walk_mode_stop')),
   status: (): Promise<BleStatus> =>
     isTauri() ? invoke<BleStatus>('ble_status') : Promise.resolve(OFFLINE_STATUS),

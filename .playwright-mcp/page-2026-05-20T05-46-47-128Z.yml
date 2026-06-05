@@ -1,0 +1,92 @@
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e8] [cursor=pointer]:
+    - img [ref=e9]
+  - alert [ref=e12]
+  - main [ref=e13]:
+    - generic [ref=e14]:
+      - link "← ホーム" [ref=e15] [cursor=pointer]:
+        - /url: /
+      - heading "PROFILE" [level=1] [ref=e16]
+    - generic [ref=e18]:
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - generic [ref=e21]: 名前
+          - generic [ref=e22]: 0 / 16
+        - textbox "名前 0 / 16" [ref=e23]
+      - generic [ref=e24]:
+        - generic [ref=e25]: アバター
+        - generic [ref=e26]:
+          - img "avatar b01_h01_o01_f01" [ref=e27]
+          - code [ref=e32]: b01_h01_o01_f01
+          - link "編集" [ref=e33] [cursor=pointer]:
+            - /url: /profile/avatar-editor
+      - generic [ref=e34]:
+        - generic [ref=e35]:
+          - generic [ref=e36]: 一言メッセージ
+          - generic [ref=e37]: 0 / 30
+        - textbox "一言メッセージ 0 / 30" [ref=e38]:
+          - /placeholder: (空でも OK)
+      - generic [ref=e39]:
+        - generic [ref=e40]:
+          - generic [ref=e41]: 🗾 出身地（任意）
+          - generic [ref=e42]: すれちがった人の地図に並ぶ
+        - combobox "🗾 出身地（任意）" [ref=e43]:
+          - option "未設定（非公開）" [selected]
+          - option "北海道"
+          - option "青森"
+          - option "岩手"
+          - option "宮城"
+          - option "秋田"
+          - option "山形"
+          - option "福島"
+          - option "茨城"
+          - option "栃木"
+          - option "群馬"
+          - option "埼玉"
+          - option "千葉"
+          - option "東京"
+          - option "神奈川"
+          - option "新潟"
+          - option "富山"
+          - option "石川"
+          - option "福井"
+          - option "山梨"
+          - option "長野"
+          - option "岐阜"
+          - option "静岡"
+          - option "愛知"
+          - option "三重"
+          - option "滋賀"
+          - option "京都"
+          - option "大阪"
+          - option "兵庫"
+          - option "奈良"
+          - option "和歌山"
+          - option "鳥取"
+          - option "島根"
+          - option "岡山"
+          - option "広島"
+          - option "山口"
+          - option "徳島"
+          - option "香川"
+          - option "愛媛"
+          - option "高知"
+          - option "福岡"
+          - option "佐賀"
+          - option "長崎"
+          - option "熊本"
+          - option "大分"
+          - option "宮崎"
+          - option "鹿児島"
+          - option "沖縄"
+      - generic [ref=e44]:
+        - generic [ref=e45]:
+          - generic [ref=e46]: 効果音
+          - generic [ref=e47]: あいさつシーンのコツコツ / ピロリン
+        - checkbox "効果音を有効にする" [checked] [ref=e48]
+      - generic [ref=e49]:
+        - generic [ref=e50]:
+          - generic [ref=e51]: 振動
+          - generic [ref=e52]: ハイタッチ / ゲート通過などで「ブルッ」
+        - checkbox "振動を有効にする" [checked] [ref=e53]
+      - button "保存" [ref=e54] [cursor=pointer]

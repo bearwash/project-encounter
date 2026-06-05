@@ -2,6 +2,7 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import type Database from '@tauri-apps/plugin-sql';
+import { addPluginListener, type PluginListener } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { useEffect } from 'react';
 import { getDb } from '@/lib/db/client';
@@ -30,29 +31,52 @@ export function useEncounterListener() {
 
   useEffect(() => {
     if (!isTauri()) return;
-    const unlistenPromise = listen<BlePayload>(
-      BLE_EVENT_ENCOUNTER_FOUND,
-      async (event) => {
-        try {
-          const inserted = await persistEncounterLog(event.payload);
-          if (!inserted) return;
+    let pluginListener: PluginListener | null = null;
+    let disposed = false;
 
+    const handlePayload = async (payload: BlePayload) => {
+      try {
+        const inserted = await persistEncounterLog(payload);
+        if (!inserted) return;
+
+        qc.invalidateQueries({ queryKey: ['encounters', 'unread'] });
+        qc.invalidateQueries({ queryKey: ['encounters', 'history'] });
+        qc.invalidateQueries({ queryKey: ['encounters', 'todayCount'] });
+
+        // §5.4.1: 受信時の一括 fetch は最大 30s でデバウンス
+        scheduleProfileFetch(() => {
           qc.invalidateQueries({ queryKey: ['encounters', 'unread'] });
           qc.invalidateQueries({ queryKey: ['encounters', 'history'] });
+          qc.invalidateQueries({ queryKey: ['encounters', 'todayCount'] });
+        });
+      } catch (e) {
+        console.error('[encounter-listener] failed:', e);
+      }
+    };
 
-          // §5.4.1: 受信時の一括 fetch は最大 30s でデバウンス
-          scheduleProfileFetch(() => {
-            qc.invalidateQueries({ queryKey: ['encounters', 'unread'] });
-            qc.invalidateQueries({ queryKey: ['encounters', 'history'] });
-          });
-        } catch (e) {
-          console.error('[encounter-listener] failed:', e);
-        }
-      },
+    const unlistenPromise = listen<BlePayload>(
+      BLE_EVENT_ENCOUNTER_FOUND,
+      (event) => handlePayload(event.payload),
     );
 
+    addPluginListener<BlePayload>(
+      'encounter-ble',
+      'encounter-found',
+      (payload) => handlePayload(payload),
+    )
+      .then((listener) => {
+        if (disposed) {
+          listener.unregister().catch(() => {});
+        } else {
+          pluginListener = listener;
+        }
+      })
+      .catch(() => {});
+
     return () => {
+      disposed = true;
       unlistenPromise.then((un) => un()).catch(() => {});
+      pluginListener?.unregister().catch(() => {});
     };
   }, [qc]);
 }

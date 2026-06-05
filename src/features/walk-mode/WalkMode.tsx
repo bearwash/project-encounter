@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTodayEncounterCount } from '@/features/encounter/queries';
 import { ble } from '@/lib/tauri/ble';
 
 // spec: docs/specs/walk-mode.md
@@ -68,6 +69,10 @@ export function WalkMode() {
 
   const battery = useBatteryLevel();
   const lowBattery = battery !== null && battery <= LOW_BATTERY_PCT;
+
+  // spec §4.2: 「きょう N 回」(3DS 緑 LED 相当のサイレント・カウンタ)。
+  // useEncounterListener が encounter_logs に追加するたびに invalidate される。
+  const todayCount = useTodayEncounterCount();
 
   // 経過時間カウント
   useEffect(() => {
@@ -172,11 +177,18 @@ export function WalkMode() {
         />
       </div>
 
-      {/* 中央: 脈動アイコン + メッセージ */}
+      {/* 中央: 脈動アイコン + メッセージ + きょうのカウンタ */}
       <div className="flex flex-col items-center gap-5">
         <PulseDot warning={lowBattery} />
         <span className="text-sm font-bold tracking-wider text-white/55">
           すれちがいを待っています
+        </span>
+        {/* spec §4.2: 3DS 緑 LED 相当のサイレント・カウンタ */}
+        <span
+          className="text-[11px] font-mono font-black tracking-[0.3em] text-white/55"
+          data-testid="walk-today-count"
+        >
+          きょう {todayCount.data ?? 0} 回
         </span>
       </div>
 

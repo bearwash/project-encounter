@@ -27,8 +27,12 @@ const config: Config = {
         },
       },
       boxShadow: {
-        toy: '0 4px 0 0 rgba(59,48,36,0.12)', // 「ポンッ」感を出す軽い影
-        'toy-lg': '0 6px 0 0 rgba(59,48,36,0.16)',
+        // Neo-Brutalism 風のズレ影。要件 §3.3「おもちゃ箱」の手触りを強化する。
+        // 縦のみの軽影 (旧) からハードな黒影 + 横ズレに刷新。
+        toy: '3px 3px 0 0 rgba(59,48,36,0.85)',
+        'toy-lg': '5px 5px 0 0 rgba(59,48,36,0.9)',
+        // 旧来の縦影を保持したい箇所用 (脈動ボタンなど) は別エイリアス
+        'toy-soft': '0 4px 0 0 rgba(59,48,36,0.12)',
       },
       borderRadius: {
         toy: '14px',
@@ -54,7 +58,9 @@ const config: Config = {
         breath: 'breath 2200ms ease-in-out infinite',
       },
       fontFamily: {
-        display: ['var(--font-display)', 'system-ui', 'sans-serif'],
+        // 全画面 (next/font が --font-rounded を <html> に注入する)
+        sans: ['var(--font-rounded)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-rounded)', 'system-ui', 'sans-serif'],
       },
     },
   },

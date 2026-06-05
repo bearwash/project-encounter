@@ -1,10 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getDb } from '@/lib/db/client';
+import {
+  readLastSessionOpenedAt,
+  startOfToday,
+  writeSessionOpenedNow,
+} from '@/lib/encounter/session-stats';
 import { isTauri, TauriUnavailableError } from '@/lib/tauri/env';
 import type { HistoryItem, UnreadEncounter } from '@/types/encounter';
 
 const UNREAD_KEY = ['encounters', 'unread'] as const;
 const HISTORY_KEY = ['encounters', 'history'] as const;
+const TODAY_COUNT_KEY = ['encounters', 'todayCount'] as const;
+const LAST_OPENED_KEY = ['encounters', 'lastOpened'] as const;
 
 function asError(e: unknown): Error {
   if (e instanceof Error) return e;
@@ -27,6 +34,7 @@ type UnreadRow = {
   display_name: string;
   avatar_code: string;
   message: string;
+  home_prefecture: string | null;
   encounter_count: number;
   first_seen_at: number;
   last_seen_at: number;
@@ -44,6 +52,7 @@ async function fetchUnread(): Promise<UnreadEncounter[]> {
          u.display_name,
          u.avatar_code,
          u.message,
+         u.home_prefecture,
          u.encounter_count,
          u.first_seen_at,
          u.last_seen_at
@@ -61,6 +70,7 @@ async function fetchUnread(): Promise<UnreadEncounter[]> {
         display_name: r.display_name,
         avatar_code: r.avatar_code,
         message: r.message,
+        home_prefecture: r.home_prefecture,
         encounter_count: r.encounter_count,
         first_seen_at: r.first_seen_at,
         last_seen_at: r.last_seen_at,
@@ -96,6 +106,7 @@ export function useMarkRead() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: UNREAD_KEY });
       qc.invalidateQueries({ queryKey: HISTORY_KEY });
+      qc.invalidateQueries({ queryKey: TODAY_COUNT_KEY });
     },
   });
 }
@@ -114,6 +125,7 @@ async function fetchHistory(): Promise<HistoryItem[]> {
          display_name,
          avatar_code,
          message,
+         home_prefecture,
          encounter_count,
          first_seen_at,
          last_seen_at,
@@ -130,6 +142,70 @@ async function fetchHistory(): Promise<HistoryItem[]> {
 
 export function useEncounterHistory() {
   return useQuery({ queryKey: HISTORY_KEY, queryFn: fetchHistory });
+}
+
+// =============================================================
+// 「きょう N 回」「N 日ぶり」カウンタ
+//   spec: docs/specs/walk-mode.md §4.2 / docs/specs/encounter-popup.md §4.3
+// =============================================================
+
+async function fetchTodayEncounterCount(): Promise<number> {
+  if (!isTauri()) return 0;
+  try {
+    const db = await getDb();
+    const sinceSec = startOfToday();
+    const rows = await db.select<{ n: number }[]>(
+      'SELECT COUNT(*) AS n FROM encounter_logs WHERE encountered_at >= $1',
+      [sinceSec],
+    );
+    return rows[0]?.n ?? 0;
+  } catch (e) {
+    console.error('[encounter.todayCount] failed:', e);
+    return 0;
+  }
+}
+
+/**
+ * 当日 0 時以降の `encounter_logs` 件数。ウォークモード画面で「きょう N 回」表示に使う。
+ * 30 秒ごとに自動再取得し、`useEncounterListener` の `invalidateQueries`
+ * (TODAY_COUNT_KEY) でも更新される。
+ */
+export function useTodayEncounterCount() {
+  return useQuery({
+    queryKey: TODAY_COUNT_KEY,
+    queryFn: fetchTodayEncounterCount,
+    refetchInterval: 30_000,
+  });
+}
+
+/**
+ * 起動時の「前回開いた時刻」を 1 回だけ読み、その後すぐに現在時刻で上書きする。
+ * 返り値は **前回値** (= 「N 日ぶり」表示に使う基準点)。初回起動は null。
+ *
+ * 呼び出し側 (`HomePage`) は同意済みかつフォアグラウンドのときに 1 度だけ走らせる。
+ * Tauri 不在なら何もせず null を返す。
+ */
+export function useLastSessionOpened() {
+  return useQuery({
+    queryKey: LAST_OPENED_KEY,
+    queryFn: async () => {
+      if (!isTauri()) return null;
+      try {
+        const prev = await readLastSessionOpenedAt();
+        await writeSessionOpenedNow();
+        return prev;
+      } catch (e) {
+        console.error('[encounter.lastOpened] failed:', e);
+        return null;
+      }
+    },
+    // セッション中は再評価しない (起動 = 1 セッション)
+    staleTime: Infinity,
+    gcTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+  });
 }
 
 // =============================================================
@@ -156,6 +232,18 @@ const SAMPLE_MESSAGES = [
   '今日は寒い',
   'すれ違いテスト',
 ];
+// 日本地図ビュー検証のため複数の地域から拾う (seed のみ。本番では Supabase から来る)
+const SAMPLE_PREFS = [
+  '01', // 北海道
+  '13', // 東京
+  '14', // 神奈川
+  '23', // 愛知
+  '27', // 大阪
+  '34', // 広島
+  '40', // 福岡
+  '47', // 沖縄
+  null, // 未設定の人も混ぜる
+];
 
 function pick<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)] as T;
@@ -170,12 +258,14 @@ async function seedOneEncounter(): Promise<void> {
     const name = pick(SAMPLE_NAMES);
     const avatar = pick(SAMPLE_AVATARS);
     const message = pick(SAMPLE_MESSAGES);
+    const pref = pick(SAMPLE_PREFS);
 
     await db.execute(
       `INSERT INTO users_cache
-         (user_id, display_name, avatar_code, message, encounter_count, first_seen_at, last_seen_at)
-       VALUES ($1, $2, $3, $4, 1, $5, $5)`,
-      [userId, name, avatar, message, now],
+         (user_id, display_name, avatar_code, message, home_prefecture,
+          encounter_count, first_seen_at, last_seen_at)
+       VALUES ($1, $2, $3, $4, $5, 1, $6, $6)`,
+      [userId, name, avatar, message, pref, now],
     );
 
     await db.execute(
@@ -209,6 +299,7 @@ export function useSeedEncounter() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: UNREAD_KEY });
       qc.invalidateQueries({ queryKey: HISTORY_KEY });
+      qc.invalidateQueries({ queryKey: TODAY_COUNT_KEY });
     },
   });
 }
@@ -220,6 +311,7 @@ export function useClearEncounters() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: UNREAD_KEY });
       qc.invalidateQueries({ queryKey: HISTORY_KEY });
+      qc.invalidateQueries({ queryKey: TODAY_COUNT_KEY });
     },
   });
 }

@@ -11,6 +11,7 @@
 import { AnimatePresence, motion, type PanInfo } from 'framer-motion';
 import { Avatar } from './Avatar';
 import { formatRelativeTime } from '@/lib/format/relative-time';
+import { prefectureLabel } from '@/lib/prefecture/data';
 import type { HistoryItem } from '@/types/encounter';
 
 type Props = {
@@ -41,7 +42,8 @@ export function PlazaDetailPanel({ resident, onClose }: Props) {
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
-            transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+            // ゲーム的な「シュッ! ポヨン」スプリング (Neo-Brutalism と整合)
+            transition={{ type: 'spring', stiffness: 420, damping: 24 }}
             drag="y"
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={{ top: 0, bottom: 0.4 }}
@@ -58,6 +60,14 @@ export function PlazaDetailPanel({ resident, onClose }: Props) {
                 <h2 className="truncate text-xl font-black tracking-wide text-ink">
                   {resident.display_name}
                 </h2>
+                {prefectureLabel(resident.home_prefecture) && (
+                  <span
+                    className="text-xs font-bold text-ink-soft"
+                    data-testid="plaza-detail-pref"
+                  >
+                    {prefectureLabel(resident.home_prefecture)}
+                  </span>
+                )}
                 <span className="text-xs font-bold text-ink-muted">
                   最終すれちがい: {formatRelativeTime(resident.last_encountered_at)}
                 </span>

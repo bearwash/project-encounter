@@ -37,6 +37,7 @@ BLE で送出するペイロードの源泉であり、ここで決まった値�
 | `display_name` | ✅ | 16 文字 | 改行不可 |
 | `avatar_code` | ✅ | 15 文字（固定） | `b{NN}_h{NN}_o{NN}_f{NN}` 形式。詳細は [avatar.md](avatar.md) §3.2 |
 | `message` | ❌ | 30 文字 | 改行不可、空文字許容 |
+| `home_prefecture` | ❌ | 2 文字（固定） | ISO 3166-2:JP 下 2 桁 (`"01"`〜`"47"`) or null（= 未設定 / 非公開）。詳細は [regional-map.md](regional-map.md) |
 
 ### 4.3 バリデーション
 - 制御文字（`\n`, `\t` 等）禁止

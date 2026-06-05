@@ -77,7 +77,8 @@ export function AvatarEditor({
             initial={{ opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -24 }}
-            transition={{ duration: 0.15 }}
+            // タブ切り替えを「シュッ!」と気持ちよく
+            transition={{ type: 'spring', stiffness: 520, damping: 26, mass: 0.6 }}
             className="grid grid-cols-4 gap-2"
           >
             {manifest.axes[activeAxis].map((part) => {
@@ -124,9 +125,10 @@ function PreviewArea({ code }: { code: string }) {
     <div className="flex items-center justify-center rounded-toy border border-cream-deep bg-cream-soft p-4 shadow-toy">
       <motion.div
         key={code}
-        initial={{ y: -12 }}
-        animate={{ y: 0 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 12 }}
+        initial={{ y: -16, scale: 0.9 }}
+        animate={{ y: 0, scale: 1 }}
+        // パーツ変更を「ポヨン!」と弾ませる (stiffness↑ damping↓)
+        transition={{ type: 'spring', stiffness: 520, damping: 14, mass: 0.6 }}
       >
         <Avatar code={code} mode="idle" size={160} />
       </motion.div>
@@ -148,7 +150,8 @@ function TabButton({
       type="button"
       onClick={onClick}
       whileTap={{ scale: 0.92 }}
-      className={`flex-1 rounded-toy border-2 px-3 py-1.5 text-sm font-black tracking-wider shadow-toy transition active:translate-y-[2px] active:shadow-none ${
+      transition={{ type: 'spring', stiffness: 600, damping: 18 }}
+      className={`flex-1 rounded-toy border-2 px-3 py-1.5 text-sm font-black tracking-wider shadow-toy transition-[transform,box-shadow] active:translate-y-[3px] active:translate-x-[3px] active:shadow-none ${
         active
           ? 'border-pop-red bg-pop-red text-cream-soft'
           : 'border-cream-deep bg-cream-soft text-ink-soft'
@@ -179,8 +182,9 @@ function PartSwatch({
       type="button"
       onClick={onClick}
       whileTap={{ scale: 0.9 }}
-      animate={selected ? { scale: [1, 1.05, 1] } : { scale: 1 }}
-      transition={{ duration: 0.2 }}
+      animate={selected ? { scale: 1.08 } : { scale: 1 }}
+      // 選択時のポヨン (stiffness↑ damping↓ で弾む)。spring は 2 keyframe のみ対応。
+      transition={{ type: 'spring', stiffness: 560, damping: 14 }}
       data-testid={`pick-${axis}-${id}`}
       aria-label={label}
       title={label}

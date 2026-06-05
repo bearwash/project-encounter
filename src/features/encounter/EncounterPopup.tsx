@@ -19,6 +19,13 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { sfx } from '@/lib/audio/sfx';
+import {
+  hapticBow,
+  hapticGate,
+  hapticHighFive,
+  hapticTap,
+} from '@/lib/haptics';
 import {
   GREETING_TIMINGS,
   SESSION_LIMIT,
@@ -64,6 +71,11 @@ type Props = {
   items: UnreadEncounter[];
   /** 自分のアバター */
   myAvatarCode: string;
+  /**
+   * 前回アプリ起動からの整数日 (24h 単位)。`null` は初回起動 or 不明。
+   * 1 以上のときストリップ UI に「{N}日ぶり」バッジを出す (§4.3)。
+   */
+  daysSinceLast?: number | null;
   /** 「あとで広場で見る」 or items が空のとき (未表示分は次回起動で再提示) */
   onClose: () => void;
   /**
@@ -77,6 +89,7 @@ type Props = {
 export function EncounterPopup({
   items,
   myAvatarCode,
+  daysSinceLast,
   onClose,
   onEnterPlaza,
 }: Props) {
@@ -126,6 +139,8 @@ export function EncounterPopup({
     if (!current || phase === 'opening') return;
 
     if (phase === 'enter') {
+      // 隊列の先頭が前に出てくる靴音 (sfx §-)。
+      sfx.playFootstep();
       // enter → meet (タップ待ちへ)。入場完了時に既読化 (§5.8) +
       // 広場合流アニメの対象として user_id を記録
       const t = window.setTimeout(() => {
@@ -153,6 +168,8 @@ export function EncounterPopup({
         window.setTimeout(() => {
           setShowFlash(greetFlashWord(currentGreet));
           if (currentGreet === 'highfive') {
+            sfx.playHighFive();
+            hapticHighFive();
             setConfettiKey((k) => k + 1);
             setConfettiOn(true);
             handles.push(
@@ -161,6 +178,9 @@ export function EncounterPopup({
                 GREETING_TIMINGS.CONFETTI_MS,
               ),
             );
+          } else {
+            sfx.playBow();
+            hapticBow();
           }
           handles.push(
             window.setTimeout(
@@ -192,6 +212,7 @@ export function EncounterPopup({
 
     if (phase === 'meet') {
       lastTapRef.current = now;
+      hapticTap();
       // 状態を切り替える前に flash / confetti をリセット
       setShowFlash(null);
       setConfettiOn(false);
@@ -201,6 +222,7 @@ export function EncounterPopup({
 
     if (phase === 'speak') {
       lastTapRef.current = now;
+      hapticTap();
       setPhase('leave');
       window.setTimeout(() => {
         if (isLastInSession) {
@@ -224,6 +246,8 @@ export function EncounterPopup({
 
   // セッション終了 → 「広場へはいる」 → ゲート通過演出 → 広場へ遷移
   const handleEnterPlaza = () => {
+    sfx.playGate();
+    hapticGate();
     setPhase('gate-pass');
     const ids = Array.from(greetedUserIdsRef.current);
     window.setTimeout(
@@ -286,6 +310,7 @@ export function EncounterPopup({
       <GreetingStrip
         totalToday={items.length}
         doneCount={sessionStart + Math.min(index, session.length - 1)}
+        daysSince={daysSinceLast ?? null}
       />
 
       {/* 隊列 (次以降の相手たち) */}
@@ -370,6 +395,7 @@ export function EncounterPopup({
             displayName={current.user.display_name}
             encounterCount={current.user.encounter_count}
             message={current.user.message}
+            homePrefecture={current.user.home_prefecture}
             hint="クリック / タップで次へ"
           />
         </div>

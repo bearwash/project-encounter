@@ -12,6 +12,8 @@ next-env.d.ts
 src-tauri/target/
 src-tauri/gen/
 src-tauri/Cargo.lock
+src-tauri/plugins/**/android/build/
+src-tauri/plugins/**/ios/.build/
 
 # Tauri build artifacts
 src-tauri/WixTools/

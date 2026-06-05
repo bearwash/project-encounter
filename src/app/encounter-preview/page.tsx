@@ -44,6 +44,7 @@ function makeMockItems(count: number): UnreadEncounter[] {
     const msg = SAMPLE_MESSAGES[Math.floor(rng() * SAMPLE_MESSAGES.length)]!;
     // 半数程度はリピーター (count >= 2) になるようにして高ハイタッチ率
     const ec = 1 + Math.floor(rng() * 8);
+    const prefIdx = Math.floor(rng() * 48); // 0=未設定
     return {
       log_id: i + 1,
       encountered_at: now - i * 60,
@@ -52,6 +53,8 @@ function makeMockItems(count: number): UnreadEncounter[] {
         display_name: `${name}#${i}`,
         avatar_code: `b${b}_h${h}_o${o}_f${f}`,
         message: msg,
+        home_prefecture:
+          prefIdx === 0 ? null : String(prefIdx).padStart(2, '0'),
         encounter_count: ec,
         first_seen_at: now - i * 86400,
         last_seen_at: now - i * 60,

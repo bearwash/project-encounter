@@ -1,0 +1,2024 @@
+- generic [active] [ref=e1]:
+  - img
+  - main [ref=e2]:
+    - generic [ref=e4]:
+      - generic [ref=e7]:
+        - button "Menu" [ref=e8] [cursor=pointer]:
+          - img [ref=e10]
+        - link "Meshy" [ref=e11] [cursor=pointer]:
+          - /url: /ja/?noRedirect=true
+          - img [ref=e12]
+      - generic [ref=e31]:
+        - link "営業担当者に連絡" [ref=e32] [cursor=pointer]:
+          - /url: /ja/contact
+        - button "ログイン" [ref=e33] [cursor=pointer]
+        - button "無料でサインアップ" [ref=e34] [cursor=pointer]
+        - button [ref=e35] [cursor=pointer]:
+          - img [ref=e37]
+    - generic [ref=e41]:
+      - generic [ref=e42]:
+        - generic [ref=e43]:
+          - heading "3Dモデルを作成する最も簡単な方法" [level=1] [ref=e44]
+          - generic [ref=e45]: 世界で最も人気があり、直感的な無料のAI 3Dモデルジェネレーターに出会いましょう。テキストや画像を数秒で驚くべき3Dモデルに変換する私たちのテキスト＆画像から3Dモデルへのツールを使えば、経験は必要ありません！
+          - button "作成を開始する" [ref=e46] [cursor=pointer]: 作成を開始する
+        - generic [ref=e49]:
+          - generic [ref=e52]:
+            - generic [ref=e53] [cursor=pointer]:
+              - img "use case thumbnail - 映画製作"
+              - generic [ref=e55]: 映画製作
+            - generic [ref=e56] [cursor=pointer]:
+              - img "use case thumbnail - 製品デザイン"
+              - generic [ref=e58]: 製品デザイン
+            - generic [ref=e59] [cursor=pointer]:
+              - img "use case thumbnail - 教育"
+              - generic [ref=e61]: 教育
+            - generic [ref=e62] [cursor=pointer]:
+              - img "use case thumbnail - ゲーム開発"
+              - generic [ref=e64]: ゲーム開発
+            - generic [ref=e65] [cursor=pointer]:
+              - img "use case thumbnail - 3Dプリンティング"
+              - generic [ref=e67]: 3Dプリンティング
+            - generic [ref=e68] [cursor=pointer]:
+              - img "use case thumbnail - VR/AR (バーチャルリアリティ/拡張現実)"
+              - generic [ref=e70]: VR/AR (バーチャルリアリティ/拡張現実)
+            - generic [ref=e71] [cursor=pointer]:
+              - img "use case thumbnail - インテリアデザイン"
+              - generic [ref=e73]: インテリアデザイン
+          - generic [ref=e75]:
+            - generic [ref=e76]:
+              - generic [ref=e77]:
+                - heading "映画製作" [level=2] [ref=e78]
+                - generic [ref=e79]: コストを削減し、Meshy AIでVFXとプリビジュアライゼーションのワークフローを加速させましょう。
+                - list [ref=e80]:
+                  - listitem [ref=e81]:
+                    - img [ref=e82]
+                    - generic [ref=e84]: 迅速なプレビズとルックデブ
+                  - listitem [ref=e85]:
+                    - img [ref=e86]
+                    - generic [ref=e88]: 効率的なVFXワークフロー
+                  - listitem [ref=e89]:
+                    - img [ref=e90]
+                    - generic [ref=e92]: 業界標準の品質
+                - link "もっと探索する" [ref=e93] [cursor=pointer]:
+                  - /url: /ja/use-cases/film-production
+                  - img [ref=e95]
+                  - text: もっと探索する
+              - generic [ref=e97]:
+                - img "use case image - 映画製作"
+            - generic [ref=e98]:
+              - generic [ref=e99]:
+                - heading "製品デザイン" [level=2] [ref=e100]
+                - generic [ref=e101]: Meshy AIを使って、製品デザインのワークフローにおいて創造性、スピード、精度を提供します。
+                - list [ref=e102]:
+                  - listitem [ref=e103]:
+                    - img [ref=e104]
+                    - generic [ref=e106]: 迅速なコンセプトから3Dプロトタイプへ
+                  - listitem [ref=e107]:
+                    - img [ref=e108]
+                    - generic [ref=e110]: より賢くデザインし、コストを削減
+                  - listitem [ref=e111]:
+                    - img [ref=e112]
+                    - generic [ref=e114]: モデリングスキルの民主化
+                - link "もっと探索する" [ref=e115] [cursor=pointer]:
+                  - /url: /ja/use-cases/product-design
+                  - img [ref=e117]
+                  - text: もっと探索する
+              - generic [ref=e119]:
+                - img "use case image - 製品デザイン"
+            - generic [ref=e120]:
+              - generic [ref=e121]:
+                - heading "教育" [level=2] [ref=e122]
+                - generic [ref=e123]: 教育者と学生のための手頃でアクセスしやすい3Dモデル
+                - list [ref=e124]:
+                  - listitem [ref=e125]:
+                    - img [ref=e126]
+                    - generic [ref=e128]: 3Dプリントクラスで創造性を解き放つ
+                  - listitem [ref=e129]:
+                    - img [ref=e130]
+                    - generic [ref=e132]: パワーゲームとXR教育
+                  - listitem [ref=e133]:
+                    - img [ref=e134]
+                    - generic [ref=e136]: 教育アプリ開発のスピードアップ
+                - link "もっと探索する" [ref=e137] [cursor=pointer]:
+                  - /url: /ja/use-cases/education
+                  - img [ref=e139]
+                  - text: もっと探索する
+              - generic [ref=e141]:
+                - img "use case image - 教育"
+            - generic [ref=e142]:
+              - generic [ref=e143]:
+                - heading "ゲーム開発" [level=2] [ref=e144]
+                - generic [ref=e145]: Meshy AIはゲーム開発における3Dアセットとアニメーションのコストを削減します。
+                - list [ref=e146]:
+                  - listitem [ref=e147]:
+                    - img [ref=e148]
+                    - generic [ref=e150]: Remesh & PBRテクスチャサポート
+                  - listitem [ref=e151]:
+                    - img [ref=e152]
+                    - generic [ref=e154]: ゲームキャラクターをアニメーション化
+                  - listitem [ref=e155]:
+                    - img [ref=e156]
+                    - generic [ref=e158]: あらゆるゲームエンジンにシームレスにエクスポート
+                - link "もっと探索する" [ref=e159] [cursor=pointer]:
+                  - /url: /ja/use-cases/free-game-assets
+                  - img [ref=e161]
+                  - text: もっと探索する
+              - button "Play video" [ref=e165] [cursor=pointer]:
+                - img [ref=e167]
+            - generic [ref=e169]:
+              - generic [ref=e170]:
+                - img [ref=e172]
+                - heading "3Dプリンティング" [level=2] [ref=e175]
+                - generic [ref=e176]: Meshy AIは、あなたのアイデアを数秒で3Dプリント可能なモデルに変えます。
+                - list [ref=e177]:
+                  - listitem [ref=e178]:
+                    - img [ref=e179]
+                    - generic [ref=e181]: 3Dモデリングはもはや創造の障壁ではありません
+                  - listitem [ref=e182]:
+                    - img [ref=e183]
+                    - generic [ref=e185]: 簡単にサイズ変更し、プリンタ準備完了形式でエクスポート
+                  - listitem [ref=e186]:
+                    - img [ref=e187]
+                    - generic [ref=e189]: 業界標準に基づいて構築されたクリーンで詳細なモデル
+                - link "もっと探索する" [ref=e190] [cursor=pointer]:
+                  - /url: /ja/use-cases/3d-printer-files
+                  - img [ref=e192]
+                  - text: もっと探索する
+              - button "Play video" [ref=e196] [cursor=pointer]:
+                - img [ref=e198]
+            - generic [ref=e200]:
+              - generic [ref=e201]:
+                - heading "VR/AR (バーチャルリアリティ/拡張現実)" [level=2] [ref=e202]
+                - generic [ref=e203]: Meshy AIによって実現されたVR/AR用の低ポリゴン、最適化された3Dアセット
+                - list [ref=e204]:
+                  - listitem [ref=e205]:
+                    - img [ref=e206]
+                    - generic [ref=e208]: 迅速な3Dアセット作成
+                  - listitem [ref=e209]:
+                    - img [ref=e210]
+                    - generic [ref=e212]: リアルタイムパフォーマンスに最適化
+                  - listitem [ref=e213]:
+                    - img [ref=e214]
+                    - generic [ref=e216]: VR/ARワークフロー向けに構築
+                - link "もっと探索する" [ref=e217] [cursor=pointer]:
+                  - /url: /ja/use-cases/vr-ar
+                  - img [ref=e219]
+                  - text: もっと探索する
+              - generic [ref=e221]:
+                - img "use case image - VR/AR (バーチャルリアリティ/拡張現実)"
+            - generic [ref=e222]:
+              - generic [ref=e223]:
+                - heading "インテリアデザイン" [level=2] [ref=e224]
+                - generic [ref=e225]: Meshyは、スケッチ、ムードボード、またはテキストを生産準備が整った3Dインテリアアセットに変換します。
+                - list [ref=e226]:
+                  - listitem [ref=e227]:
+                    - img [ref=e228]
+                    - generic [ref=e230]: コンセプトからプレゼンテーションまで、迅速に
+                  - listitem [ref=e231]:
+                    - img [ref=e232]
+                    - generic [ref=e234]: フォトリアルな結果、CADは不要
+                  - listitem [ref=e235]:
+                    - img [ref=e236]
+                    - generic [ref=e238]: 誰でも簡単にできる3Dデザイン
+                - link "もっと探索する" [ref=e239] [cursor=pointer]:
+                  - /url: /ja/use-cases/interior-design
+                  - img [ref=e241]
+                  - text: もっと探索する
+              - generic [ref=e243]:
+                - img "use case image - インテリアデザイン"
+        - generic [ref=e247]:
+          - generic [ref=e248]:
+            - generic [ref=e250]:
+              - img "3Dコンテンツ制作の民主化"
+            - generic [ref=e251]:
+              - heading "3Dコンテンツ制作の民主化" [level=3] [ref=e252]
+              - generic [ref=e253]: 誰でも、専門的なモデリングスキルを学ぶ必要なく、シンプルなテキストプロンプトや参照画像から数秒で本番用の3Dアセットを作成できるようにします。
+          - generic [ref=e254]:
+            - generic [ref=e256]:
+              - img "従来の方法の10倍速い"
+            - generic [ref=e257]:
+              - heading "従来の方法の10倍速い" [level=3] [ref=e258]
+              - generic [ref=e259]: 手動モデリングやテクスチャリングの時間を数分に短縮し、驚異的な生成速度が開発サイクルの時間を節約し、プロジェクトが予定通り進行することを保証します。
+          - generic [ref=e260]:
+            - generic [ref=e262]:
+              - img "コストをかけずにスケールの創出"
+            - generic [ref=e263]:
+              - heading "コストをかけずにスケールの創出" [level=3] [ref=e264]
+              - generic [ref=e265]: 従来のコストのわずかな部分で同時に数千のアセットを作成し、スケールされた3Dコンテンツ制作の費用を最大100倍削減します。
+        - generic [ref=e267]:
+          - generic [ref=e268]:
+            - generic [ref=e269]:
+              - img "Handshake"
+              - img "G2 Banner Users Love Us"
+            - generic [ref=e270]: 業界のパートナーや顧客から信頼され、3Dクリエーションの未来を築く。
+            - generic [ref=e271]:
+              - 'link "G2 G2評価: 4.8" [ref=e272] [cursor=pointer]':
+                - /url: https://www.g2.com/products/meshy/reviews
+                - generic [ref=e273]:
+                  - img "G2"
+                - text: "G2評価: 4.8"
+              - 'link "TrustPilot評価: 4.8" [ref=e274] [cursor=pointer]':
+                - /url: https://www.trustpilot.com/review/meshy.ai
+                - img [ref=e276]
+                - text: "TrustPilot評価: 4.8"
+          - generic [ref=e278]:
+            - link [ref=e280] [cursor=pointer]:
+              - /url: https://company.nexon.com/en/
+              - img [ref=e281]
+            - link [ref=e287] [cursor=pointer]:
+              - /url: https://www.dneg.com/en/
+              - img [ref=e288]
+            - link [ref=e292] [cursor=pointer]:
+              - /url: https://horizon.meta.com/
+              - img [ref=e293]
+            - link [ref=e300] [cursor=pointer]:
+              - /url: https://supercell.com/en/
+              - img [ref=e301]
+            - link [ref=e304] [cursor=pointer]:
+              - /url: https://www.elegoo.com/
+              - img [ref=e305]
+            - link [ref=e309] [cursor=pointer]:
+              - /url: https://funplus.com/
+              - img [ref=e310]
+            - link [ref=e317] [cursor=pointer]:
+              - /url: https://www.square-enix-games.com/en_US/home
+              - img [ref=e318]
+            - link [ref=e322] [cursor=pointer]:
+              - /url: https://www.picoxr.com/global/
+              - img [ref=e323]
+      - generic [ref=e327]:
+        - generic [ref=e328]:
+          - heading "仕組み" [level=2] [ref=e329]
+          - button "ライブで見る" [ref=e331] [cursor=pointer]:
+            - img [ref=e333]
+            - text: ライブで見る
+            - img [ref=e345]
+        - list [ref=e347]:
+          - listitem [ref=e348]:
+            - generic [ref=e349]:
+              - img [ref=e351]
+              - heading "入力" [level=3] [ref=e354]
+              - generic [ref=e355]: 明確な画像をアップロードするか、短いテキストプロンプトを入力してください。3Dスキルは必要ありません。
+            - generic [ref=e356]:
+              - img "明確な画像をアップロードするか、短いテキストプロンプトを入力してください。3Dスキルは必要ありません。"
+          - listitem [ref=e357]:
+            - generic [ref=e358]:
+              - img [ref=e360]
+              - heading "生成する" [level=3] [ref=e363]
+              - generic [ref=e364]: 入力に合わせて、高品質な3Dモデルが瞬時に生成される様子を見てください。
+            - generic [ref=e365]:
+              - img "入力に合わせて、高品質な3Dモデルが瞬時に生成される様子を見てください。"
+          - listitem [ref=e366]:
+            - generic [ref=e367]:
+              - img [ref=e369]
+              - heading "ダウンロード" [level=3] [ref=e371]
+              - generic [ref=e372]: ブラウザでモデルをプレビューし、その後ワークフロー用にダウンロードします。
+            - generic [ref=e373]:
+              - img "ブラウザでモデルをプレビューし、その後ワークフロー用にダウンロードします。"
+      - generic [ref=e375]:
+        - generic [ref=e376]:
+          - generic [ref=e377]:
+            - generic [ref=e378]:
+              - img [ref=e379]
+              - text: 作成速度
+            - heading "数秒でのインスタント3Dモデル作成" [level=2] [ref=e381]
+            - generic [ref=e382]: Meshyは3Dアセット作成のすべてのフェーズを加速させ、ターンアラウンドタイムを数日から数分に短縮します。プロンプトからモデルまで、私たちの統合されたAI駆動ツールは、比類なき効率で反復生成と洗練を可能にします。
+          - link "feature hero image to 3d model example 1 feature hero image to 3d model example 2 image-to-3d-model 画像から3Dモデルへ 2D画像、スケッチ、イラストを簡単に魅力的な3Dモデルに変換できる画像から3Dモデルへのツールをご利用ください。画像を生き生きとさせたいクリエイターに最適です。" [ref=e383] [cursor=pointer]:
+            - /url: /ja/features/image-to-3d
+            - generic [ref=e384]:
+              - img "feature hero image to 3d model example 1"
+              - img "feature hero image to 3d model example 2"
+            - generic [ref=e385]:
+              - img "image-to-3d-model"
+              - heading "画像から3Dモデルへ" [level=3] [ref=e386]
+              - generic [ref=e387]: 2D画像、スケッチ、イラストを簡単に魅力的な3Dモデルに変換できる画像から3Dモデルへのツールをご利用ください。画像を生き生きとさせたいクリエイターに最適です。
+        - generic [ref=e388]:
+          - generic [ref=e389]:
+            - img "feature 3d to video background left"
+            - button "Play video" [ref=e392] [cursor=pointer]:
+              - img [ref=e394]
+          - generic [ref=e396]:
+            - generic [ref=e397]:
+              - img "text-to-3d"
+              - img "text-to-3d"
+            - heading "3Dからビデオへ" [level=3] [ref=e398]
+            - generic [ref=e399]: 私たちのAIビデオジェネレーターで3Dモデルとシーンを生き生きと描写します。私たちの3Dからビデオへの機能は一貫した結果を保証し、あなたにすべてのショットに対する完全なコントロールを提供します。
+        - generic [ref=e400]:
+          - link "feature hero text to 3d model example image-to-3d-model テキストから3Dモデルへ アイデアから詳細な3Dモデルを作成するために、シンプルなテキスト説明から正確な3Dモデルを生成する「テキストから3Dモデル」ツールをご利用ください。" [ref=e401] [cursor=pointer]:
+            - /url: /ja/features/text-to-3d
+            - generic [ref=e402]:
+              - img "feature hero text to 3d model example"
+            - generic [ref=e403]:
+              - generic [ref=e404]:
+                - img "image-to-3d-model"
+              - heading "テキストから3Dモデルへ" [level=3] [ref=e405]
+              - generic [ref=e406]: アイデアから詳細な3Dモデルを作成するために、シンプルなテキスト説明から正確な3Dモデルを生成する「テキストから3Dモデル」ツールをご利用ください。
+          - link "feature hero ai texturing example image-to-3d-model AIテクスチャリング テキストプロンプトや参照画像を使用して、生成またはアップロードした3Dモデルの質感を向上させるAIテクスチャジェネレーターで、希望するスタイルの質感を作成します。" [ref=e407] [cursor=pointer]:
+            - /url: /ja/features/ai-texture-generator
+            - generic [ref=e408]:
+              - img "feature hero ai texturing example"
+            - generic [ref=e409]:
+              - generic [ref=e410]:
+                - img "image-to-3d-model"
+              - heading "AIテクスチャリング" [level=3] [ref=e411]
+              - generic [ref=e413]: テキストプロンプトや参照画像を使用して、生成またはアップロードした3Dモデルの質感を向上させるAIテクスチャジェネレーターで、希望するスタイルの質感を作成します。
+          - generic [ref=e414]:
+            - generic [ref=e415]:
+              - img "feature hero smart remesh example"
+            - generic [ref=e416]:
+              - generic [ref=e417]:
+                - img "image-to-3d-model"
+              - heading "スマートリメッシュ" [level=3] [ref=e418]
+              - generic [ref=e419]: 三角形または四辺形の数を即座に調整し、トポロジータイプを切り替え、1kから300kまでのオプションでエクスポート時に詳細とパフォーマンスのバランスを取ります。
+          - generic [ref=e420]:
+            - generic [ref=e422]:
+              - img "feature hero rigging and animation example 2"
+              - img "feature hero rigging and animation example 1"
+            - generic [ref=e423]:
+              - generic [ref=e424]:
+                - img "image-to-3d-model"
+              - heading "リギングとアニメーション" [level=3] [ref=e425]
+              - generic [ref=e426]: 自動リギングでキャラクターを簡単にリグし、アニメーションや業界標準のワークフローに備えましょう。
+        - generic [ref=e427]:
+          - generic [ref=e428]:
+            - img [ref=e429]
+            - heading "複数の同時タスク" [level=4] [ref=e433]
+            - generic [ref=e434]: バルク生成でワークフローを加速—Meshyは一度に50以上の3Dモデルとテクスチャタスクを処理できます。
+          - generic [ref=e435]:
+            - img [ref=e436]
+            - heading "多言語サポート" [level=4] [ref=e440]
+            - generic [ref=e441]: 英語の他に、Meshyは複数の言語でのプロンプトをサポートしています。スペイン語、フランス語、中国語、日本語などで入力して、簡単に作成できます。
+          - generic [ref=e442]:
+            - generic [ref=e443]:
+              - img [ref=e444]
+              - heading "アニメーションライブラリ" [level=4] [ref=e447]
+              - generic [ref=e448]: Meshyのアニメーションライブラリは、基本的な歩行やジャンプから複雑な射撃姿勢、戦闘、ダンスムーブまで、500以上のゲーム対応モーションを提供しています。
+            - img "feature hero animation library model example"
+      - generic [ref=e450]:
+        - generic [ref=e452]:
+          - generic [ref=e453]:
+            - img [ref=e454]
+            - text: クリエイティブな柔軟性
+          - heading "無限の創造的自由を解き放つ" [level=2] [ref=e458]
+          - generic [ref=e459]: 無限の創造性を解き放とう。Meshyを使えば、フォトリアルからアニメやSFスタイルまで、あなたの思い通りに小道具、キャラクター、環境を作成できます。
+        - generic [ref=e460]:
+          - generic [ref=e461]:
+            - generic [ref=e462]:
+              - img "AI prompt helper"
+            - generic [ref=e463]:
+              - generic [ref=e464]:
+                - img "image-to-3d"
+              - heading "AIプロンプトヘルパー" [level=3] [ref=e465]
+              - generic [ref=e466]: 内蔵のAIプロンプトヘルパーは、曖昧なアイデアを明確で詳細なプロンプトに変換します。これにより、思い描いた3Dモデルを毎回手に入れることができます。
+          - generic [ref=e467]:
+            - generic [ref=e468]:
+              - img "feature hero pbr maps support 1"
+              - img "feature hero pbr maps support 2"
+            - generic [ref=e469]:
+              - generic [ref=e470]:
+                - img "image-to-3d"
+              - heading "PBRマップのサポート" [level=3] [ref=e471]
+              - generic [ref=e472]: Meshyは、Unreal、Unity、Blender、Maya、およびWebGL用にエクスポート可能なPBRテクスチャ—ディフューズ、ラフネス、メタリック、およびノーマルマップをサポートしています。
+        - generic [ref=e473]:
+          - generic [ref=e474]:
+            - img [ref=e475]
+            - heading "多用途のテクスチャスタイル" [level=4] [ref=e479]
+            - generic [ref=e480]: リアルなものからカートゥーン、手描き、ファンタジーまで、Meshyの幅広いテクスチャオプションを駆使して、あらゆるスタイルで作成できます。
+          - generic [ref=e481]:
+            - img [ref=e482]
+            - heading "無限の資産タイプ" [level=4] [ref=e487]
+            - generic [ref=e488]: キャラクター、プロップ、環境、電話ホルダーのような機能的モデルなど、無限のバリエーションのアセットを生成できます。あなたの想像力が限界を決めます。
+          - generic [ref=e489]:
+            - img [ref=e490]
+            - heading "活気あるコミュニティ" [level=4] [ref=e497]
+            - generic [ref=e498]: 1,000万人を超えるクリエイターが集まるMeshyコミュニティでは、モデルの共有・ダウンロード・リミックスが行われています。Meshyコミュニティではコラボレーション、インスピレーション、クリエイティブな成長を見つけられます
+      - generic [ref=e499]:
+        - generic [ref=e500]:
+          - generic [ref=e501]:
+            - img [ref=e502]
+            - text: 微調整された制御
+          - heading "総合的な創造権と管理" [level=2] [ref=e504]
+          - generic [ref=e505]: Meshyはあなたにコントロールを与えます—入力設定で生成をガイドし、結果を反復し、資産があなたのビジョンに合うまで詳細を微調整します。
+        - generic [ref=e506]:
+          - generic [ref=e507]:
+            - generic [ref=e508]:
+              - img "feature hero text to multi view images example"
+            - generic [ref=e509]:
+              - heading "テキストから画像へ" [level=3] [ref=e510]
+              - generic [ref=e511]: テキストプロンプトから魅力的な画像を生成する、テキストから単一または複数の画像ツールを使用して、あなたのコンセプトを視覚化することが簡単になります。
+          - generic [ref=e512]:
+            - generic [ref=e514]:
+              - img "feature hero multi view image to 3d example"
+              - img "feature hero multi view image to 3d example"
+            - generic [ref=e515]:
+              - heading "マルチビュー画像から3Dへ" [level=3] [ref=e516]
+              - generic [ref=e517]: コンセプトの前面、側面、背面の画像を生成し、それらをあなたのビジョンに合った高精度な3Dモデルに変換します。
+        - generic [ref=e518]:
+          - generic [ref=e519]:
+            - generic [ref=e520]:
+              - img "feature hero free retry example"
+            - generic [ref=e521]:
+              - heading "無料再試行" [level=3] [ref=e522]
+              - generic [ref=e523]: 同じプロンプトを使えば、無料でモデルを再生成できるので、望む結果を得ることができます。
+          - generic [ref=e524]:
+            - generic [ref=e525]:
+              - img "feature hero texture editing example"
+            - generic [ref=e526]:
+              - heading "AIテクスチャ編集" [level=3] [ref=e527]
+              - generic [ref=e528]: 同じメッシュ上で無限のテクスチャを作成し、プロンプトを調整するだけで色、パターン、または素材を簡単に洗練させることができます。
+      - generic [ref=e529]:
+        - generic [ref=e530]:
+          - generic [ref=e531]:
+            - img [ref=e532]
+            - text: 生産準備状況
+          - heading "プロフェッショナルな制作の準備が整いました、すぐに。" [level=2] [ref=e535]
+          - generic [ref=e536]: Meshyは、ポリゴン予算に対応し、メッシュの問題を修正し、業界標準フォーマットでエクスポートするための組み込み後処理機能を提供します。追加のツールは必要ありません。
+        - generic [ref=e537]:
+          - generic [ref=e538]:
+            - generic [ref=e539]:
+              - img "feature hero asset management example"
+            - generic [ref=e540]:
+              - heading "資産管理" [level=3] [ref=e541]
+              - generic [ref=e542]: 生成されたアセットを一箇所で閲覧、プレビュー、管理します。ラベル付け、検索、および過去のアセットをいつでも一括ダウンロードできるため、掘り下げる時間が減り、創造する時間が増えます。
+          - generic [ref=e543]:
+            - generic [ref=e544]:
+              - img "feature hero private licensed example"
+            - generic [ref=e545]:
+              - heading "プライベートライセンス" [level=3] [ref=e546]
+              - generic [ref=e547]: Meshyは、生成したモデルを商業化し、不正使用や共有から保護するプライベートライセンスを提供しています。
+          - generic [ref=e548]:
+            - generic [ref=e549]:
+              - img "feature hero multiple 3d file formats example"
+            - generic [ref=e550]:
+              - heading "複数の3Dファイル形式に対応" [level=3] [ref=e551]
+              - generic [ref=e552]: FBX、GLB、OBJ、STL、3MF、USDZ、BLEND形式でのエクスポートモデルを生産用に提供—追加の変換は不要です。
+          - generic [ref=e553]:
+            - generic [ref=e554]:
+              - img "feature hero resize and pivot example"
+            - generic [ref=e555]:
+              - heading "リサイズおよびピボットツール" [level=3] [ref=e556]
+              - generic [ref=e557]: 正確な実世界の寸法とピボットポイントを設定して、シーン内での完璧な整列や3Dプリントの準備を行います。
+      - generic [ref=e558]:
+        - generic [ref=e559]:
+          - generic [ref=e560]:
+            - img [ref=e561]
+            - text: ワークフロー統合
+          - heading "3Dパイプラインとのシームレスな統合" [level=2] [ref=e568]
+          - generic [ref=e569]: MeshyのプラグインとAPIは、資産作成とお好みのツールとの間に摩擦のない橋を提供し、アイデア出しからエンジン内展開までの効率を確保します。
+        - generic [ref=e570]:
+          - generic [ref=e571]:
+            - generic [ref=e573]:
+              - img "APIプラットフォーム"
+            - generic [ref=e574]:
+              - heading "APIプラットフォーム" [level=3] [ref=e575]
+              - generic [ref=e576]: Meshyの生成力に直接アクセスするための堅牢で十分に文書化されたREST APIを介して、タスクを作成し、残高を管理し、わずか数行のコードで3Dクリエーションを任意のパイプラインや言語に組み込むことができます。
+          - generic [ref=e577]:
+            - generic [ref=e579]:
+              - img "3Dプラットフォームプラグイン"
+            - generic [ref=e580]:
+              - heading "3Dプラットフォームプラグイン" [level=3] [ref=e581]
+              - generic [ref=e582]: Meshy は、ネイティブ プラグインを使用してゲーム エンジンと 3D パイプラインに直接統合します。生成されたアセットは、Blender、Unity、3ds Max、Maya、Godot、Unreal Engine、および Bambu Studio、OrcaSlicer、Creality Print、Elegoo Slicer、Ultimaker Cura、Lychee Slicer などの 3D プリント ソフトウェアにシームレスにインポートされます。
+              - generic [ref=e584]:
+                - generic [ref=e585]:
+                  - img [ref=e586]
+                  - img [ref=e590]
+                  - img [ref=e594]
+                  - img [ref=e601]
+                  - img [ref=e606]
+                  - img [ref=e614]
+                - generic [ref=e617]:
+                  - img [ref=e618]
+                  - img [ref=e620]
+                  - img [ref=e632]
+                  - img [ref=e636]
+                  - img "Cura"
+                  - img [ref=e638]
+      - generic [ref=e640]:
+        - generic [ref=e641]:
+          - generic [ref=e642]:
+            - generic [ref=e643]:
+              - img [ref=e644]
+              - text: エンタープライズグレードのコントロール
+            - heading "エンタープライズグレードのコントロールと管理" [level=2] [ref=e651]
+            - generic [ref=e652]: Meshyは、組織に対して安全なアクセス、データプライバシー、コラボレーション、およびガバナンスのための強力なツールを提供し、企業レベルのマルチチーム・マルチプロジェクト環境に最適なソリューションとなっています。
+          - generic [ref=e653]:
+            - generic [ref=e654]:
+              - img "feature hero multi team management"
+            - heading "マルチチーム管理" [level=3] [ref=e655]
+            - generic [ref=e656]: 複数のゲームと大規模なチームを管理する企業組織向けに、Meshyは中央集権的な管理と監視を通じて、複数のチームワークスペースを作成し管理することを可能にします。
+        - generic [ref=e657]:
+          - generic [ref=e658]:
+            - generic [ref=e660]:
+              - img "共有チームワークスペース"
+            - generic [ref=e661]:
+              - heading "共有チームワークスペース" [level=4] [ref=e662]
+              - generic [ref=e663]: 共有クレジットと統一されたアセットライブラリにより、チームは同期され、ワークフロー全体でシームレスなコラボレーションが可能になります。
+          - generic [ref=e664]:
+            - generic [ref=e666]:
+              - img "ISO27001、SOC2タイプII、およびGDPR認証"
+            - generic [ref=e667]:
+              - heading "ISO27001、SOC2タイプII、およびGDPR認証" [level=4] [ref=e668]
+              - generic [ref=e669]: Meshyは、プラットフォームのすべてのレイヤーにエンタープライズグレードのセキュリティを提供します。当社のプラットフォームはSOC2タイプII、ISO27001、およびGDPRで認証されています。
+          - generic [ref=e670]:
+            - generic [ref=e672]:
+              - img "シングルサインオン (SSO)"
+            - generic [ref=e673]:
+              - heading "シングルサインオン (SSO)" [level=4] [ref=e674]
+              - generic [ref=e675]: Meshy EnterpriseはSAMLを介したSSOをサポートしており、Okta、Google Workspace、Microsoft Entraなどのアイデンティティプロバイダーを使用する大規模チーム向けに、安全で集中管理されたログインを実現します。
+        - generic [ref=e676]:
+          - generic [ref=e677]:
+            - generic [ref=e678]:
+              - img "データプライバシーの向上"
+            - generic [ref=e679]:
+              - heading "データプライバシーの向上" [level=4] [ref=e680]
+              - generic [ref=e681]: 企業の顧客データは、プライバシーを確保し、組織のコンプライアンス要件を満たすために、別の安全なデータベースに保存されています。
+          - generic [ref=e682]:
+            - generic [ref=e683]:
+              - img "専任アカウントサポート"
+            - generic [ref=e684]:
+              - heading "専任アカウントサポート" [level=4] [ref=e685]
+              - generic [ref=e686]: 専任のアカウントエグゼクティブとソリューションエンジニアが、あなたの企業のセットアップをサポートし、一般的な問い合わせにも迅速に対応します。
+          - generic [ref=e687]:
+            - generic [ref=e688]:
+              - img "永遠の資産保持"
+            - generic [ref=e689]:
+              - heading "永遠の資産保持" [level=4] [ref=e690]
+              - generic [ref=e691]: 生成されたモデルは、必要なときにいつでもダウンロード可能です。
+          - generic [ref=e692]:
+            - generic [ref=e693]:
+              - img "中央集権的請求"
+            - generic [ref=e694]:
+              - heading "中央集権的請求" [level=4] [ref=e695]
+              - generic [ref=e696]: すべてのチームメンバーは1つの請求アカウントを共有しており、ITおよび財務チームが支払いと請求書を管理しやすくなっています。
+      - generic [ref=e697]:
+        - generic [ref=e698]:
+          - heading "ショーケース" [level=2] [ref=e699]
+          - link "もっと探る" [ref=e700] [cursor=pointer]:
+            - /url: /ja/discover
+            - text: もっと探る
+            - img [ref=e702]
+        - generic [ref=e704]:
+          - generic [ref=e705]:
+            - generic [ref=e706]:
+              - img [ref=e707]
+              - heading "コレクション" [level=3] [ref=e710]
+            - generic [ref=e711]:
+              - button [ref=e712] [cursor=pointer]:
+                - img [ref=e713]
+              - button [ref=e716] [cursor=pointer]:
+                - img [ref=e717]
+          - generic [ref=e721]:
+            - generic [ref=e723]:
+              - 'link "Generation Challenge #ImagineMeshy collection cover Starlight Seashell Locket Gilded Heart Crown Vanity Mirror Blue Heart Wing Ring in a Sapphire Gift Box Celestial Star Jewelry Box Royal Blue Heart Letter Crystal Blossom Mirror The Coronation of Dream-weavers👑✨" [ref=e724] [cursor=pointer]':
+                - /url: /ja/collections/The-Coronation-of-Dreamweavers-019dd459-308b-78e0-af28-d1038668ce05
+                - img [ref=e727]
+                - generic [ref=e733]:
+                  - img "Generation Challenge"
+                  - generic [ref=e734]: "#ImagineMeshy"
+                - generic [ref=e739]:
+                  - img "collection cover"
+                - generic [ref=e740]:
+                  - generic [ref=e741]:
+                    - generic [ref=e742]:
+                      - img "Starlight Seashell Locket"
+                    - generic [ref=e743]:
+                      - img "Gilded Heart Crown Vanity Mirror"
+                    - generic [ref=e744]:
+                      - img "Blue Heart Wing Ring in a Sapphire Gift Box"
+                    - generic [ref=e745]:
+                      - img "Celestial Star Jewelry Box"
+                    - generic [ref=e746]:
+                      - img "Royal Blue Heart Letter"
+                    - generic [ref=e747]:
+                      - img "Crystal Blossom Mirror"
+                  - paragraph [ref=e748]:
+                    - generic [ref=e749]: The Coronation of Dream-weavers👑✨
+              - generic [ref=e750]:
+                - generic [ref=e751]:
+                  - generic [ref=e752]:
+                    - img "Meshy 3D Printing"
+                  - img [ref=e754]
+                - paragraph [ref=e761]: Meshy 3D Printing
+            - generic [ref=e763]:
+              - link [ref=e764] [cursor=pointer]:
+                - /url: /ja/collections/Spirit-of-Growth-019dd38f-0126-76fb-8d64-d143072f6801
+                - img [ref=e767]
+                - generic [ref=e773]:
+                  - img "Generation Challenge"
+                  - generic [ref=e774]: "#ImagineMeshy"
+                - generic [ref=e779]:
+                  - img "collection cover"
+                - generic [ref=e780]:
+                  - generic [ref=e781]:
+                    - generic [ref=e782]:
+                      - img "City Within a Portrait"
+                    - generic [ref=e783]:
+                      - img "Poppies in a Cracked Marble Bust"
+                    - generic [ref=e784]:
+                      - img "An avant-garde floral installation erupting from a distressed, concrete bust, partially glitched into vibrant, fractured pixel blocks. Overlapping real pink roses and crimson anthuriums entwine with thick, multi-colored data cables and sharp, translucent acrylic leaves. Miniature screens flicker with static, replacing some blooms. The composition blends organic softness with harsh digital corruption and raw, textured stone."
+                    - generic [ref=e785]:
+                      - img "A rough terracotta pot, ancient and earthy, with one side of its surface crumbling into a bright, pixelated digital disruption. Small embedded screens within the glitch show abstract patterns. Clusters of thick, braided hemp ropes, intertwined with delicate, earthy-toned clay roses, are wrapped around its rim and body, presenting a stark contrast of porous clay, smooth digital fragments, and fibrous organic textures."
+                    - generic [ref=e786]:
+                      - img "An urban jungle installation, built upon a heavy, cast-iron grate that glitches into a digital mosaic. Lush, real green ferns and ivy intertwine with thick bundles of multicolored fiber optic cables. Scattered among them are artificial, spiky protea flowers made from recycled plastic, with centers that softly pulse with light. This creates a texture mix of rough metal, soft foliage, and rigid, glowing plastic."
+                    - generic [ref=e787]:
+                      - img "A surreal botanical sculpture, seemingly growing from a cracked sidewalk slab that's glitching into a vibrant, abstract art pattern. Oversized, plastic anthuriums in metallic teal and faded pink blend with real, delicate baby's breath. Braided, glowing data cables form structural elements, juxtaposing coarse concrete with smooth plastic, delicate organic textures, and pulsating digital light."
+                  - paragraph [ref=e788]:
+                    - generic [ref=e789]: 💐 Spirit of Growth
+              - generic [ref=e790]:
+                - generic [ref=e791]:
+                  - generic [ref=e792]:
+                    - img "hanssi"
+                  - img [ref=e794]
+                - paragraph [ref=e801]: hanssi
+            - generic [ref=e803]:
+              - link "コレクション collection cover Alloy Sentinel Nebula Knight Emberjaw Mech Crimson Juggernaut Azure Sentinel Sunsteel Colossus Cyborg and Robotic (jurafjvs)" [ref=e804] [cursor=pointer]:
+                - /url: /ja/collections/Cyborg-and-Robotic-jurafjvs-01984d42-4813-736e-9bc4-e329f52bc9a8
+                - img [ref=e807]
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                      - generic: コレクション
+                - generic [ref=e815]:
+                  - img "collection cover"
+                - generic [ref=e816]:
+                  - generic [ref=e817]:
+                    - generic [ref=e818]:
+                      - img "Alloy Sentinel"
+                    - generic [ref=e819]:
+                      - img "Nebula Knight"
+                    - generic [ref=e820]:
+                      - img "Emberjaw Mech"
+                    - generic [ref=e821]:
+                      - img "Crimson Juggernaut"
+                    - generic [ref=e822]:
+                      - img "Azure Sentinel"
+                    - generic [ref=e823]:
+                      - img "Sunsteel Colossus"
+                  - paragraph [ref=e824]:
+                    - generic [ref=e825]: Cyborg and Robotic (jurafjvs)
+              - generic [ref=e826]:
+                - generic [ref=e827]:
+                  - generic [ref=e828]:
+                    - img "jurafjvs"
+                  - img [ref=e830]
+                - paragraph [ref=e837]: jurafjvs
+            - generic [ref=e839]:
+              - link "コレクション collection cover Azure Sage of the Tattered Veil Violet Tempest Icebound Empress Celestial Seraph Automaton Ember Angel Umbra Warden Glory to Women (jurafjvs)" [ref=e840] [cursor=pointer]:
+                - /url: /ja/collections/Glory-to-Women-jurafjvs-01984d9f-5682-738b-a66b-942a2ca788f4
+                - img [ref=e843]
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                      - generic: コレクション
+                - generic [ref=e851]:
+                  - img "collection cover"
+                - generic [ref=e852]:
+                  - generic [ref=e853]:
+                    - generic [ref=e854]:
+                      - img "Azure Sage of the Tattered Veil"
+                    - generic [ref=e855]:
+                      - img "Violet Tempest"
+                    - generic [ref=e856]:
+                      - img "Icebound Empress"
+                    - generic [ref=e857]:
+                      - img "Celestial Seraph Automaton"
+                    - generic [ref=e858]:
+                      - img "Ember Angel"
+                    - generic [ref=e859]:
+                      - img "Umbra Warden"
+                  - paragraph [ref=e860]:
+                    - generic [ref=e861]: Glory to Women (jurafjvs)
+              - generic [ref=e862]:
+                - generic [ref=e863]:
+                  - generic [ref=e864]:
+                    - img "jurafjvs"
+                  - img [ref=e866]
+                - paragraph [ref=e873]: jurafjvs
+            - generic [ref=e875]:
+              - link "コレクション collection cover Cogsteel Saber Diesel-Tek Dagger Med Kit Unit 42 Rustbound Rotary Cannon Steampunk Cogblade Experimental Energy Sphere Relics of the Wasteland" [ref=e876] [cursor=pointer]:
+                - /url: /ja/collections/Relics-of-the-Wasteland-019a7a4f-d2df-7ba6-9250-3f33a7250157
+                - img [ref=e879]
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                      - generic: コレクション
+                - generic [ref=e887]:
+                  - img "collection cover"
+                - generic [ref=e888]:
+                  - generic [ref=e889]:
+                    - generic [ref=e890]:
+                      - img "Cogsteel Saber"
+                    - generic [ref=e891]:
+                      - img "Diesel-Tek Dagger"
+                    - generic [ref=e892]:
+                      - img "Med Kit Unit 42"
+                    - generic [ref=e893]:
+                      - img "Rustbound Rotary Cannon"
+                    - generic [ref=e894]:
+                      - img "Steampunk Cogblade"
+                    - generic [ref=e895]:
+                      - img "Experimental Energy Sphere"
+                  - paragraph [ref=e896]:
+                    - generic [ref=e897]: Relics of the Wasteland
+              - generic [ref=e898]:
+                - generic [ref=e899]:
+                  - generic [ref=e900]:
+                    - img "bitstyler"
+                  - img [ref=e902]
+                - paragraph [ref=e909]: bitstyler
+            - generic [ref=e911]:
+              - link "コレクション collection cover Rustbound Sentinel Chromatic Vanguard Dreadlock Warhorse Duskblade Assassin Ironbound Warlord Desert Maw Characters" [ref=e912] [cursor=pointer]:
+                - /url: /ja/collections/Characters-019961fb-7c13-74ec-a787-2b42cf59cc01
+                - img [ref=e915]
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                      - generic: コレクション
+                - generic [ref=e923]:
+                  - img "collection cover"
+                - generic [ref=e924]:
+                  - generic [ref=e925]:
+                    - generic [ref=e926]:
+                      - img "Rustbound Sentinel"
+                    - generic [ref=e927]:
+                      - img "Chromatic Vanguard"
+                    - generic [ref=e928]:
+                      - img "Dreadlock Warhorse"
+                    - generic [ref=e929]:
+                      - img "Duskblade Assassin"
+                    - generic [ref=e930]:
+                      - img "Ironbound Warlord"
+                    - generic [ref=e931]:
+                      - img "Desert Maw"
+                  - paragraph [ref=e932]:
+                    - generic [ref=e933]: Characters
+              - generic [ref=e934]:
+                - generic [ref=e935]:
+                  - generic [ref=e936]:
+                    - img "bitstyler"
+                  - img [ref=e938]
+                - paragraph [ref=e945]: bitstyler
+            - generic [ref=e947]:
+              - 'link "Generation Challenge #ImagineMeshy collection cover collection cover Prismatic Pearl in an Iridescent Shell Prismatic Sea Dragon Prismatic Otter Rainbow Prismfin Iridescent Rainbow Spiral Conch Shell Prismatic Reef Explorer Sea of Wonder 🪸" [ref=e948] [cursor=pointer]':
+                - /url: /ja/collections/Sea-of-Wonder-019de0df-85ec-7d78-9620-d8b48fba3eca
+                - img [ref=e951]
+                - generic [ref=e957]:
+                  - img "Generation Challenge"
+                  - generic [ref=e958]: "#ImagineMeshy"
+                - generic [ref=e961]:
+                  - generic [ref=e962]:
+                    - generic:
+                      - img "collection cover"
+                    - generic [ref=e963]:
+                      - img "collection cover"
+                  - generic [ref=e964]:
+                    - button [ref=e965]
+                    - button [ref=e966]
+                - generic [ref=e967]:
+                  - generic [ref=e968]:
+                    - generic [ref=e969]:
+                      - img "Prismatic Pearl in an Iridescent Shell"
+                    - generic [ref=e970]:
+                      - img "Prismatic Sea Dragon"
+                    - generic [ref=e971]:
+                      - img "Prismatic Otter"
+                    - generic [ref=e972]:
+                      - img "Rainbow Prismfin"
+                    - generic [ref=e973]:
+                      - img "Iridescent Rainbow Spiral Conch Shell"
+                    - generic [ref=e974]:
+                      - img "Prismatic Reef Explorer"
+                  - paragraph [ref=e975]:
+                    - generic [ref=e976]: Sea of Wonder 🪸
+              - generic [ref=e977]:
+                - generic [ref=e978]:
+                  - generic [ref=e979]:
+                    - img "cyber_fox"
+                  - img [ref=e981]
+                - paragraph [ref=e988]: cyber_fox
+            - generic [ref=e990]:
+              - link "コレクション collection cover collection cover collection cover collection cover collection cover Tree of Gems Lantern Verdant Empress Verdant Jewel Flask Tree of Life Crown World Tree Mask Grovebound Warhammer The Enchanted Vault" [ref=e991] [cursor=pointer]:
+                - /url: /ja/collections/The-Enchanted-Vault-01987cec-41e1-7db6-8440-6f347c21babd
+                - img [ref=e994]
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                      - generic: コレクション
+                - generic [ref=e1000]:
+                  - generic [ref=e1001]:
+                    - generic:
+                      - img "collection cover"
+                    - generic [ref=e1002]:
+                      - img "collection cover"
+                    - generic:
+                      - img "collection cover"
+                    - generic:
+                      - img "collection cover"
+                    - generic:
+                      - img "collection cover"
+                  - generic [ref=e1003]:
+                    - button [ref=e1004]
+                    - button [ref=e1005]
+                    - button [ref=e1006]
+                    - button [ref=e1007]
+                    - button [ref=e1008]
+                - generic [ref=e1009]:
+                  - generic [ref=e1010]:
+                    - generic [ref=e1011]:
+                      - img "Tree of Gems Lantern"
+                    - generic [ref=e1012]:
+                      - img "Verdant Empress"
+                    - generic [ref=e1013]:
+                      - img "Verdant Jewel Flask"
+                    - generic [ref=e1014]:
+                      - img "Tree of Life Crown"
+                    - generic [ref=e1015]:
+                      - img "World Tree Mask"
+                    - generic [ref=e1016]:
+                      - img "Grovebound Warhammer"
+                  - paragraph [ref=e1017]:
+                    - generic [ref=e1018]: The Enchanted Vault
+              - generic [ref=e1019]:
+                - generic [ref=e1020]:
+                  - generic [ref=e1021]:
+                    - img "cyber_fox"
+                  - img [ref=e1023]
+                - paragraph [ref=e1030]: cyber_fox
+            - generic [ref=e1032]:
+              - link "コレクション collection cover collection cover collection cover collection cover collection cover collection cover Tales of the Deathly Hallows Celestial Emberwing Emerald Tempest Dragon Arcane Tome Stack Sea Empress Create an image of the same character owl that is in the attached image, but don't make its wing open. Make it sit naturally on the branch and turn its head on the left. The rest details should remain the same. Prefects' Cabinet Collection 🪄" [ref=e1033] [cursor=pointer]:
+                - /url: /ja/collections/Prefects-Cabinet-Collection-0199deab-67ca-7c92-a832-4ef48ded430e
+                - img [ref=e1036]
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                      - generic: コレクション
+                - generic [ref=e1042]:
+                  - generic [ref=e1043]:
+                    - generic:
+                      - img "collection cover"
+                    - generic [ref=e1044]:
+                      - img "collection cover"
+                    - generic:
+                      - img "collection cover"
+                    - generic:
+                      - img "collection cover"
+                    - generic:
+                      - img "collection cover"
+                    - generic:
+                      - img "collection cover"
+                  - generic [ref=e1045]:
+                    - button [ref=e1046]
+                    - button [ref=e1047]
+                    - button [ref=e1048]
+                    - button [ref=e1049]
+                    - button [ref=e1050]
+                    - button [ref=e1051]
+                - generic [ref=e1052]:
+                  - generic [ref=e1053]:
+                    - generic [ref=e1054]:
+                      - img "Tales of the Deathly Hallows"
+                    - generic [ref=e1055]:
+                      - img "Celestial Emberwing"
+                    - generic [ref=e1056]:
+                      - img "Emerald Tempest Dragon"
+                    - generic [ref=e1057]:
+                      - img "Arcane Tome Stack"
+                    - generic [ref=e1058]:
+                      - img "Sea Empress"
+                    - generic [ref=e1059]:
+                      - img "Create an image of the same character owl that is in the attached image, but don't make its wing open. Make it sit naturally on the branch and turn its head on the left. The rest details should remain the same."
+                  - paragraph [ref=e1060]:
+                    - generic [ref=e1061]: Prefects' Cabinet Collection 🪄
+              - generic [ref=e1062]:
+                - generic [ref=e1063]:
+                  - generic [ref=e1064]:
+                    - img "cyber_fox"
+                  - img [ref=e1066]
+                - paragraph [ref=e1073]: cyber_fox
+            - generic [ref=e1075]:
+              - link "コレクション collection cover Neon Polka Dot Rockstar Leather Warrior Camouflage Warrior Mighty Muscleman Muscular man posing in white briefs Tarzan-inspired Warrior Males - Men - Männer - Hommes - Adults - Strongmen" [ref=e1076] [cursor=pointer]:
+                - /url: /ja/collections/Males-Men-Mnner-Hommes-Adults-Strongmen-0198eb77-c5a1-70a1-a6f7-e9878eddf3f9
+                - img [ref=e1079]
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                      - generic: コレクション
+                - generic [ref=e1087]:
+                  - img "collection cover"
+                - generic [ref=e1088]:
+                  - generic [ref=e1089]:
+                    - generic [ref=e1090]:
+                      - img "Neon Polka Dot Rockstar"
+                    - generic [ref=e1091]:
+                      - img "Leather Warrior"
+                    - generic [ref=e1092]:
+                      - img "Camouflage Warrior"
+                    - generic [ref=e1093]:
+                      - img "Mighty Muscleman"
+                    - generic [ref=e1094]:
+                      - img "Muscular man posing in white briefs"
+                    - generic [ref=e1095]:
+                      - img "Tarzan-inspired Warrior"
+                  - paragraph [ref=e1096]:
+                    - generic [ref=e1097]: Males - Men - Männer - Hommes - Adults - Strongmen
+              - generic [ref=e1098]:
+                - generic [ref=e1099]:
+                  - generic [ref=e1100]:
+                    - img "thorag3d"
+                  - img [ref=e1102]
+                - paragraph [ref=e1109]: thorag3d
+        - generic [ref=e1110]:
+          - generic [ref=e1111]:
+            - generic [ref=e1112]:
+              - img [ref=e1113]
+              - heading "モデル" [level=3] [ref=e1117]
+            - generic [ref=e1118]:
+              - button [ref=e1119] [cursor=pointer]:
+                - img [ref=e1120]
+              - button [ref=e1123] [cursor=pointer]:
+                - img [ref=e1124]
+          - generic [ref=e1128]:
+            - generic [ref=e1130]:
+              - button "3D model for Bamboo Torii Gate 3D model for Bamboo Torii Gate 画像を3Dに" [ref=e1131]:
+                - generic [ref=e1132]:
+                  - link "3D model for Bamboo Torii Gate 3D model for Bamboo Torii Gate" [ref=e1133] [cursor=pointer]:
+                    - /url: /ja/3d-models/Bamboo-Torii-Gate-v2-01991455-04a9-75e6-952e-e8632b79a6fd
+                    - generic [ref=e1137]:
+                      - img "3D model for Bamboo Torii Gate"
+                      - img "3D model for Bamboo Torii Gate"
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic: 画像を3Dに
+              - generic [ref=e1138]:
+                - img "3D model for Bamboo Torii Gate"
+              - link "sponcony sponcony" [ref=e1142] [cursor=pointer]:
+                - /url: /ja/@e0a06e1a-222a-4ce7-b842-1ec07c434ff3
+                - generic [ref=e1144]:
+                  - img "sponcony"
+                - generic [ref=e1146]: sponcony
+            - generic [ref=e1148]:
+              - button "3D model for Caramelo 3D model for Caramelo 画像を3Dに" [ref=e1149]:
+                - generic [ref=e1150]:
+                  - link "3D model for Caramelo 3D model for Caramelo" [ref=e1151] [cursor=pointer]:
+                    - /url: /ja/3d-models/Caramelo-v2-019ada68-abf3-75c2-a4a9-22423e730445
+                    - generic [ref=e1155]:
+                      - img "3D model for Caramelo"
+                      - img "3D model for Caramelo"
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic: 画像を3Dに
+              - generic [ref=e1156]:
+                - img "3D model for Caramelo"
+              - link "Arthur Arthur" [ref=e1160] [cursor=pointer]:
+                - /url: /ja/@7ec0b214-03cc-44e9-a2fa-a36c928d2b4b
+                - generic [ref=e1162]:
+                  - img "Arthur"
+                - generic [ref=e1164]: Arthur
+            - generic [ref=e1166]:
+              - button "3D model for The City Within Roman 3D model for The City Within Roman 画像を3Dに" [ref=e1167]:
+                - generic [ref=e1168]:
+                  - link "3D model for The City Within Roman 3D model for The City Within Roman" [ref=e1169] [cursor=pointer]:
+                    - /url: /ja/3d-models/The-City-Within-Roman-v2-019d616e-df4d-7ebe-8a94-6079bfed0113
+                    - generic [ref=e1173]:
+                      - img "3D model for The City Within Roman"
+                      - img "3D model for The City Within Roman"
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic: 画像を3Dに
+              - generic [ref=e1174]:
+                - img "3D model for The City Within Roman"
+              - link "emrework emrework" [ref=e1178] [cursor=pointer]:
+                - /url: /ja/@3a09f632-945b-429a-9cd1-99b902d50455
+                - generic [ref=e1179]:
+                  - generic [ref=e1180]:
+                    - img "emrework"
+                  - img [ref=e1182]
+                - generic [ref=e1189]: emrework
+            - generic [ref=e1191]:
+              - button "3D model for Golden Shield of Valor 3D model for Golden Shield of Valor 画像を3Dに" [ref=e1192]:
+                - generic [ref=e1193]:
+                  - link "3D model for Golden Shield of Valor 3D model for Golden Shield of Valor" [ref=e1194] [cursor=pointer]:
+                    - /url: /ja/3d-models/Golden-Shield-of-Valor-v2-019a454b-13bc-7349-b3cd-00f45bd2911d
+                    - generic [ref=e1198]:
+                      - img "3D model for Golden Shield of Valor"
+                      - img "3D model for Golden Shield of Valor"
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic: 画像を3Dに
+              - generic [ref=e1199]:
+                - img "3D model for Golden Shield of Valor"
+              - link "Johnny Johnny" [ref=e1203] [cursor=pointer]:
+                - /url: /ja/@2841144d-327c-4274-9185-5973fabf8e8b
+                - generic [ref=e1204]:
+                  - generic [ref=e1205]:
+                    - img "Johnny"
+                  - img [ref=e1207]
+                - generic [ref=e1214]: Johnny
+            - generic [ref=e1216]:
+              - 'button "3D model for #Halloween2025#, stylized spooky hallowenn manor sitting on a big jack o lantern , handpainted look and feel, masterfully crafted, extreme details, on neutral grey background, natural but slightly vibrant colors, well lit , distressed textures , extreme details, design , highest resolution, dark and gloomy, tentacles, #Halloween2025#, #Halloween2025# 3D model for #Halloween2025#, stylized spooky hallowenn manor sitting on a big jack o lantern , handpainted look and feel, masterfully crafted, extreme details, on neutral grey background, natural but slightly vibrant colors, well lit , distressed textures , extreme details, design , highest resolution, dark and gloomy, tentacles, #Halloween2025#, #Halloween2025# 画像を3Dに" [ref=e1217]':
+                - generic [ref=e1218]:
+                  - 'link "3D model for #Halloween2025#, stylized spooky hallowenn manor sitting on a big jack o lantern , handpainted look and feel, masterfully crafted, extreme details, on neutral grey background, natural but slightly vibrant colors, well lit , distressed textures , extreme details, design , highest resolution, dark and gloomy, tentacles, #Halloween2025#, #Halloween2025# 3D model for #Halloween2025#, stylized spooky hallowenn manor sitting on a big jack o lantern , handpainted look and feel, masterfully crafted, extreme details, on neutral grey background, natural but slightly vibrant colors, well lit , distressed textures , extreme details, design , highest resolution, dark and gloomy, tentacles, #Halloween2025#, #Halloween2025#" [ref=e1219] [cursor=pointer]':
+                    - /url: /ja/3d-models/Halloween2025-stylized-spooky-hallowenn-manor-sitting-on-a-big-jack-o-lantern-handpainted-look-and-feel-masterfully-crafted-extreme-details-on-neutral-grey-background-natural-but-slightly-vibrant-colors-well-lit-distressed-textures-extreme-details-design-highest-resolution-dark-and-gloomy-tentacles-Halloween2025-Halloween2025-v2-019a3a30-2fd8-7ae2-ab59-8a06a3f44946
+                    - generic [ref=e1223]:
+                      - 'img "3D model for #Halloween2025#, stylized spooky hallowenn manor sitting on a big jack o lantern , handpainted look and feel, masterfully crafted, extreme details, on neutral grey background, natural but slightly vibrant colors, well lit , distressed textures , extreme details, design , highest resolution, dark and gloomy, tentacles, #Halloween2025#, #Halloween2025#"'
+                      - 'img "3D model for #Halloween2025#, stylized spooky hallowenn manor sitting on a big jack o lantern , handpainted look and feel, masterfully crafted, extreme details, on neutral grey background, natural but slightly vibrant colors, well lit , distressed textures , extreme details, design , highest resolution, dark and gloomy, tentacles, #Halloween2025#, #Halloween2025#"'
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic: 画像を3Dに
+              - generic [ref=e1224]:
+                - 'img "3D model for #Halloween2025#, stylized spooky hallowenn manor sitting on a big jack o lantern , handpainted look and feel, masterfully crafted, extreme details, on neutral grey background, natural but slightly vibrant colors, well lit , distressed textures , extreme details, design , highest resolution, dark and gloomy, tentacles, #Halloween2025#, #Halloween2025#"'
+              - link "Dark_N0Mad Dark_N0Mad" [ref=e1228] [cursor=pointer]:
+                - /url: /ja/@16cf459b-5e40-4314-b7c0-c8bece461167
+                - generic [ref=e1229]:
+                  - generic [ref=e1230]:
+                    - img "Dark_N0Mad"
+                  - img [ref=e1232]
+                - generic [ref=e1239]: Dark_N0Mad
+            - generic [ref=e1241]:
+              - 'button "3D model for Halloween Night Gathering, #Halloween2025# 3D model for Halloween Night Gathering, #Halloween2025# 画像を3Dに" [ref=e1242]':
+                - generic [ref=e1243]:
+                  - 'link "3D model for Halloween Night Gathering, #Halloween2025# 3D model for Halloween Night Gathering, #Halloween2025#" [ref=e1244] [cursor=pointer]':
+                    - /url: /ja/3d-models/Halloween-Night-Gathering-Halloween2025-v2-019a37e8-bcd5-7289-a9db-da0d271e5a2a
+                    - generic [ref=e1248]:
+                      - 'img "3D model for Halloween Night Gathering, #Halloween2025#"'
+                      - 'img "3D model for Halloween Night Gathering, #Halloween2025#"'
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic: 画像を3Dに
+              - generic [ref=e1249]:
+                - 'img "3D model for Halloween Night Gathering, #Halloween2025#"'
+              - link "Meshy_Official Meshy_Official" [ref=e1253] [cursor=pointer]:
+                - /url: /ja/@c6fc23fb-20f6-4561-929e-bae6fdc5f84c
+                - generic [ref=e1254]:
+                  - generic [ref=e1255]:
+                    - img "Meshy_Official"
+                  - img [ref=e1257]
+                - generic [ref=e1264]: Meshy_Official
+            - generic [ref=e1266]:
+              - button "3D model for Golden Elegance 3D model for Golden Elegance 画像を3Dに" [ref=e1267]:
+                - generic [ref=e1268]:
+                  - link "3D model for Golden Elegance 3D model for Golden Elegance" [ref=e1269] [cursor=pointer]:
+                    - /url: /ja/3d-models/Golden-Elegance-v2-019a37c5-d727-7ddd-add1-eb6d1e2b640e
+                    - generic [ref=e1273]:
+                      - img "3D model for Golden Elegance"
+                      - img "3D model for Golden Elegance"
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic: 画像を3Dに
+              - generic [ref=e1274]:
+                - img "3D model for Golden Elegance"
+              - link "Meshy_Official Meshy_Official" [ref=e1278] [cursor=pointer]:
+                - /url: /ja/@c6fc23fb-20f6-4561-929e-bae6fdc5f84c
+                - generic [ref=e1279]:
+                  - generic [ref=e1280]:
+                    - img "Meshy_Official"
+                  - img [ref=e1282]
+                - generic [ref=e1289]: Meshy_Official
+            - generic [ref=e1291]:
+              - 'button "3D model for Electro Tentacle Fiend, #3 #Halloween2025# 3D model for Electro Tentacle Fiend, #3 #Halloween2025# 画像を3Dに" [ref=e1292]':
+                - generic [ref=e1293]:
+                  - 'link "3D model for Electro Tentacle Fiend, #3 #Halloween2025# 3D model for Electro Tentacle Fiend, #3 #Halloween2025#" [ref=e1294] [cursor=pointer]':
+                    - /url: /ja/3d-models/Electro-Tentacle-Fiend-3-Halloween2025-v2-019a3700-5fd8-77e3-b89e-4ad5551e03a4
+                    - generic [ref=e1298]:
+                      - 'img "3D model for Electro Tentacle Fiend, #3 #Halloween2025#"'
+                      - 'img "3D model for Electro Tentacle Fiend, #3 #Halloween2025#"'
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic: 画像を3Dに
+              - generic [ref=e1299]:
+                - 'img "3D model for Electro Tentacle Fiend, #3 #Halloween2025#"'
+              - link "SIGHTSPIKE SIGHTSPIKE" [ref=e1303] [cursor=pointer]:
+                - /url: /ja/@12d65e06-2389-4ed9-8daa-b782397a9dfd
+                - generic [ref=e1304]:
+                  - generic [ref=e1305]:
+                    - img "SIGHTSPIKE"
+                  - img [ref=e1307]
+                - generic [ref=e1314]: SIGHTSPIKE
+            - generic [ref=e1316]:
+              - 'button "3D model for Winged Elegance, #Halloween2025# 3D model for Winged Elegance, #Halloween2025# 画像を3Dに" [ref=e1317]':
+                - generic [ref=e1318]:
+                  - 'link "3D model for Winged Elegance, #Halloween2025# 3D model for Winged Elegance, #Halloween2025#" [ref=e1319] [cursor=pointer]':
+                    - /url: /ja/3d-models/Winged-Elegance-Halloween2025-v2-019a368e-e32f-7b49-ae8d-4c6d21ba1416
+                    - generic [ref=e1323]:
+                      - 'img "3D model for Winged Elegance, #Halloween2025#"'
+                      - 'img "3D model for Winged Elegance, #Halloween2025#"'
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic: 画像を3Dに
+              - generic [ref=e1324]:
+                - 'img "3D model for Winged Elegance, #Halloween2025#"'
+              - link "Legy Legy" [ref=e1328] [cursor=pointer]:
+                - /url: /ja/@2afeba46-97f0-45aa-a6b1-35cabf5bbc44
+                - generic [ref=e1330]:
+                  - img "Legy"
+                - generic [ref=e1332]: Legy
+            - generic [ref=e1334]:
+              - button "3D model for Solitary Sentinel 3D model for Solitary Sentinel 画像を3Dに" [ref=e1335]:
+                - generic [ref=e1336]:
+                  - link "3D model for Solitary Sentinel 3D model for Solitary Sentinel" [ref=e1337] [cursor=pointer]:
+                    - /url: /ja/3d-models/Solitary-Sentinel-v2-01997c20-fb35-7d83-a6df-c898ddf38434
+                    - generic [ref=e1341]:
+                      - img "3D model for Solitary Sentinel"
+                      - img "3D model for Solitary Sentinel"
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic: 画像を3Dに
+              - generic [ref=e1342]:
+                - img "3D model for Solitary Sentinel"
+              - link "nhac1904 nhac1904" [ref=e1346] [cursor=pointer]:
+                - /url: /ja/@d0aefaa1-8da9-4432-9c08-1b4b89e7ee19
+                - generic [ref=e1348]:
+                  - img "nhac1904"
+                - generic [ref=e1350]: nhac1904
+            - generic [ref=e1352]:
+              - button "3D model for Frostshard Axe 3D model for Frostshard Axe 画像を3Dに" [ref=e1353]:
+                - generic [ref=e1354]:
+                  - link "3D model for Frostshard Axe 3D model for Frostshard Axe" [ref=e1355] [cursor=pointer]:
+                    - /url: /ja/3d-models/Frostshard-Axe-v2-01987fbd-1d04-7962-b5eb-557721e7f910
+                    - generic [ref=e1359]:
+                      - img "3D model for Frostshard Axe"
+                      - img "3D model for Frostshard Axe"
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic: 画像を3Dに
+              - generic [ref=e1360]:
+                - img "3D model for Frostshard Axe"
+              - link "marin marin" [ref=e1364] [cursor=pointer]:
+                - /url: /ja/@0e9976ca-4cc1-43e1-a437-f5d8e009f217
+                - generic [ref=e1365]:
+                  - generic [ref=e1366]:
+                    - img "marin"
+                  - img [ref=e1368]
+                - generic [ref=e1375]: marin
+            - generic [ref=e1377]:
+              - button [ref=e1378]:
+                - generic [ref=e1379]:
+                  - link [ref=e1380] [cursor=pointer]:
+                    - /url: /ja/3d-models/Scifi-undead-cyborg-Ogre-robot-revenant-hulking-massive-body-with-massive-chest-and-scary-plates-all-over-the-body-long-massive-heavy-arms-multilayered-anatomical-sci-fi-bio-suit-massive-hands-with-massive-power-claws-glowing-tech-symbols-all-over-the-suit-a-huge-enginelike-backpack-or-power-generator-connected-to-the-armor-with-thick-cables-sits-on-his-back-evil-and-sinister-detailed-face-extremely-detailed-high-resolution-texture-epic-stance-inspired-by-HR-Giger-dark-olive-tones-muted-natural-colors-c0omplemented-with-orange-distressed-textures-well-balanced-high-frequency-details-v2-01978857-2644-73a4-8caf-b2d91e7d6cbb
+                    - generic [ref=e1384]:
+                      - img "3D model for Scifi undead cyborg Ogre, robot revenant, hulking massive body with massive chest and scary plates all over the body, long massive heavy arms, multilayered, anatomical sci fi bio suit, , massive hands with massive power claws, glowing tech symbols all over the suit, a huge enginelike backpack or power generator connected to the armor with thick cables sits on his back, evil and sinister, detailed face, extremely detailed, high resolution texture, epic stance, inspired by HR Giger, dark olive tones muted natural colors, c0omplemented with orange, distressed textures. well balanced high frequency details,"
+                      - img "3D model for Scifi undead cyborg Ogre, robot revenant, hulking massive body with massive chest and scary plates all over the body, long massive heavy arms, multilayered, anatomical sci fi bio suit, , massive hands with massive power claws, glowing tech symbols all over the suit, a huge enginelike backpack or power generator connected to the armor with thick cables sits on his back, evil and sinister, detailed face, extremely detailed, high resolution texture, epic stance, inspired by HR Giger, dark olive tones muted natural colors, c0omplemented with orange, distressed textures. well balanced high frequency details,"
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic: テキストを3Dに
+              - generic [ref=e1386]: Scifi undead cyborg Ogre, robot revenant, hulking massive body with massive chest and scary plates all over the body, long massive heavy arms, multilayered, anatomical sci fi bio suit, , massive hands with massive power claws, glowing tech symbols all over the suit, a huge enginelike backpack or power generator connected to the armor with thick cables sits on his back, evil and sinister, detailed face, extremely detailed, high resolution texture, epic stance, inspired by HR Giger, dark olive tones muted natural colors, c0omplemented with orange, distressed textures. well balanced high frequency details,
+              - link "Dark_N0Mad Dark_N0Mad" [ref=e1390] [cursor=pointer]:
+                - /url: /ja/@16cf459b-5e40-4314-b7c0-c8bece461167
+                - generic [ref=e1391]:
+                  - generic [ref=e1392]:
+                    - img "Dark_N0Mad"
+                  - img [ref=e1394]
+                - generic [ref=e1401]: Dark_N0Mad
+            - generic [ref=e1403]:
+              - button "3D model for Inferno Mask 3D model for Inferno Mask 画像を3Dに" [ref=e1404]:
+                - generic [ref=e1405]:
+                  - link "3D model for Inferno Mask 3D model for Inferno Mask" [ref=e1406] [cursor=pointer]:
+                    - /url: /ja/3d-models/Inferno-Mask-v2-019c49ff-8663-7638-a1d4-a58c1d3100ee
+                    - generic [ref=e1410]:
+                      - img "3D model for Inferno Mask"
+                      - img "3D model for Inferno Mask"
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic: 画像を3Dに
+              - generic [ref=e1411]:
+                - img "3D model for Inferno Mask"
+              - link "dna685 dna685" [ref=e1415] [cursor=pointer]:
+                - /url: /ja/@5aa80c34-d329-41d4-97f8-529de34e1753
+                - generic [ref=e1416]:
+                  - generic [ref=e1417]:
+                    - img "dna685"
+                  - img [ref=e1419]
+                - generic [ref=e1426]: dna685
+            - generic [ref=e1428]:
+              - button "3D model for Ceramic Queen Mug 3D model for Ceramic Queen Mug 画像を3Dに" [ref=e1429]:
+                - generic [ref=e1430]:
+                  - link "3D model for Ceramic Queen Mug 3D model for Ceramic Queen Mug" [ref=e1431] [cursor=pointer]:
+                    - /url: /ja/3d-models/Ceramic-Queen-Mug-v2-019aeb09-ec9c-7481-a834-313553a303e2
+                    - generic [ref=e1435]:
+                      - img "3D model for Ceramic Queen Mug"
+                      - img "3D model for Ceramic Queen Mug"
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic: 画像を3Dに
+              - generic [ref=e1436]:
+                - img "3D model for Ceramic Queen Mug"
+              - link "kecoktay kecoktay" [ref=e1440] [cursor=pointer]:
+                - /url: /ja/@google-oauth2|113138049095720250559
+                - generic [ref=e1441]:
+                  - generic [ref=e1442]:
+                    - img "kecoktay"
+                  - img [ref=e1444]
+                - generic [ref=e1451]: kecoktay
+            - generic [ref=e1453]:
+              - button "3D model for Infernal Warlord 3D model for Infernal Warlord 画像を3Dに" [ref=e1454]:
+                - generic [ref=e1455]:
+                  - link "3D model for Infernal Warlord 3D model for Infernal Warlord" [ref=e1456] [cursor=pointer]:
+                    - /url: /ja/3d-models/Infernal-Warlord-v2-019aea7f-e9f8-79c3-8def-3e25085a1510
+                    - generic [ref=e1460]:
+                      - img "3D model for Infernal Warlord"
+                      - img "3D model for Infernal Warlord"
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic: 画像を3Dに
+              - generic [ref=e1461]:
+                - img "3D model for Infernal Warlord"
+              - link "Benreally Benreally" [ref=e1465] [cursor=pointer]:
+                - /url: /ja/@0733c71e-a3eb-4991-86ef-955f53290b43
+                - generic [ref=e1467]:
+                  - img "Benreally"
+                - generic [ref=e1469]: Benreally
+            - generic [ref=e1471]:
+              - 'button "3D model for Graffiti Cyborg Hand, #Thanksgiving# 3D model for Graffiti Cyborg Hand, #Thanksgiving# 画像を3Dに" [ref=e1472]':
+                - generic [ref=e1473]:
+                  - 'link "3D model for Graffiti Cyborg Hand, #Thanksgiving# 3D model for Graffiti Cyborg Hand, #Thanksgiving#" [ref=e1474] [cursor=pointer]':
+                    - /url: /ja/3d-models/Graffiti-Cyborg-Hand-Thanksgiving-v2-019a9954-ab7a-7a72-b626-d21479a5e694
+                    - generic [ref=e1478]:
+                      - 'img "3D model for Graffiti Cyborg Hand, #Thanksgiving#"'
+                      - 'img "3D model for Graffiti Cyborg Hand, #Thanksgiving#"'
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic: 画像を3Dに
+              - generic [ref=e1479]:
+                - 'img "3D model for Graffiti Cyborg Hand, #Thanksgiving#"'
+              - link "kecoktay kecoktay" [ref=e1483] [cursor=pointer]:
+                - /url: /ja/@google-oauth2|113138049095720250559
+                - generic [ref=e1484]:
+                  - generic [ref=e1485]:
+                    - img "kecoktay"
+                  - img [ref=e1487]
+                - generic [ref=e1494]: kecoktay
+            - generic [ref=e1496]:
+              - button "3D model for Cyber Vandalism 3D model for Cyber Vandalism 画像を3Dに" [ref=e1497]:
+                - generic [ref=e1498]:
+                  - link "3D model for Cyber Vandalism 3D model for Cyber Vandalism" [ref=e1499] [cursor=pointer]:
+                    - /url: /ja/3d-models/Cyber-Vandalism-v2-019a82c8-3383-76e2-8938-51329d941c6b
+                    - generic [ref=e1503]:
+                      - img "3D model for Cyber Vandalism"
+                      - img "3D model for Cyber Vandalism"
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic: 画像を3Dに
+              - generic [ref=e1504]:
+                - img "3D model for Cyber Vandalism"
+              - link "kecoktay kecoktay" [ref=e1508] [cursor=pointer]:
+                - /url: /ja/@google-oauth2|113138049095720250559
+                - generic [ref=e1509]:
+                  - generic [ref=e1510]:
+                    - img "kecoktay"
+                  - img [ref=e1512]
+                - generic [ref=e1519]: kecoktay
+            - generic [ref=e1521]:
+              - button "3D model for Psychedelic Fungus Creature 3D model for Psychedelic Fungus Creature 画像を3Dに" [ref=e1522]:
+                - generic [ref=e1523]:
+                  - link "3D model for Psychedelic Fungus Creature 3D model for Psychedelic Fungus Creature" [ref=e1524] [cursor=pointer]:
+                    - /url: /ja/3d-models/Psychedelic-Fungus-Creature-v2-019a6b23-ce8c-794e-a72e-f93b114b3212
+                    - generic [ref=e1528]:
+                      - img "3D model for Psychedelic Fungus Creature"
+                      - img "3D model for Psychedelic Fungus Creature"
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic: 画像を3Dに
+              - generic [ref=e1529]:
+                - img "3D model for Psychedelic Fungus Creature"
+              - link "KATAKANA-KUN KATAKANA-KUN" [ref=e1533] [cursor=pointer]:
+                - /url: /ja/@b701a353-ab71-47b8-be69-9d07dea24a50
+                - generic [ref=e1534]:
+                  - generic [ref=e1535]:
+                    - img "KATAKANA-KUN"
+                  - img [ref=e1537]
+                - generic [ref=e1544]: KATAKANA-KUN
+            - generic [ref=e1546]:
+              - button "3D model for Infernal Aegis 3D model for Infernal Aegis 画像を3Dに" [ref=e1547]:
+                - generic [ref=e1548]:
+                  - link "3D model for Infernal Aegis 3D model for Infernal Aegis" [ref=e1549] [cursor=pointer]:
+                    - /url: /ja/3d-models/Infernal-Aegis-v2-019a5c6c-84c0-74d3-b3cc-b2bba094c3fb
+                    - generic [ref=e1553]:
+                      - img "3D model for Infernal Aegis"
+                      - img "3D model for Infernal Aegis"
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic: 画像を3Dに
+              - generic [ref=e1554]:
+                - img "3D model for Infernal Aegis"
+              - link "kecoktay kecoktay" [ref=e1558] [cursor=pointer]:
+                - /url: /ja/@google-oauth2|113138049095720250559
+                - generic [ref=e1559]:
+                  - generic [ref=e1560]:
+                    - img "kecoktay"
+                  - img [ref=e1562]
+                - generic [ref=e1569]: kecoktay
+            - generic [ref=e1571]:
+              - button "3D model for Emerald Enclave Blade 3D model for Emerald Enclave Blade 画像を3Dに" [ref=e1572]:
+                - generic [ref=e1573]:
+                  - link "3D model for Emerald Enclave Blade 3D model for Emerald Enclave Blade" [ref=e1574] [cursor=pointer]:
+                    - /url: /ja/3d-models/Emerald-Enclave-Blade-v2-019a47c2-2322-752f-8294-9da08fb17fd7
+                    - generic [ref=e1578]:
+                      - img "3D model for Emerald Enclave Blade"
+                      - img "3D model for Emerald Enclave Blade"
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic: 画像を3Dに
+              - generic [ref=e1579]:
+                - img "3D model for Emerald Enclave Blade"
+              - link "Johnny Johnny" [ref=e1583] [cursor=pointer]:
+                - /url: /ja/@2841144d-327c-4274-9185-5973fabf8e8b
+                - generic [ref=e1584]:
+                  - generic [ref=e1585]:
+                    - img "Johnny"
+                  - img [ref=e1587]
+                - generic [ref=e1594]: Johnny
+      - generic [ref=e1595]:
+        - generic [ref=e1596]:
+          - heading "ユーザーストーリー" [level=2] [ref=e1597]
+          - generic [ref=e1598]:
+            - button [ref=e1599] [cursor=pointer]:
+              - img [ref=e1600]
+            - button [ref=e1603] [cursor=pointer]:
+              - img [ref=e1604]
+        - generic [ref=e1608]:
+          - link "1枚のアーカイブ写真から3Dプリントされた胸像へ：Meshyが歴史的人物に命を吹き込む方法 1枚のアーカイブ写真から3Dプリントされた胸像へ：Meshyが歴史的人物に命を吹き込む方法" [ref=e1609] [cursor=pointer]:
+            - /url: /ja/blog/photo-to-3d-printed-bust
+            - img "1枚のアーカイブ写真から3Dプリントされた胸像へ：Meshyが歴史的人物に命を吹き込む方法"
+            - generic [ref=e1610]: 1枚のアーカイブ写真から3Dプリントされた胸像へ：Meshyが歴史的人物に命を吹き込む方法
+          - 'link "K-8のクリエイターをエンパワーする: Hasten Hebrew AcademyがMeshyでSTEAM教育を革新する方法 K-8のクリエイターをエンパワーする: Hasten Hebrew AcademyがMeshyでSTEAM教育を革新する方法" [ref=e1611] [cursor=pointer]':
+            - /url: /ja/blog/ai-transforming-steam-k8-education
+            - 'img "K-8のクリエイターをエンパワーする: Hasten Hebrew AcademyがMeshyでSTEAM教育を革新する方法"'
+            - generic [ref=e1612]: "K-8のクリエイターをエンパワーする: Hasten Hebrew AcademyがMeshyでSTEAM教育を革新する方法"
+          - link "距離を超えて：アリス・グッツィとAPECSイタリアがMeshyで極地科学を具体化する方法 距離を超えて：アリス・グッツィとAPECSイタリアがMeshyで極地科学を具体化する方法" [ref=e1613] [cursor=pointer]:
+            - /url: /ja/blog/image-to-3d-apecs-polar-science
+            - img "距離を超えて：アリス・グッツィとAPECSイタリアがMeshyで極地科学を具体化する方法"
+            - generic [ref=e1614]: 距離を超えて：アリス・グッツィとAPECSイタリアがMeshyで極地科学を具体化する方法
+          - 'link "未来のクリエイターをエンパワーする: Meshyが高校デジタルアートにおける2Dから3Dへのワークフローを加速する方法 未来のクリエイターをエンパワーする: Meshyが高校デジタルアートにおける2Dから3Dへのワークフローを加速する方法" [ref=e1615] [cursor=pointer]':
+            - /url: /ja/blog/ai-2d-to-3d-character-design-game-art
+            - 'img "未来のクリエイターをエンパワーする: Meshyが高校デジタルアートにおける2Dから3Dへのワークフローを加速する方法"'
+            - generic [ref=e1616]: "未来のクリエイターをエンパワーする: Meshyが高校デジタルアートにおける2Dから3Dへのワークフローを加速する方法"
+          - link "Meshyでフルカラー印刷を拡張するWest Edge 3Dの方法 Meshyでフルカラー印刷を拡張するWest Edge 3Dの方法" [ref=e1617] [cursor=pointer]:
+            - /url: /ja/blog/text-to-3d-polyjet-printing-pipeline-diverse-figurines
+            - img "Meshyでフルカラー印刷を拡張するWest Edge 3Dの方法"
+            - generic [ref=e1618]: Meshyでフルカラー印刷を拡張するWest Edge 3Dの方法
+          - link "子供の絵から本物のスーパーヒーローへ：Liga SuperbohaterówがMeshyを使ってがんと闘う子供たちに希望を届ける方法 子供の絵から本物のスーパーヒーローへ：Liga SuperbohaterówがMeshyを使ってがんと闘う子供たちに希望を届ける方法" [ref=e1619] [cursor=pointer]:
+            - /url: /ja/blog/transforming-children-drawings-into-3d-printed-superheroes
+            - img "子供の絵から本物のスーパーヒーローへ：Liga SuperbohaterówがMeshyを使ってがんと闘う子供たちに希望を届ける方法"
+            - generic [ref=e1620]: 子供の絵から本物のスーパーヒーローへ：Liga SuperbohaterówがMeshyを使ってがんと闘う子供たちに希望を届ける方法
+          - 'link "新しいパレット: HUFAがメッシーを統合して学際的な3Dアート教育を実現する方法 新しいパレット: HUFAがメッシーを統合して学際的な3Dアート教育を実現する方法" [ref=e1621] [cursor=pointer]':
+            - /url: /ja/blog/ai-3d-asset-creation-art-education
+            - 'img "新しいパレット: HUFAがメッシーを統合して学際的な3Dアート教育を実現する方法"'
+            - generic [ref=e1622]: "新しいパレット: HUFAがメッシーを統合して学際的な3Dアート教育を実現する方法"
+          - 'link "3Dパイプラインの近代化: Shawn NelsonがMeshyをプロフェッショナルなアート教育に統合する方法 3Dパイプラインの近代化: Shawn NelsonがMeshyをプロフェッショナルなアート教育に統合する方法" [ref=e1623] [cursor=pointer]':
+            - /url: /ja/blog/modernizing-3d-art-education-pipeline
+            - 'img "3Dパイプラインの近代化: Shawn NelsonがMeshyをプロフェッショナルなアート教育に統合する方法"'
+            - generic [ref=e1624]: "3Dパイプラインの近代化: Shawn NelsonがMeshyをプロフェッショナルなアート教育に統合する方法"
+          - link "エリック・ヨークがMeshyでロボティクスとゲームデザインにおいて学生をどのように力づけているか エリック・ヨークがMeshyでロボティクスとゲームデザインにおいて学生をどのように力づけているか" [ref=e1625] [cursor=pointer]:
+            - /url: /ja/blog/ai-3d-modeling-robotics-game-design-stem-education
+            - img "エリック・ヨークがMeshyでロボティクスとゲームデザインにおいて学生をどのように力づけているか"
+            - generic [ref=e1626]: エリック・ヨークがMeshyでロボティクスとゲームデザインにおいて学生をどのように力づけているか
+          - 'link "焦点のシフト: 大学教育者がMeshyを活用して3Dアート教育を開拓する方法 焦点のシフト: 大学教育者がMeshyを活用して3Dアート教育を開拓する方法" [ref=e1627] [cursor=pointer]':
+            - /url: /ja/blog/concept-driven-3d-art-education
+            - 'img "焦点のシフト: 大学教育者がMeshyを活用して3Dアート教育を開拓する方法"'
+            - generic [ref=e1628]: "焦点のシフト: 大学教育者がMeshyを活用して3Dアート教育を開拓する方法"
+          - link "次世代のゲームデザイナーのために想像力と生産をつなぐMeshy AI 次世代のゲームデザイナーのために想像力と生産をつなぐMeshy AI" [ref=e1629] [cursor=pointer]:
+            - /url: /ja/blog/student-sketches-to-unity-3d-assets
+            - img "次世代のゲームデザイナーのために想像力と生産をつなぐMeshy AI"
+            - generic [ref=e1630]: 次世代のゲームデザイナーのために想像力と生産をつなぐMeshy AI
+          - 'link "ProcreateからCinema 4Dへ: Mikhail Arce-IgnacioがMeshyで2Dから3Dへのギャップをどのように埋めるか ProcreateからCinema 4Dへ: Mikhail Arce-IgnacioがMeshyで2Dから3Dへのギャップをどのように埋めるか" [ref=e1631] [cursor=pointer]':
+            - /url: /ja/blog/2d-concept-to-3d-sculpt
+            - 'img "ProcreateからCinema 4Dへ: Mikhail Arce-IgnacioがMeshyで2Dから3Dへのギャップをどのように埋めるか"'
+            - generic [ref=e1632]: "ProcreateからCinema 4Dへ: Mikhail Arce-IgnacioがMeshyで2Dから3Dへのギャップをどのように埋めるか"
+          - link "Meshyを使って学生の想像力を3Dプリントに変えることで、文化遺産とSTEMをつなぐ Meshyを使って学生の想像力を3Dプリントに変えることで、文化遺産とSTEMをつなぐ" [ref=e1633] [cursor=pointer]:
+            - /url: /ja/blog/ai-bridges-cultural-heritage-and-stem-education
+            - img "Meshyを使って学生の想像力を3Dプリントに変えることで、文化遺産とSTEMをつなぐ"
+            - generic [ref=e1634]: Meshyを使って学生の想像力を3Dプリントに変えることで、文化遺産とSTEMをつなぐ
+          - 'link "メッシュ駆動の文化的STEAMイノベーション: 王晨婷先生が学生たちをどのように支援して宮殿の翡翠工芸品をAI駆動のVR作品に変えるか メッシュ駆動の文化的STEAMイノベーション: 王晨婷先生が学生たちをどのように支援して宮殿の翡翠工芸品をAI駆動のVR作品に変えるか" [ref=e1635] [cursor=pointer]':
+            - /url: /ja/blog/cultural-heritage-3d-vr-education
+            - 'img "メッシュ駆動の文化的STEAMイノベーション: 王晨婷先生が学生たちをどのように支援して宮殿の翡翠工芸品をAI駆動のVR作品に変えるか"'
+            - generic [ref=e1636]: "メッシュ駆動の文化的STEAMイノベーション: 王晨婷先生が学生たちをどのように支援して宮殿の翡翠工芸品をAI駆動のVR作品に変えるか"
+          - 'link "遺産を生き生きとさせる: トニー・ルノーが学生のアートをMeshy AIでインタラクティブな3Dゲーム資産に変えた方法 遺産を生き生きとさせる: トニー・ルノーが学生のアートをMeshy AIでインタラクティブな3Dゲーム資産に変えた方法" [ref=e1637] [cursor=pointer]':
+            - /url: /ja/blog/student-art-to-unity-3d-game-assets
+            - 'img "遺産を生き生きとさせる: トニー・ルノーが学生のアートをMeshy AIでインタラクティブな3Dゲーム資産に変えた方法"'
+            - generic [ref=e1638]: "遺産を生き生きとさせる: トニー・ルノーが学生のアートをMeshy AIでインタラクティブな3Dゲーム資産に変えた方法"
+          - 'link "AIによる没入型学習の強化: ムラト・エルグンと彼の学生たちのVR科学探検の旅 AIによる没入型学習の強化: ムラト・エルグンと彼の学生たちのVR科学探検の旅" [ref=e1639] [cursor=pointer]':
+            - /url: /ja/blog/immersive-learning-with-ai
+            - 'img "AIによる没入型学習の強化: ムラト・エルグンと彼の学生たちのVR科学探検の旅"'
+            - generic [ref=e1640]: "AIによる没入型学習の強化: ムラト・エルグンと彼の学生たちのVR科学探検の旅"
+          - 'link "プレイドーからプロレベルのジオラマへ: Chad HunterがMeshyを使って彼の想像力を印刷する方法 プレイドーからプロレベルのジオラマへ: Chad HunterがMeshyを使って彼の想像力を印刷する方法" [ref=e1641] [cursor=pointer]':
+            - /url: /ja/blog/ai-3d-printing-dioramas-tabletop
+            - 'img "プレイドーからプロレベルのジオラマへ: Chad HunterがMeshyを使って彼の想像力を印刷する方法"'
+            - generic [ref=e1642]: "プレイドーからプロレベルのジオラマへ: Chad HunterがMeshyを使って彼の想像力を印刷する方法"
+          - 'link "技術的障壁から創造的爆発へ: VITAスクールの教師がMeshyで8年生のゲームデザインをどのように変革したか 技術的障壁から創造的爆発へ: VITAスクールの教師がMeshyで8年生のゲームデザインをどのように変革したか" [ref=e1643] [cursor=pointer]':
+            - /url: /ja/blog/ai-3d-game-asset-creation-for-students
+            - 'img "技術的障壁から創造的爆発へ: VITAスクールの教師がMeshyで8年生のゲームデザインをどのように変革したか"'
+            - generic [ref=e1644]: "技術的障壁から創造的爆発へ: VITAスクールの教師がMeshyで8年生のゲームデザインをどのように変革したか"
+          - 'link "AAツールプログラマーからソロ開発者へ: JlemarchandがMeshy AIを使ってポイント＆クリックアドベンチャーを構築する方法 AAツールプログラマーからソロ開発者へ: JlemarchandがMeshy AIを使ってポイント＆クリックアドベンチャーを構築する方法" [ref=e1645] [cursor=pointer]':
+            - /url: /ja/blog/point-and-click-game
+            - 'img "AAツールプログラマーからソロ開発者へ: JlemarchandがMeshy AIを使ってポイント＆クリックアドベンチャーを構築する方法"'
+            - generic [ref=e1646]: "AAツールプログラマーからソロ開発者へ: JlemarchandがMeshy AIを使ってポイント＆クリックアドベンチャーを構築する方法"
+          - link "Blenderでの300時間からモデルごとに5分へ：Meshy AIがどのようにしてcyber_foxの英語学習アプリの3D作成を救ったか Blenderでの300時間からモデルごとに5分へ：Meshy AIがどのようにしてcyber_foxの英語学習アプリの3D作成を救ったか" [ref=e1647] [cursor=pointer]:
+            - /url: /ja/blog/fast-3d-generation-tool-for-education-app-3d-assets
+            - img "Blenderでの300時間からモデルごとに5分へ：Meshy AIがどのようにしてcyber_foxの英語学習アプリの3D作成を救ったか"
+            - generic [ref=e1648]: Blenderでの300時間からモデルごとに5分へ：Meshy AIがどのようにしてcyber_foxの英語学習アプリの3D作成を救ったか
+          - 'link "フラッシュゲームからホラーワールドへ: EvilKrisがMeshyを使ってFamishedを形作る方法 フラッシュゲームからホラーワールドへ: EvilKrisがMeshyを使ってFamishedを形作る方法" [ref=e1649] [cursor=pointer]':
+            - /url: /ja/blog/3d-horror-game-assets-creation-for-famished
+            - 'img "フラッシュゲームからホラーワールドへ: EvilKrisがMeshyを使ってFamishedを形作る方法"'
+            - generic [ref=e1650]: "フラッシュゲームからホラーワールドへ: EvilKrisがMeshyを使ってFamishedを形作る方法"
+          - 'link "ソロインディーデベロッパーAxxの旅路: Meshy AIが彼のシュールな3Dプラットフォーマーの夢を現実にした方法 ソロインディーデベロッパーAxxの旅路: Meshy AIが彼のシュールな3Dプラットフォーマーの夢を現実にした方法" [ref=e1651] [cursor=pointer]':
+            - /url: /ja/blog/solo-indie-dev-3d-platformer
+            - 'img "ソロインディーデベロッパーAxxの旅路: Meshy AIが彼のシュールな3Dプラットフォーマーの夢を現実にした方法"'
+            - generic [ref=e1652]: "ソロインディーデベロッパーAxxの旅路: Meshy AIが彼のシュールな3Dプラットフォーマーの夢を現実にした方法"
+          - 'link "文学から3D感情へ: Meshy AIと共に歩むkirinkarwaiの3Dアートの旅 文学から3D感情へ: Meshy AIと共に歩むkirinkarwaiの3Dアートの旅" [ref=e1653] [cursor=pointer]':
+            - /url: /ja/blog/3d-art-ai-inspiration
+            - 'img "文学から3D感情へ: Meshy AIと共に歩むkirinkarwaiの3Dアートの旅"'
+            - generic [ref=e1654]: "文学から3D感情へ: Meshy AIと共に歩むkirinkarwaiの3Dアートの旅"
+          - 'link "メッシュ技術を活用した911アウトリーチ: テッド・スパークスの革新がローガン郡の学生と家族向け安全教育を活性化 メッシュ技術を活用した911アウトリーチ: テッド・スパークスの革新がローガン郡の学生と家族向け安全教育を活性化" [ref=e1655] [cursor=pointer]':
+            - /url: /ja/blog/meshy-911-outreach-program-3d-printing
+            - 'img "メッシュ技術を活用した911アウトリーチ: テッド・スパークスの革新がローガン郡の学生と家族向け安全教育を活性化"'
+            - generic [ref=e1656]: "メッシュ技術を活用した911アウトリーチ: テッド・スパークスの革新がローガン郡の学生と家族向け安全教育を活性化"
+          - 'link "遺産からデジタルへ: MeshyがAnnieにAIと無形文化遺産を3Dアートに織り込む方法 遺産からデジタルへ: MeshyがAnnieにAIと無形文化遺産を3Dアートに織り込む方法" [ref=e1657] [cursor=pointer]':
+            - /url: /ja/blog/ai-ich-3d-art-meshy-tool
+            - 'img "遺産からデジタルへ: MeshyがAnnieにAIと無形文化遺産を3Dアートに織り込む方法"'
+            - generic [ref=e1658]: "遺産からデジタルへ: MeshyがAnnieにAIと無形文化遺産を3Dアートに織り込む方法"
+          - link "CoolPuzzlerがMeshyを使用してサバイバルとドキュメンテーションを備えたBackrooms 3Dゲームを構築する方法 CoolPuzzlerがMeshyを使用してサバイバルとドキュメンテーションを備えたBackrooms 3Dゲームを構築する方法" [ref=e1659] [cursor=pointer]:
+            - /url: /ja/blog/backrooms-game
+            - img "CoolPuzzlerがMeshyを使用してサバイバルとドキュメンテーションを備えたBackrooms 3Dゲームを構築する方法"
+            - generic [ref=e1660]: CoolPuzzlerがMeshyを使用してサバイバルとドキュメンテーションを備えたBackrooms 3Dゲームを構築する方法
+          - 'link "メッシー・パワーズ・オマーのコズミクラフト・アドベンチャー: AIが無限の宇宙ゲームのために3Dアセットを革命化する方法 メッシー・パワーズ・オマーのコズミクラフト・アドベンチャー: AIが無限の宇宙ゲームのために3Dアセットを革命化する方法" [ref=e1661] [cursor=pointer]':
+            - /url: /ja/blog/ai-3d-space-game-asset
+            - 'img "メッシー・パワーズ・オマーのコズミクラフト・アドベンチャー: AIが無限の宇宙ゲームのために3Dアセットを革命化する方法"'
+            - generic [ref=e1662]: "メッシー・パワーズ・オマーのコズミクラフト・アドベンチャー: AIが無限の宇宙ゲームのために3Dアセットを革命化する方法"
+          - link "ソリロキスが明かす：Meshyでインディーゲームのキャラクターデザインのボトルネックを突破 ソリロキスが明かす：Meshyでインディーゲームのキャラクターデザインのボトルネックを突破" [ref=e1663] [cursor=pointer]:
+            - /url: /ja/blog/indie-game-character-design-workflow
+            - img "ソリロキスが明かす：Meshyでインディーゲームのキャラクターデザインのボトルネックを突破"
+            - generic [ref=e1664]: ソリロキスが明かす：Meshyでインディーゲームのキャラクターデザインのボトルネックを突破
+          - 'link "Arena Pong: インディーデベロッパーがMeshyを使用してレトロなクラシックに3Dのひねりを加える Arena Pong: インディーデベロッパーがMeshyを使用してレトロなクラシックに3Dのひねりを加える" [ref=e1665] [cursor=pointer]':
+            - /url: /ja/blog/ai-tools-for-indie-game-development
+            - 'img "Arena Pong: インディーデベロッパーがMeshyを使用してレトロなクラシックに3Dのひねりを加える"'
+            - generic [ref=e1666]: "Arena Pong: インディーデベロッパーがMeshyを使用してレトロなクラシックに3Dのひねりを加える"
+          - 'link "Zafのシネマティック3Dの秘密: Meshyがモデリング時間を短縮し、雰囲気を高める方法 Zafのシネマティック3Dの秘密: Meshyがモデリング時間を短縮し、雰囲気を高める方法" [ref=e1667] [cursor=pointer]':
+            - /url: /ja/blog/cinematic-3d
+            - 'img "Zafのシネマティック3Dの秘密: Meshyがモデリング時間を短縮し、雰囲気を高める方法"'
+            - generic [ref=e1668]: "Zafのシネマティック3Dの秘密: Meshyがモデリング時間を短縮し、雰囲気を高める方法"
+          - link "建築からインディーワールドへ：CristóbalがMeshyを使ってCajónの宝物を作る方法 建築からインディーワールドへ：CristóbalがMeshyを使ってCajónの宝物を作る方法" [ref=e1669] [cursor=pointer]:
+            - /url: /ja/blog/indie-game-development-process
+            - img "建築からインディーワールドへ：CristóbalがMeshyを使ってCajónの宝物を作る方法"
+            - generic [ref=e1670]: 建築からインディーワールドへ：CristóbalがMeshyを使ってCajónの宝物を作る方法
+          - 'link "コンセプトから戦闘へ: AIがどのようにしてインディーデベロッパーのFLOW STATEのビジョンを加速させたか コンセプトから戦闘へ: AIがどのようにしてインディーデベロッパーのFLOW STATEのビジョンを加速させたか" [ref=e1671] [cursor=pointer]':
+            - /url: /ja/blog/ai-in-game-development
+            - 'img "コンセプトから戦闘へ: AIがどのようにしてインディーデベロッパーのFLOW STATEのビジョンを加速させたか"'
+            - generic [ref=e1672]: "コンセプトから戦闘へ: AIがどのようにしてインディーデベロッパーのFLOW STATEのビジョンを加速させたか"
+          - 'link "スタイライズド・アンティクィティ3Dクリエーション: アイコがメッシーとプロンプトエンジニアリングを使用してスタイルの一貫性を保つ方法 スタイライズド・アンティクィティ3Dクリエーション: アイコがメッシーとプロンプトエンジニアリングを使用してスタイルの一貫性を保つ方法" [ref=e1673] [cursor=pointer]':
+            - /url: /ja/blog/3D-prompt-engineering
+            - 'img "スタイライズド・アンティクィティ3Dクリエーション: アイコがメッシーとプロンプトエンジニアリングを使用してスタイルの一貫性を保つ方法"'
+            - generic [ref=e1674]: "スタイライズド・アンティクィティ3Dクリエーション: アイコがメッシーとプロンプトエンジニアリングを使用してスタイルの一貫性を保つ方法"
+          - 'link "アイデアからアイデンティティへ: MeshyがTansyの内なるアーティストを受け入れるのをどのように助けたか アイデアからアイデンティティへ: MeshyがTansyの内なるアーティストを受け入れるのをどのように助けたか" [ref=e1675] [cursor=pointer]':
+            - /url: /ja/blog/ai-generated-3d-art
+            - 'img "アイデアからアイデンティティへ: MeshyがTansyの内なるアーティストを受け入れるのをどのように助けたか"'
+            - generic [ref=e1676]: "アイデアからアイデンティティへ: MeshyがTansyの内なるアーティストを受け入れるのをどのように助けたか"
+          - link "セカンドライフから本当のクリエイティブな自由へ：MeshyがSivanのワークフローをどのように変えたか セカンドライフから本当のクリエイティブな自由へ：MeshyがSivanのワークフローをどのように変えたか" [ref=e1677] [cursor=pointer]:
+            - /url: /ja/blog/second-life-avatar-creation-with-meshy
+            - img "セカンドライフから本当のクリエイティブな自由へ：MeshyがSivanのワークフローをどのように変えたか"
+            - generic [ref=e1678]: セカンドライフから本当のクリエイティブな自由へ：MeshyがSivanのワークフローをどのように変えたか
+          - 'link "創造性の解放: Skylyfe Inc.がMeshy AIを使用して次世代の技術革新者を支援する方法 創造性の解放: Skylyfe Inc.がMeshy AIを使用して次世代の技術革新者を支援する方法" [ref=e1679] [cursor=pointer]':
+            - /url: /ja/blog/skylyfe-meshy-3d-printing-program
+            - 'img "創造性の解放: Skylyfe Inc.がMeshy AIを使用して次世代の技術革新者を支援する方法"'
+            - generic [ref=e1680]: "創造性の解放: Skylyfe Inc.がMeshy AIを使用して次世代の技術革新者を支援する方法"
+          - 'link "時間を時間から分に: Marcos MedelがMeshy AIでVFXワークフローをどのように変革するか 時間を時間から分に: Marcos MedelがMeshy AIでVFXワークフローをどのように変革するか" [ref=e1681] [cursor=pointer]':
+            - /url: /ja/blog/vfx-workflow
+            - 'img "時間を時間から分に: Marcos MedelがMeshy AIでVFXワークフローをどのように変革するか"'
+            - generic [ref=e1682]: "時間を時間から分に: Marcos MedelがMeshy AIでVFXワークフローをどのように変革するか"
+          - link "R'lyehの残骸の深淵へ：AIを用いたラヴクラフト風ホラーゲームの制作 R'lyehの残骸の深淵へ：AIを用いたラヴクラフト風ホラーゲームの制作" [ref=e1683] [cursor=pointer]:
+            - /url: /ja/blog/indie-horror-game
+            - img "R'lyehの残骸の深淵へ：AIを用いたラヴクラフト風ホラーゲームの制作"
+            - generic [ref=e1684]: R'lyehの残骸の深淵へ：AIを用いたラヴクラフト風ホラーゲームの制作
+          - link "PLAとは何ですか？エコフレンドリーな3Dプリントの究極ガイド PLAとは何ですか？エコフレンドリーな3Dプリントの究極ガイド" [ref=e1685] [cursor=pointer]:
+            - /url: /ja/blog/what-is-pla
+            - img "PLAとは何ですか？エコフレンドリーな3Dプリントの究極ガイド"
+            - generic [ref=e1686]: PLAとは何ですか？エコフレンドリーな3Dプリントの究極ガイド
+          - 'link "バーチャルリアリティ教育の強化: スタンフォード大学におけるジェレミーの革新的なAI活用 バーチャルリアリティ教育の強化: スタンフォード大学におけるジェレミーの革新的なAI活用" [ref=e1687] [cursor=pointer]':
+            - /url: /ja/blog/virtual-reality-education
+            - 'img "バーチャルリアリティ教育の強化: スタンフォード大学におけるジェレミーの革新的なAI活用"'
+            - generic [ref=e1688]: "バーチャルリアリティ教育の強化: スタンフォード大学におけるジェレミーの革新的なAI活用"
+          - 'link "Meshyで3Dプリント用モデルを作成する: ステップバイステップガイド Meshyで3Dプリント用モデルを作成する: ステップバイステップガイド" [ref=e1689] [cursor=pointer]':
+            - /url: /ja/blog/make-models-for-3d-printing
+            - 'img "Meshyで3Dプリント用モデルを作成する: ステップバイステップガイド"'
+            - generic [ref=e1690]: "Meshyで3Dプリント用モデルを作成する: ステップバイステップガイド"
+          - 'link "シミーの旅: MeshyのAI駆動型3Dモデリングで創造的な可能性を解き放つ シミーの旅: MeshyのAI駆動型3Dモデリングで創造的な可能性を解き放つ" [ref=e1691] [cursor=pointer]':
+            - /url: /ja/blog/unleashing-creative-potential-with-meshy-ai-powered-3d-modeling
+            - 'img "シミーの旅: MeshyのAI駆動型3Dモデリングで創造的な可能性を解き放つ"'
+            - generic [ref=e1692]: "シミーの旅: MeshyのAI駆動型3Dモデリングで創造的な可能性を解き放つ"
+      - generic [ref=e1693]:
+        - generic [ref=e1694]:
+          - img [ref=e1695]
+          - generic [ref=e1698]:
+            - 'link "Incredible text to 3D and more! No limits to your imagination. If you have a creative mind, you can indulge yourself in creating everything that comes to mind, in a 3D version. The latest update has brought further improvements, furthermore in just 60 seconds 8 results of what we are going to create are generated. Of these, we can request an upscale or rather a refinement of the result. There are 3 3D generation possibilities which are as follows: from text, from image and the fantastic retexture function. I am one of the lucky winners of the retexture contest which gave away color stickers printed with a 3D printer! It is possible to export your creation in video format and in the glb format exportable to 3D editing software. Rating: 5 stars deserved!! Max Casu Max Casu AI Creator" [ref=e1700] [cursor=pointer]':
+              - /url: https://www.producthunt.com/products/meshy/reviews?review=701252
+              - generic [ref=e1701]: "Incredible text to 3D and more! No limits to your imagination. If you have a creative mind, you can indulge yourself in creating everything that comes to mind, in a 3D version. The latest update has brought further improvements, furthermore in just 60 seconds 8 results of what we are going to create are generated. Of these, we can request an upscale or rather a refinement of the result. There are 3 3D generation possibilities which are as follows: from text, from image and the fantastic retexture function. I am one of the lucky winners of the retexture contest which gave away color stickers printed with a 3D printer! It is possible to export your creation in video format and in the glb format exportable to 3D editing software. Rating: 5 stars deserved!!"
+              - generic [ref=e1702]:
+                - generic [ref=e1703]:
+                  - generic [ref=e1704]:
+                    - img "Max Casu"
+                  - img [ref=e1706]
+                - generic [ref=e1709]:
+                  - generic [ref=e1710]: Max Casu
+                  - generic [ref=e1711]: AI Creator
+            - link "The level of texture and ease of the UI are incredible and unmatched. I use way too many 3D tools and this sits at the top of my workflow. Thanks Meshy! Tom Blake Tom Blake Digital Artist" [ref=e1713] [cursor=pointer]:
+              - /url: https://www.producthunt.com/products/meshy/reviews?review=800684
+              - generic [ref=e1714]: The level of texture and ease of the UI are incredible and unmatched. I use way too many 3D tools and this sits at the top of my workflow. Thanks Meshy!
+              - generic [ref=e1715]:
+                - generic [ref=e1716]:
+                  - generic [ref=e1717]:
+                    - img "Tom Blake"
+                  - img [ref=e1719]
+                - generic [ref=e1722]:
+                  - generic [ref=e1723]: Tom Blake
+                  - generic [ref=e1724]: Digital Artist
+            - link "My current go-to for AI 3D model generation tool. The latest Meshy 4 generations have been a huge leap in terms of quality for both text and image to 3D. Plus I've already got lots of value out of the easy biped/quadruped rigging and walking animation option. Also, it's great to see the texturing improvements and the ability to retexture or fix textured sections (via the text-to-3d approach). Jon Draper Jon Draper AI Animator & Developer" [ref=e1726] [cursor=pointer]:
+              - /url: https://www.producthunt.com/products/meshy/reviews?review=801638
+              - generic [ref=e1727]: My current go-to for AI 3D model generation tool. The latest Meshy 4 generations have been a huge leap in terms of quality for both text and image to 3D. Plus I've already got lots of value out of the easy biped/quadruped rigging and walking animation option. Also, it's great to see the texturing improvements and the ability to retexture or fix textured sections (via the text-to-3d approach).
+              - generic [ref=e1728]:
+                - generic [ref=e1729]:
+                  - generic [ref=e1730]:
+                    - img "Jon Draper"
+                  - img [ref=e1732]
+                - generic [ref=e1735]:
+                  - generic [ref=e1736]: Jon Draper
+                  - generic [ref=e1737]: AI Animator & Developer
+            - 'link "Who would have said that at some point we could use #AI to #texture our #3D models? @MeshyAI can really texture anything. From models you import to anything you create in other tools (without any UV mapping needed 🤯). Gabriele Romagnoli Gabriele Romagnoli 3D Artist" [ref=e1739] [cursor=pointer]':
+              - /url: https://twitter.com/GabRoXR/status/1701128300775591966
+              - generic [ref=e1740]: "Who would have said that at some point we could use #AI to #texture our #3D models? @MeshyAI can really texture anything. From models you import to anything you create in other tools (without any UV mapping needed 🤯)."
+              - generic [ref=e1741]:
+                - generic [ref=e1742]:
+                  - generic [ref=e1743]:
+                    - img "Gabriele Romagnoli"
+                  - img [ref=e1745]
+                - generic [ref=e1748]:
+                  - generic [ref=e1749]: Gabriele Romagnoli
+                  - generic [ref=e1750]: 3D Artist
+            - 'link "With @MeshyAI you can generate your textures in ai, but what makes this a winner is it''s amazing easy-to-use Interface, and the GLB maps you can use with #b3d #blender - #3D #artists, check this tool to texture your #models! (not sponsored). Pierre Schiller Pierre Schiller 3D Artist" [ref=e1752] [cursor=pointer]':
+              - /url: https://twitter.com/3D_director/status/1702032409535902144
+              - generic [ref=e1753]: "With @MeshyAI you can generate your textures in ai, but what makes this a winner is it's amazing easy-to-use Interface, and the GLB maps you can use with #b3d #blender - #3D #artists, check this tool to texture your #models! (not sponsored)."
+              - generic [ref=e1754]:
+                - generic [ref=e1755]:
+                  - generic [ref=e1756]:
+                    - img "Pierre Schiller"
+                  - img [ref=e1758]
+                - generic [ref=e1761]:
+                  - generic [ref=e1762]: Pierre Schiller
+                  - generic [ref=e1763]: 3D Artist
+            - link "It's really blowing my mind how far we've come with text-to-3D. It was only a few months ago we were getting very unimpressive results from tools like Shap-E. Now I can make full on objects that are borderline game ready. Matt Wolfe Matt Wolfe AI Creator" [ref=e1765] [cursor=pointer]:
+              - /url: https://x.com/mreflow/status/1752774309721125135
+              - generic [ref=e1766]: It's really blowing my mind how far we've come with text-to-3D. It was only a few months ago we were getting very unimpressive results from tools like Shap-E. Now I can make full on objects that are borderline game ready.
+              - generic [ref=e1767]:
+                - generic [ref=e1768]:
+                  - generic [ref=e1769]:
+                    - img "Matt Wolfe"
+                  - img [ref=e1771]
+                - generic [ref=e1774]:
+                  - generic [ref=e1775]: Matt Wolfe
+                  - generic [ref=e1776]: AI Creator
+            - link "2025 is the year 3D AI takes over! Meshy AI lets you turn a single image into high-quality 3D model. Then, you can choose any angle and bring it to life with an AI video generator. 3D AI is the future of content creation. el.cine el.cine AI Creator" [ref=e1778] [cursor=pointer]:
+              - /url: https://x.com/EHuanglu/status/1863255072035279336
+              - generic [ref=e1779]: 2025 is the year 3D AI takes over! Meshy AI lets you turn a single image into high-quality 3D model. Then, you can choose any angle and bring it to life with an AI video generator. 3D AI is the future of content creation.
+              - generic [ref=e1780]:
+                - generic [ref=e1781]:
+                  - generic [ref=e1782]:
+                    - img "el.cine"
+                  - img [ref=e1784]
+                - generic [ref=e1787]:
+                  - generic [ref=e1788]: el.cine
+                  - generic [ref=e1789]: AI Creator
+            - link "I absolutely love this deep-sea steel city that blends surrealism and steampunk styles. It’s incredibly exciting to see a world from my imagination gradually take shape in the game! @MeshyAI DarkTree Game Studio DarkTree Game Studio Game Developer" [ref=e1791] [cursor=pointer]:
+              - /url: https://x.com/davidzhang03211/status/1861106560782737570
+              - generic [ref=e1792]: I absolutely love this deep-sea steel city that blends surrealism and steampunk styles. It’s incredibly exciting to see a world from my imagination gradually take shape in the game! @MeshyAI
+              - generic [ref=e1793]:
+                - generic [ref=e1794]:
+                  - generic [ref=e1795]:
+                    - img "DarkTree Game Studio"
+                  - img [ref=e1797]
+                - generic [ref=e1800]:
+                  - generic [ref=e1801]: DarkTree Game Studio
+                  - generic [ref=e1802]: Game Developer
+            - link "Meshy.ai is getting so much better. Last time I tried it, I was happy to get a blob in roughly the right shape. Now it seems capable of producing some really intricate forms while adhering to the prompt quite well. Kiaran Ritchie Kiaran Ritchie Principle Developer at Unreal Engine" [ref=e1804] [cursor=pointer]:
+              - /url: https://x.com/kiaran_ritchie/status/1857584831321776407
+              - generic [ref=e1805]: Meshy.ai is getting so much better. Last time I tried it, I was happy to get a blob in roughly the right shape. Now it seems capable of producing some really intricate forms while adhering to the prompt quite well.
+              - generic [ref=e1806]:
+                - generic [ref=e1807]:
+                  - generic [ref=e1808]:
+                    - img "Kiaran Ritchie"
+                  - img [ref=e1810]
+                - generic [ref=e1813]:
+                  - generic [ref=e1814]: Kiaran Ritchie
+                  - generic [ref=e1815]: Principle Developer at Unreal Engine
+          - img [ref=e1816]
+        - generic [ref=e1818]:
+          - heading "クリエイターに 愛される" [level=2] [ref=e1819]:
+            - img [ref=e1820]
+            - text: クリエイターに
+            - text: 愛される
+          - generic [ref=e1823]:
+            - button [ref=e1824] [cursor=pointer]:
+              - img [ref=e1825]
+            - button [ref=e1828] [cursor=pointer]:
+              - img [ref=e1829]
+      - generic [ref=e1832]:
+        - img [ref=e1842]:
+          - img [ref=e1844]
+        - generic [ref=e1856]:
+          - heading "3D、オンコマンド" [level=2] [ref=e1857]
+          - generic [ref=e1858]:
+            - button "作成を開始する" [ref=e1859] [cursor=pointer]: 作成を開始する
+            - link "Contact sales" [ref=e1862] [cursor=pointer]:
+              - /url: /ja/contact
+              - text: 営業に連絡する
+  - contentinfo [ref=e1864]:
+    - generic [ref=e1865]:
+      - generic [ref=e1866]:
+        - generic [ref=e1867]:
+          - generic [ref=e1868]:
+            - link [ref=e1869] [cursor=pointer]:
+              - /url: /ja
+              - img [ref=e1870]
+            - link [ref=e1889] [cursor=pointer]:
+              - /url: /ja/careers
+              - img [ref=e1890]
+          - list [ref=e1893]:
+            - listitem [ref=e1894]:
+              - link "価格設定" [ref=e1895] [cursor=pointer]:
+                - /url: /ja/pricing
+                - generic [ref=e1896]: 価格設定
+            - listitem [ref=e1897]:
+              - link "コミュニティ" [ref=e1898] [cursor=pointer]:
+                - /url: /ja/discover
+                - generic [ref=e1899]: コミュニティ
+            - listitem [ref=e1900]:
+              - link "約" [ref=e1901] [cursor=pointer]:
+                - /url: /ja/about#about
+                - generic [ref=e1902]: 約
+            - listitem [ref=e1903]:
+              - link "キャリア" [ref=e1904] [cursor=pointer]:
+                - /url: /ja/careers
+                - generic [ref=e1905]: キャリア
+            - listitem [ref=e1906]:
+              - link "連絡する" [ref=e1907] [cursor=pointer]:
+                - /url: /ja/about#contact
+                - generic [ref=e1908]: 連絡する
+            - listitem [ref=e1909]:
+              - link "メディアキット" [ref=e1910] [cursor=pointer]:
+                - /url: /ja/media-kit
+                - generic [ref=e1911]: メディアキット
+            - listitem [ref=e1912]:
+              - link "ステータス" [ref=e1913] [cursor=pointer]:
+                - /url: https://status.meshy.ai/
+                - generic [ref=e1914]: ステータス
+        - generic [ref=e1915]:
+          - generic [ref=e1916]:
+            - img "ISO 27001:2022" [ref=e1917]
+            - img "SOC2" [ref=e1918]
+            - img "GDPRMark" [ref=e1919]
+          - generic [ref=e1920]:
+            - link "4.8/5" [ref=e1921] [cursor=pointer]:
+              - /url: https://www.g2.com/products/meshy/reviews
+              - img [ref=e1922]
+              - img [ref=e1925]
+              - generic [ref=e1929]: 4.8/5
+            - link "4.8/5" [ref=e1930] [cursor=pointer]:
+              - /url: https://www.trustpilot.com/review/meshy.ai
+              - img [ref=e1931]
+              - img [ref=e1935]
+              - generic [ref=e1939]: 4.8/5
+          - generic [ref=e1940]:
+            - link "X" [ref=e1941] [cursor=pointer]:
+              - /url: https://twitter.com/MeshyAI
+              - generic [ref=e1942]: X
+              - img [ref=e1944]
+            - link "Instagram" [ref=e1948] [cursor=pointer]:
+              - /url: https://www.instagram.com/meshy.ai/
+              - generic [ref=e1949]: Instagram
+              - img [ref=e1951]
+            - link "YouTube" [ref=e1955] [cursor=pointer]:
+              - /url: https://www.youtube.com/@MeshyAI
+              - generic [ref=e1956]: YouTube
+              - img [ref=e1958]
+            - link "Discord" [ref=e1963] [cursor=pointer]:
+              - /url: https://discord.com/invite/KgD5yVM9Y4
+              - generic [ref=e1964]: Discord
+              - img [ref=e1966]
+            - link "TikTok" [ref=e1969] [cursor=pointer]:
+              - /url: https://www.tiktok.com/@meshy.ai
+              - generic [ref=e1970]: TikTok
+              - img [ref=e1972]
+            - link "LinkedIn" [ref=e1975] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/meshyai/
+              - generic [ref=e1976]: LinkedIn
+              - img [ref=e1978]
+          - generic [ref=e1981]:
+            - heading "メッシーについてAIに尋ねてください。" [level=3] [ref=e1982]
+            - generic [ref=e1983]:
+              - link "Ask ChatGPT about Meshy" [ref=e1984] [cursor=pointer]:
+                - /url: https://chatgpt.com/?prompt=%E7%A7%81%E3%81%AFAI%203D%E3%83%A2%E3%83%87%E3%83%AB%E3%82%B8%E3%82%A7%E3%83%8D%E3%83%AC%E3%83%BC%E3%82%BF%E3%83%BC%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6%E8%AA%BF%E6%9F%BB%E3%81%97%E3%81%A6%E3%81%8A%E3%82%8A%E3%80%81Meshy%E3%81%8C%E3%82%AF%E3%83%AA%E3%82%A8%E3%82%A4%E3%82%BF%E3%83%BC%E3%81%AB%E9%AB%98%E5%93%81%E8%B3%AA%E3%81%AA3D%E3%83%A2%E3%83%87%E3%83%AB%E3%82%92%E6%8F%90%E4%BE%9B%E3%81%99%E3%82%8B%E6%96%B9%E6%B3%95%E3%82%92%E7%9F%A5%E3%82%8A%E3%81%9F%E3%81%84%E3%81%A7%E3%81%99%E3%80%82Meshy%E3%81%AE%E3%82%A6%E3%82%A7%E3%83%96%E3%82%B5%E3%82%A4%E3%83%88%EF%BC%88https%3A%2F%2Fwww.meshy.ai%EF%BC%89%E3%82%84%E3%82%B3%E3%83%9F%E3%83%A5%E3%83%8B%E3%83%86%E3%82%A3%E3%83%AC%E3%83%93%E3%83%A5%E3%83%BC%E3%81%8B%E3%82%89%E3%81%AE%E3%83%8F%E3%82%A4%E3%83%A9%E3%82%A4%E3%83%88%E3%82%92%E8%A6%81%E7%B4%84%E3%81%97%E3%81%A6%E3%81%8F%E3%81%A0%E3%81%95%E3%81%84%E3%80%82
+                - button [ref=e1985]:
+                  - img [ref=e1987]
+              - link "Ask Perplexity about Meshy" [ref=e1991] [cursor=pointer]:
+                - /url: https://www.perplexity.ai/search/new?q=%E7%A7%81%E3%81%AFAI%203D%E3%83%A2%E3%83%87%E3%83%AB%E3%82%B8%E3%82%A7%E3%83%8D%E3%83%AC%E3%83%BC%E3%82%BF%E3%83%BC%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6%E8%AA%BF%E6%9F%BB%E3%81%97%E3%81%A6%E3%81%8A%E3%82%8A%E3%80%81Meshy%E3%81%8C%E3%82%AF%E3%83%AA%E3%82%A8%E3%82%A4%E3%82%BF%E3%83%BC%E3%81%AB%E9%AB%98%E5%93%81%E8%B3%AA%E3%81%AA3D%E3%83%A2%E3%83%87%E3%83%AB%E3%82%92%E6%8F%90%E4%BE%9B%E3%81%99%E3%82%8B%E6%96%B9%E6%B3%95%E3%82%92%E7%9F%A5%E3%82%8A%E3%81%9F%E3%81%84%E3%81%A7%E3%81%99%E3%80%82Meshy%E3%81%AE%E3%82%A6%E3%82%A7%E3%83%96%E3%82%B5%E3%82%A4%E3%83%88%EF%BC%88https%3A%2F%2Fwww.meshy.ai%EF%BC%89%E3%82%84%E3%82%B3%E3%83%9F%E3%83%A5%E3%83%8B%E3%83%86%E3%82%A3%E3%83%AC%E3%83%93%E3%83%A5%E3%83%BC%E3%81%8B%E3%82%89%E3%81%AE%E3%83%8F%E3%82%A4%E3%83%A9%E3%82%A4%E3%83%88%E3%82%92%E8%A6%81%E7%B4%84%E3%81%97%E3%81%A6%E3%81%8F%E3%81%A0%E3%81%95%E3%81%84%E3%80%82
+                - button [ref=e1992]:
+                  - img [ref=e1994]
+              - link "Ask Claude about Meshy" [ref=e1996] [cursor=pointer]:
+                - /url: https://claude.ai/new?q=%E7%A7%81%E3%81%AFAI%203D%E3%83%A2%E3%83%87%E3%83%AB%E3%82%B8%E3%82%A7%E3%83%8D%E3%83%AC%E3%83%BC%E3%82%BF%E3%83%BC%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6%E8%AA%BF%E6%9F%BB%E3%81%97%E3%81%A6%E3%81%8A%E3%82%8A%E3%80%81Meshy%E3%81%8C%E3%82%AF%E3%83%AA%E3%82%A8%E3%82%A4%E3%82%BF%E3%83%BC%E3%81%AB%E9%AB%98%E5%93%81%E8%B3%AA%E3%81%AA3D%E3%83%A2%E3%83%87%E3%83%AB%E3%82%92%E6%8F%90%E4%BE%9B%E3%81%99%E3%82%8B%E6%96%B9%E6%B3%95%E3%82%92%E7%9F%A5%E3%82%8A%E3%81%9F%E3%81%84%E3%81%A7%E3%81%99%E3%80%82Meshy%E3%81%AE%E3%82%A6%E3%82%A7%E3%83%96%E3%82%B5%E3%82%A4%E3%83%88%EF%BC%88https%3A%2F%2Fwww.meshy.ai%EF%BC%89%E3%82%84%E3%82%B3%E3%83%9F%E3%83%A5%E3%83%8B%E3%83%86%E3%82%A3%E3%83%AC%E3%83%93%E3%83%A5%E3%83%BC%E3%81%8B%E3%82%89%E3%81%AE%E3%83%8F%E3%82%A4%E3%83%A9%E3%82%A4%E3%83%88%E3%82%92%E8%A6%81%E7%B4%84%E3%81%97%E3%81%A6%E3%81%8F%E3%81%A0%E3%81%95%E3%81%84%E3%80%82
+                - button [ref=e1997]:
+                  - img [ref=e1999]
+              - link "Ask Gemini about Meshy" [ref=e2002] [cursor=pointer]:
+                - /url: https://www.google.com/search?udm=50&aep=11&q=%E7%A7%81%E3%81%AFAI%203D%E3%83%A2%E3%83%87%E3%83%AB%E3%82%B8%E3%82%A7%E3%83%8D%E3%83%AC%E3%83%BC%E3%82%BF%E3%83%BC%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6%E8%AA%BF%E6%9F%BB%E3%81%97%E3%81%A6%E3%81%8A%E3%82%8A%E3%80%81Meshy%E3%81%8C%E3%82%AF%E3%83%AA%E3%82%A8%E3%82%A4%E3%82%BF%E3%83%BC%E3%81%AB%E9%AB%98%E5%93%81%E8%B3%AA%E3%81%AA3D%E3%83%A2%E3%83%87%E3%83%AB%E3%82%92%E6%8F%90%E4%BE%9B%E3%81%99%E3%82%8B%E6%96%B9%E6%B3%95%E3%82%92%E7%9F%A5%E3%82%8A%E3%81%9F%E3%81%84%E3%81%A7%E3%81%99%E3%80%82Meshy%E3%81%AE%E3%82%A6%E3%82%A7%E3%83%96%E3%82%B5%E3%82%A4%E3%83%88%EF%BC%88https%3A%2F%2Fwww.meshy.ai%EF%BC%89%E3%82%84%E3%82%B3%E3%83%9F%E3%83%A5%E3%83%8B%E3%83%86%E3%82%A3%E3%83%AC%E3%83%93%E3%83%A5%E3%83%BC%E3%81%8B%E3%82%89%E3%81%AE%E3%83%8F%E3%82%A4%E3%83%A9%E3%82%A4%E3%83%88%E3%82%92%E8%A6%81%E7%B4%84%E3%81%97%E3%81%A6%E3%81%8F%E3%81%A0%E3%81%95%E3%81%84%E3%80%82
+                - button [ref=e2003]:
+                  - img [ref=e2005]
+              - link "Ask Grok about Meshy" [ref=e2010] [cursor=pointer]:
+                - /url: https://x.com/i/grok?text=%E7%A7%81%E3%81%AFAI%203D%E3%83%A2%E3%83%87%E3%83%AB%E3%82%B8%E3%82%A7%E3%83%8D%E3%83%AC%E3%83%BC%E3%82%BF%E3%83%BC%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6%E8%AA%BF%E6%9F%BB%E3%81%97%E3%81%A6%E3%81%8A%E3%82%8A%E3%80%81Meshy%E3%81%8C%E3%82%AF%E3%83%AA%E3%82%A8%E3%82%A4%E3%82%BF%E3%83%BC%E3%81%AB%E9%AB%98%E5%93%81%E8%B3%AA%E3%81%AA3D%E3%83%A2%E3%83%87%E3%83%AB%E3%82%92%E6%8F%90%E4%BE%9B%E3%81%99%E3%82%8B%E6%96%B9%E6%B3%95%E3%82%92%E7%9F%A5%E3%82%8A%E3%81%9F%E3%81%84%E3%81%A7%E3%81%99%E3%80%82Meshy%E3%81%AE%E3%82%A6%E3%82%A7%E3%83%96%E3%82%B5%E3%82%A4%E3%83%88%EF%BC%88https%3A%2F%2Fwww.meshy.ai%EF%BC%89%E3%82%84%E3%82%B3%E3%83%9F%E3%83%A5%E3%83%8B%E3%83%86%E3%82%A3%E3%83%AC%E3%83%93%E3%83%A5%E3%83%BC%E3%81%8B%E3%82%89%E3%81%AE%E3%83%8F%E3%82%A4%E3%83%A9%E3%82%A4%E3%83%88%E3%82%92%E8%A6%81%E7%B4%84%E3%81%97%E3%81%A6%E3%81%8F%E3%81%A0%E3%81%95%E3%81%84%E3%80%82
+                - button [ref=e2011]:
+                  - img [ref=e2013]
+      - generic [ref=e2015]:
+        - generic [ref=e2016]:
+          - generic [ref=e2017]: 機能
+          - list [ref=e2018]:
+            - listitem [ref=e2019]:
+              - link "テキストから3Dモデルへ" [ref=e2020] [cursor=pointer]:
+                - /url: /ja/features/text-to-3d
+                - generic [ref=e2021]: テキストから3Dモデルへ
+            - listitem [ref=e2022]:
+              - link "画像から3Dモデルへ" [ref=e2023] [cursor=pointer]:
+                - /url: /ja/features/image-to-3d
+                - generic [ref=e2024]: 画像から3Dモデルへ
+            - listitem [ref=e2025]:
+              - link "AI テクスチャリング" [ref=e2026] [cursor=pointer]:
+                - /url: /ja/features/ai-texture-generator
+                - generic [ref=e2027]: AI テクスチャリング
+            - listitem [ref=e2028]:
+              - link "アニメーション" [ref=e2029] [cursor=pointer]:
+                - /url: /ja/features/ai-animation-generator
+                - generic [ref=e2030]: アニメーション
+            - listitem [ref=e2031]:
+              - link "API" [ref=e2032] [cursor=pointer]:
+                - /url: /ja/api
+                - generic [ref=e2033]: API
+        - generic [ref=e2034]:
+          - generic [ref=e2035]: 学ぶ
+          - list [ref=e2036]:
+            - listitem [ref=e2037]:
+              - link "ブログ" [ref=e2038] [cursor=pointer]:
+                - /url: /ja/blog
+                - generic [ref=e2039]: ブログ
+            - listitem [ref=e2040]:
+              - link "チュートリアル" [ref=e2041] [cursor=pointer]:
+                - /url: /ja/tutorials
+                - generic [ref=e2042]: チュートリアル
+            - listitem [ref=e2043]:
+              - link "お客様のストーリー" [ref=e2044] [cursor=pointer]:
+                - /url: /ja/customers
+                - generic [ref=e2045]: お客様のストーリー
+            - listitem [ref=e2046]:
+              - link "ドキュメント" [ref=e2047] [cursor=pointer]:
+                - /url: https://docs.meshy.ai/en
+                - generic [ref=e2048]: ドキュメント
+            - listitem [ref=e2049]:
+              - link "ヘルプセンター" [ref=e2050] [cursor=pointer]:
+                - /url: https://help.meshy.ai/en/
+                - generic [ref=e2051]: ヘルプセンター
+        - generic [ref=e2052]:
+          - generic [ref=e2053]: ツール
+          - list [ref=e2054]:
+            - listitem [ref=e2055]:
+              - link "3Dファイルコンバータ" [ref=e2056] [cursor=pointer]:
+                - /url: /ja/3d-tools/file-converter
+                - generic [ref=e2057]: 3Dファイルコンバータ
+            - listitem [ref=e2058]:
+              - link "オンライン3Dビューア" [ref=e2059] [cursor=pointer]:
+                - /url: /ja/3d-tools/online-viewer
+                - generic [ref=e2060]: オンライン3Dビューア
+        - generic [ref=e2061]:
+          - generic [ref=e2062]: プラグイン
+          - list [ref=e2063]:
+            - listitem [ref=e2064]:
+              - link "Bambu Studio" [ref=e2065] [cursor=pointer]:
+                - /url: /ja/integrations/bambu-studio
+                - generic [ref=e2066]: Bambu Studio
+            - listitem [ref=e2067]:
+              - link "Blender" [ref=e2068] [cursor=pointer]:
+                - /url: /ja/integrations/blender
+                - generic [ref=e2069]: Blender
+            - listitem [ref=e2070]:
+              - link "Creality Print" [ref=e2071] [cursor=pointer]:
+                - /url: /ja/integrations/creality-print
+                - generic [ref=e2072]: Creality Print
+            - listitem [ref=e2073]:
+              - link "OrcaSlicer" [ref=e2074] [cursor=pointer]:
+                - /url: /ja/integrations/orcaslicer
+                - generic [ref=e2075]: OrcaSlicer
+            - listitem [ref=e2076]:
+              - link "Unity" [ref=e2077] [cursor=pointer]:
+                - /url: /ja/integrations/unity
+                - generic [ref=e2078]: Unity
+            - listitem [ref=e2079]:
+              - link "Ultimaker Cura" [ref=e2080] [cursor=pointer]:
+                - /url: /ja/integrations/cura
+                - generic [ref=e2081]: Ultimaker Cura
+            - listitem [ref=e2082]:
+              - link "Elegoo Slicer" [ref=e2083] [cursor=pointer]:
+                - /url: /ja/integrations/elegoo-slicer
+                - generic [ref=e2084]: Elegoo Slicer
+            - listitem [ref=e2085]:
+              - link "Unreal Engine" [ref=e2086] [cursor=pointer]:
+                - /url: /ja/integrations/unreal-engine
+                - generic [ref=e2087]: Unreal Engine
+            - listitem [ref=e2088]:
+              - link "Roblox Studio" [ref=e2089] [cursor=pointer]:
+                - /url: /ja/integrations/roblox
+                - generic [ref=e2090]: Roblox Studio
+            - listitem [ref=e2091]:
+              - link "3ds Max" [ref=e2092] [cursor=pointer]:
+                - /url: /ja/integrations/3ds-max
+                - generic [ref=e2093]: 3ds Max
+            - listitem [ref=e2094]:
+              - link "Lychee Slicer" [ref=e2095] [cursor=pointer]:
+                - /url: /ja/integrations/lychee-slicer
+                - generic [ref=e2096]: Lychee Slicer
+            - listitem [ref=e2097]:
+              - link "Maya" [ref=e2098] [cursor=pointer]:
+                - /url: /ja/integrations/maya
+                - generic [ref=e2099]: Maya
+            - listitem [ref=e2100]:
+              - link "Godot" [ref=e2101] [cursor=pointer]:
+                - /url: /ja/integrations/godot
+                - generic [ref=e2102]: Godot
+            - listitem [ref=e2103]:
+              - link "すべての連携" [ref=e2104] [cursor=pointer]:
+                - /url: /ja/integrations
+                - generic [ref=e2105]: すべての連携
+        - generic [ref=e2106]:
+          - generic [ref=e2107]: プログラム
+          - list [ref=e2108]:
+            - listitem [ref=e2109]:
+              - link "アフィリエイトプログラム" [ref=e2110] [cursor=pointer]:
+                - /url: /ja/affiliates
+                - generic [ref=e2111]: アフィリエイトプログラム
+            - listitem [ref=e2112]:
+              - link "クリエイタープログラム" [ref=e2113] [cursor=pointer]:
+                - /url: /ja/creators
+                - generic [ref=e2114]: クリエイタープログラム
+            - listitem [ref=e2115]:
+              - link "フェローシッププログラム" [ref=e2116] [cursor=pointer]:
+                - /url: /ja/fellowship
+                - generic [ref=e2117]: フェローシッププログラム
+            - listitem [ref=e2118]:
+              - link "紹介プログラム" [ref=e2119] [cursor=pointer]:
+                - /url: /ja/referral
+                - generic [ref=e2120]: 紹介プログラム
+            - listitem [ref=e2121]:
+              - link "教育プログラム" [ref=e2122] [cursor=pointer]:
+                - /url: /ja/education
+                - generic [ref=e2123]: 教育プログラム
+        - generic [ref=e2124]:
+          - generic [ref=e2125]: ユースケース
+          - list [ref=e2126]:
+            - listitem [ref=e2127]:
+              - link "無料の3Dモデル" [ref=e2128] [cursor=pointer]:
+                - /url: /ja/use-cases/free-3d-models
+                - generic [ref=e2129]: 無料の3Dモデル
+            - listitem [ref=e2130]:
+              - link "3Dプリンティング" [ref=e2131] [cursor=pointer]:
+                - /url: /ja/use-cases/3d-printer-files
+                - generic [ref=e2132]: 3Dプリンティング
+            - listitem [ref=e2133]:
+              - link "ゲーム開発" [ref=e2134] [cursor=pointer]:
+                - /url: /ja/use-cases/free-game-assets
+                - generic [ref=e2135]: ゲーム開発
+            - listitem [ref=e2136]:
+              - link "3Dアニメーション" [ref=e2137] [cursor=pointer]:
+                - /url: /ja/use-cases/3d-animation
+                - generic [ref=e2138]: 3Dアニメーション
+            - listitem [ref=e2139]:
+              - link "教育" [ref=e2140] [cursor=pointer]:
+                - /url: /ja/use-cases/education
+                - generic [ref=e2141]: 教育
+            - listitem [ref=e2142]:
+              - link "製品デザイン" [ref=e2143] [cursor=pointer]:
+                - /url: /ja/use-cases/product-design
+                - generic [ref=e2144]: 製品デザイン
+            - listitem [ref=e2145]:
+              - link "映画製作" [ref=e2146] [cursor=pointer]:
+                - /url: /ja/use-cases/film-production
+                - generic [ref=e2147]: 映画製作
+            - listitem [ref=e2148]:
+              - link "VR/AR (バーチャルリアリティ/拡張現実)" [ref=e2149] [cursor=pointer]:
+                - /url: /ja/use-cases/vr-ar
+                - generic [ref=e2150]: VR/AR (バーチャルリアリティ/拡張現実)
+            - listitem [ref=e2151]:
+              - link "おもちゃのデザイン" [ref=e2152] [cursor=pointer]:
+                - /url: /ja/use-cases/toy-design
+                - generic [ref=e2153]: おもちゃのデザイン
+            - listitem [ref=e2154]:
+              - link "電子商取引" [ref=e2155] [cursor=pointer]:
+                - /url: /ja/use-cases/e-commerce
+                - generic [ref=e2156]: 電子商取引
+            - listitem [ref=e2157]:
+              - link "インテリアデザイン" [ref=e2158] [cursor=pointer]:
+                - /url: /ja/use-cases/interior-design
+                - generic [ref=e2159]: インテリアデザイン
+            - listitem [ref=e2160]:
+              - link "VFX (ビジュアルエフェクツ)" [ref=e2161] [cursor=pointer]:
+                - /url: /ja/use-cases/vfx
+                - generic [ref=e2162]: VFX (ビジュアルエフェクツ)
+    - generic [ref=e2163]:
+      - generic [ref=e2164]:
+        - generic [ref=e2165]: © 2026 MESHY LLC. 全著作権所有。
+        - generic [ref=e2166]:
+          - link "利用規約" [ref=e2167] [cursor=pointer]:
+            - /url: /ja/terms-of-use
+            - generic [ref=e2168]: 利用規約
+          - link "プライバシーポリシー" [ref=e2170] [cursor=pointer]:
+            - /url: /ja/privacy-policy
+            - generic [ref=e2171]: プライバシーポリシー
+          - link "利用規約" [ref=e2173] [cursor=pointer]:
+            - /url: /ja/acceptable-use-policy
+            - generic [ref=e2174]: 利用規約
+          - link "クッキーポリシー" [ref=e2176] [cursor=pointer]:
+            - /url: /ja/cookie-policy
+            - generic [ref=e2177]: クッキーポリシー
+          - link "トラストセンター" [ref=e2179] [cursor=pointer]:
+            - /url: https://app.drata.com/trust/07cad912-84f9-4f9e-ad58-6975d62ad32f
+            - generic [ref=e2180]: トラストセンター
+      - button "日本語" [ref=e2181] [cursor=pointer]:
+        - generic [ref=e2182]: 日本語
+        - img
+  - alert [ref=e2183]
+  - iframe [ref=e2184]:
+    

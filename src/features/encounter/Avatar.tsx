@@ -1,90 +1,52 @@
 'use client';
 
 /**
- * Avatar — avatar_code を 4 軸 SVG パーツに分解し、重ね合わせて表示する。
+ * Avatar — avatar_code に従って 3D アバターを描画する 2D ラッパー。
  *
- * 描画方式: SVG パーツの重ね合わせ + CSS @keyframes アニメーション
- * (spec: docs/specs/avatar.md §2)
+ * 内部で <Canvas> + <Avatar3D> を構築し、UI 側からは旧 SVG 時代の API
+ * (`code` / `mode` / `size` / `className`) で呼べる。
  *
- * - mode='idle'    : 呼吸 + まばたき
- * - mode='walking' : idle + 足踏み
- * - mode='popup'   : 左から入場 → 足踏み → 呼吸 + まばたき
+ *   - パーツカタログ (parts/catalog.ts) が各 ID の色を持つので color override 不要
+ *   - 受け取った `code` をそのまま Avatar3D に渡し、avatarCode に対応する見た目を出す
  *
- * パーツ SVG は public/avatars/{file} を fetch し、`<svg>` の中身だけを
- * `<g class="layer-{axis}">` に展開する。同パスは Map でキャッシュ。
+ *   - mode='idle'    : 呼吸 + アイドル
+ *   - mode='walking' : 足踏み (Avatar3D の walking)
+ *   - mode='popup'   : walking (簡易: 入場アニメは外側のラッパー側で付ける)
+ *
+ * size は 64×96 (viewBox 比率) を維持する。
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { AXES, manifest, type AxisKey } from '@/lib/avatar/manifest';
-import { resolveAvatarCode } from '@/lib/avatar/fallback';
+
+import { Canvas, useThree } from '@react-three/fiber';
+import { useEffect } from 'react';
+import { Avatar3D, type Avatar3DMode } from './Avatar3D';
+
+/** Canvas 初期化時に lookAt を明示する (Avatar3D は y=0 起点ではないため)。 */
+function CameraLook({ at }: { at: [number, number, number] }) {
+  const camera = useThree((s) => s.camera);
+  useEffect(() => {
+    camera.lookAt(at[0], at[1], at[2]);
+    camera.updateProjectionMatrix();
+  }, [camera, at]);
+  return null;
+}
 
 export type AvatarMode = 'idle' | 'walking' | 'popup';
 
 type Props = {
   code: string;
   mode?: AvatarMode;
-  /** 描画幅 (px)。高さは viewBox 比率 (64:96) に合わせる */
+  /** 描画幅 (px)。高さは旧 SVG viewBox 比率 (64:96) に合わせる */
   size?: number;
   className?: string;
 };
 
-const svgInnerCache = new Map<string, Promise<string>>();
-
-function extractSvgInner(raw: string): string {
-  const match = raw.match(/<svg\b[^>]*>([\s\S]*?)<\/svg>/i);
-  return match ? match[1]! : '';
-}
-
-function loadPartInner(file: string): Promise<string> {
-  let cached = svgInnerCache.get(file);
-  if (!cached) {
-    cached = fetch(`/avatars/${file}`)
-      .then((r) => {
-        if (!r.ok) throw new Error(`avatar part ${file}: ${r.status}`);
-        return r.text();
-      })
-      .then(extractSvgInner)
-      .catch((err) => {
-        // 失敗時は空文字を返してクラッシュ禁止 (spec §6)
-        // eslint-disable-next-line no-console
-        console.warn('[Avatar] failed to load part', file, err);
-        return '';
-      });
-    svgInnerCache.set(file, cached);
-  }
-  return cached;
+function toAvatar3DMode(mode: AvatarMode): Avatar3DMode {
+  return mode === 'walking' || mode === 'popup' ? 'walking' : 'idle';
 }
 
 export function Avatar({ code, mode = 'idle', size = 64, className = '' }: Props) {
-  const resolved = useMemo(() => resolveAvatarCode(code), [code]);
-
-  const [layers, setLayers] = useState<Record<AxisKey, string>>({
-    base: '',
-    hair: '',
-    outfit: '',
-    face: '',
-  });
-
-  // 古い fetch が後から resolve して新しい code を上書きしないよう、世代でガード
-  const genRef = useRef(0);
-
-  useEffect(() => {
-    const myGen = ++genRef.current;
-
-    Promise.all(
-      manifest.layerOrder.map(async (axis) => {
-        const part = manifest.axes[axis].find((p) => p.id === resolved[axis]);
-        const html = part ? await loadPartInner(part.file) : '';
-        return [axis, html] as const;
-      })
-    ).then((entries) => {
-      if (myGen !== genRef.current) return;
-      const next = { base: '', hair: '', outfit: '', face: '' } as Record<AxisKey, string>;
-      for (const [a, h] of entries) next[a] = h;
-      setLayers(next);
-    });
-  }, [resolved]);
-
   const height = Math.round((size * 96) / 64);
+  const userId = code || 'avatar';
 
   return (
     <div
@@ -93,27 +55,23 @@ export function Avatar({ code, mode = 'idle', size = 64, className = '' }: Props
       aria-label={`avatar ${code}`}
       role="img"
     >
-      <svg
-        className="avatar-figure"
-        viewBox={manifest.viewBox}
-        width={size}
-        height={height}
-        preserveAspectRatio="xMidYMid meet"
+      <Canvas
+        camera={{ position: [0, 1.4, 5.6], fov: 26 }}
+        dpr={[1, 2]}
+        gl={{ alpha: true, antialias: true }}
+        style={{ background: 'transparent' }}
       >
-        {AXES.map((axis) => {
-          const anchorName = manifest.layerAnchor[axis];
-          const anchor = anchorName ? manifest.anchors[anchorName] : null;
-          const transform = anchor ? `translate(${anchor.x} ${anchor.y})` : undefined;
-          return (
-            <g
-              key={axis}
-              className={`layer-${axis}`}
-              transform={transform}
-              dangerouslySetInnerHTML={{ __html: layers[axis] }}
-            />
-          );
-        })}
-      </svg>
+        <CameraLook at={[0, 1.15, 0]} />
+        <ambientLight intensity={0.7} />
+        <hemisphereLight args={['#FFE9CE', '#B4A595', 0.4]} position={[0, 5, 0]} />
+        <directionalLight position={[3, 6, 4]} intensity={0.9} />
+        <Avatar3D
+          avatarCode={code}
+          userId={userId}
+          mode={toAvatar3DMode(mode)}
+          position={[0, 0, 0]}
+        />
+      </Canvas>
     </div>
   );
 }

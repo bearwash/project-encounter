@@ -12,20 +12,28 @@
 
 | ドット表記 (TS) | コマンド名 (実装) | 実装状況 |
 | --- | --- | --- |
-| `ble.start` | `ble_start` | ✅ btleplug (macOS/Linux/Windows) / mock fallback |
+| `ble.start` | `ble_start` | ✅ btleplug (desktop) / native plugin (iOS/Android) / mock fallback |
 | `ble.stop` | `ble_stop` | ✅ |
 | `ble.walkStart` | `ble_walk_mode_start` | ✅ |
 | `ble.walkStop` | `ble_walk_mode_stop` | ✅ |
 | `ble.status` | `ble_status` | ✅ `backend` フィールドで実装種別を返す |
+| `profile.get` | `profile_get` | ✅ SQLite (`my_profile`) |
+| `profile.save` | `profile_save` | ✅ SQLite (`my_profile`) |
 | — | `profile_fetch_remote` | ✅ Supabase の代用 mock (Phase 2 で置換) |
+| `encounter.listUnread` | `encounter_list_unread` | ✅ SQLite (`encounter_logs` + `users_cache`) |
+| `encounter.markRead` | `encounter_mark_read` | ✅ SQLite (`encounter_logs`) |
+| `encounter.listHistory` | `encounter_list_history` | ✅ SQLite (`users_cache`) |
+| `settings.getCooldownSec` | `settings_get_cooldown_sec` | ✅ SQLite (`app_settings`) |
+| `settings.setCooldownSec` | `settings_set_cooldown_sec` | ✅ SQLite (`app_settings`) |
 
 非同期イベント (Rust → TS) は Tauri event を使う:
 
 | event 名 | payload | 用途 |
 | --- | --- | --- |
 | `ble://encounter-found` | `BlePayload = { user_id: string }` | mock / btleplug 共通で peer 発見を通知 |
+| plugin `encounter-ble` / `encounter-found` | `BlePayload = { user_id: string }` | iOS / Android native plugin から peer 発見を通知 |
 
-**バックエンド切り替え**: 環境変数 `BLE_BACKEND=mock` で mock 強制、`btleplug` で btleplug 強制、未指定だと対応 OS では btleplug、それ以外では mock fallback。
+**バックエンド切り替え**: 環境変数 `BLE_BACKEND=mock` で mock 強制、`btleplug` で btleplug 強制、`tauri-plugin` で iOS / Android native plugin 強制。未指定だと desktop は btleplug、iOS / Android は tauri-plugin、それ以外では mock fallback。
 
 ---
 
@@ -45,6 +53,7 @@ type MyProfile = {
   display_name: string;
   avatar_code: string;
   message: string;
+  home_prefecture: string | null;
   updated_at: number; // unix sec
 } | null;
 ```
@@ -57,6 +66,7 @@ type MyProfile = {
 | `display_name` | string | 必須、最大 16 文字 |
 | `avatar_code` | string | 必須、最大 64 文字 |
 | `message` | string | 任意、最大 30 文字 |
+| `home_prefecture` | string \| null | 任意、`"01"`〜`"47"` または `null` |
 
 **戻り値**: 更新後の `MyProfile`
 
@@ -76,7 +86,10 @@ type UnreadEncounter = {
     display_name: string;
     avatar_code: string;
     message: string;
+    home_prefecture: string | null;
     encounter_count: number;
+    first_seen_at: number;
+    last_seen_at: number;
   };
   encountered_at: number;
 };
@@ -102,7 +115,10 @@ type HistoryItem = {
   display_name: string;
   avatar_code: string;
   message: string;
+  home_prefecture: string | null;
   encounter_count: number;
+  first_seen_at: number;
+  last_seen_at: number;
   last_encountered_at: number;
 };
 type Result = HistoryItem[];
@@ -139,13 +155,25 @@ advertise + scan を停止する。
 ```ts
 type BleStatus = {
   mode: 'idle' | 'normal' | 'walk';
-  backend: 'mock' | 'btleplug';   // どの実装で動いているか
+  backend: 'mock' | 'btleplug' | 'tauri-plugin'; // どの実装で動いているか
   bluetooth_on: boolean;
   permission_granted: boolean;
-  advertise_active: boolean;      // btleplug では現状常に false (§4.7)
+  advertise_active: boolean;      // btleplug では現状常に false
   scan_active: boolean;
+  seen_count: number;             // native plugin が短期 dedup window 内で見た peer 数
+  last_error: string | null;      // native BLE 起動/advertise/scan/GATT の直近エラー
 };
 ```
+
+### iOS / Android native plugin
+
+mobile target では `ble_start` / `ble_walk_mode_start` が現在の `my_profile.user_id` を読み、`tauri-plugin-encounter-ble` の native `start` を呼ぶ。plugin の permission identifier は `encounter-ble:default`。
+
+native plugin は `SERVICE_UUID = 4a985948-3bc6-450b-80d2-04a8f98f83cb` を advertise / scan filter に使い、`USER_ID_CHARACTERISTIC_UUID = 4a985948-3bc6-450b-80d2-04a8f98f83cc` を iOS / fallback GATT read に使う。
+
+plugin listener と mobile permission request のため、`encounter-ble:default` は
+`allow-registerListener` / `allow-removeListener` / `allow-checkPermissions` /
+`allow-requestPermissions` を含む。
 
 ---
 
@@ -166,6 +194,7 @@ type RemoteProfile = {
   display_name: string;
   avatar_code: string;     // b{NN}_h{NN}_o{NN}_f{NN}
   message: string;
+  home_prefecture: string | null;
 } | null;
 ```
 

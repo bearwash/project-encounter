@@ -12,6 +12,7 @@
  */
 
 import { encounterStamp } from '@/lib/encounter/greeting';
+import { prefectureLabel } from '@/lib/prefecture/data';
 
 type Props = {
   prefix: string;
@@ -19,6 +20,8 @@ type Props = {
   encounterCount: number;
   message?: string;
   hint?: string;
+  /** 相手の出身県コード ("01"〜"47") or null=未設定。spec: regional-map.md */
+  homePrefecture?: string | null;
 };
 
 export function GreetingBubble({
@@ -27,8 +30,10 @@ export function GreetingBubble({
   encounterCount,
   message,
   hint,
+  homePrefecture,
 }: Props) {
   const stamp = encounterStamp(encounterCount);
+  const prefLabel = prefectureLabel(homePrefecture);
 
   return (
     <div className="flex flex-col items-center gap-2" data-testid="greeting-bubble-stack">
@@ -43,6 +48,14 @@ export function GreetingBubble({
         </span>
         <span className="h-3 w-px bg-cream-deep" />
         <span className="text-sm font-black tracking-wider text-ink">{displayName}</span>
+        {prefLabel && (
+          <span
+            className="text-[10px] font-bold tracking-widest text-ink-soft"
+            data-testid="greeting-nameplate-pref"
+          >
+            {prefLabel}
+          </span>
+        )}
         {stamp ? (
           <span className="rounded-full bg-pop-yellow/80 px-2 py-0.5 text-[10px] font-black tracking-widest text-ink shadow-inner">
             {stamp}

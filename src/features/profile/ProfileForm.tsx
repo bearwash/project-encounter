@@ -4,7 +4,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Avatar } from '@/features/encounter/Avatar';
+import { setSfxMuted, useSfxMuted } from '@/lib/audio/sfx';
+import {
+  hapticSuccess,
+  setHapticsMuted,
+  useHapticsMuted,
+} from '@/lib/haptics';
 import { DEFAULT_AVATAR_CODE, PROFILE_LIMITS } from '@/types/profile';
+import { PrefectureSelect } from './PrefectureSelect';
 import { useProfile, useSaveProfile } from './queries';
 import {
   validateProfile,
@@ -16,12 +23,15 @@ const EMPTY_FORM: ProfileInput = {
   display_name: '',
   avatar_code: DEFAULT_AVATAR_CODE,
   message: '',
+  home_prefecture: null,
 };
 
 export function ProfileForm() {
   const router = useRouter();
   const { data: profile, isLoading } = useProfile();
   const save = useSaveProfile();
+  const sfxMuted = useSfxMuted();
+  const hapticsMuted = useHapticsMuted();
 
   const [form, setForm] = useState<ProfileInput>(EMPTY_FORM);
   const [errors, setErrors] = useState<ValidationError[]>([]);
@@ -32,6 +42,7 @@ export function ProfileForm() {
         display_name: profile.display_name,
         avatar_code: profile.avatar_code,
         message: profile.message,
+        home_prefecture: profile.home_prefecture,
       });
     }
   }, [profile]);
@@ -49,7 +60,10 @@ export function ProfileForm() {
     setErrors(found);
     if (found.length === 0) {
       save.mutate(form, {
-        onSuccess: () => router.replace('/'),
+        onSuccess: () => {
+          hapticSuccess();
+          router.replace('/');
+        },
       });
     }
   };
@@ -113,6 +127,67 @@ export function ProfileForm() {
           placeholder="(空でも OK)"
         />
       </Field>
+
+      {/* 出身地 (任意、非公開可) — spec: regional-map.md */}
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-baseline justify-between">
+          <label
+            htmlFor="home_prefecture"
+            className="text-sm font-bold tracking-wide text-ink-soft"
+          >
+            🗾 出身地（任意）
+          </label>
+          <span className="text-[10px] tracking-widest text-ink-muted">
+            すれちがった人の地図に並ぶ
+          </span>
+        </div>
+        <PrefectureSelect
+          id="home_prefecture"
+          value={form.home_prefecture}
+          onChange={(v) => setForm((prev) => ({ ...prev, home_prefecture: v }))}
+        />
+        {errOf('home_prefecture') && (
+          <span className="text-xs font-bold text-pop-red">{errOf('home_prefecture')}</span>
+        )}
+      </div>
+
+      {/* 効果音トグル — spec: sfx.md */}
+      <label className="flex items-center justify-between rounded-toy border border-cream-deep bg-cream-soft px-3 py-2 shadow-toy">
+        <span className="flex flex-col gap-0.5">
+          <span className="text-sm font-bold tracking-wide text-ink-soft">
+            効果音
+          </span>
+          <span className="text-[10px] tracking-widest text-ink-muted">
+            あいさつシーンのコツコツ / ピロリン
+          </span>
+        </span>
+        <input
+          type="checkbox"
+          checked={!sfxMuted}
+          onChange={(e) => setSfxMuted(!e.target.checked)}
+          className="h-5 w-5 accent-pop-red"
+          aria-label="効果音を有効にする"
+        />
+      </label>
+
+      {/* 振動 (Haptics) トグル */}
+      <label className="flex items-center justify-between rounded-toy border border-cream-deep bg-cream-soft px-3 py-2 shadow-toy">
+        <span className="flex flex-col gap-0.5">
+          <span className="text-sm font-bold tracking-wide text-ink-soft">
+            振動
+          </span>
+          <span className="text-[10px] tracking-widest text-ink-muted">
+            ハイタッチ / ゲート通過などで「ブルッ」
+          </span>
+        </span>
+        <input
+          type="checkbox"
+          checked={!hapticsMuted}
+          onChange={(e) => setHapticsMuted(!e.target.checked)}
+          className="h-5 w-5 accent-pop-red"
+          aria-label="振動を有効にする"
+        />
+      </label>
 
       <button
         type="submit"

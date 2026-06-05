@@ -27,8 +27,10 @@
     "hair": [
       { "id": "01", "file": "hair/01.svg", "label": "ショート(茶)" },
       { "id": "02", "file": "hair/02.svg", "label": "ロング(黒)" },
-      { "id": "03", "file": "hair/03.svg", "label": "ツンツン(金)" },
-      { "id": "04", "file": "hair/04.svg", "label": "ベリーショート(赤)" }
+      { "id": "03", "file": "hair/03.svg", "label": "スパイク(金)" },
+      { "id": "04", "file": "hair/04.svg", "label": "ベリーショート(赤)" },
+      { "id": "05", "file": "hair/05.svg", "label": "バイカラー(緑/桃) — S001" },
+      { "id": "06", "file": "hair/06.svg", "label": "ふんわり(銀)" }
     ],
     "outfit": [
       { "id": "01", "file": "outfit/01.svg", "label": "T シャツ(青)" },
@@ -43,6 +45,6 @@
       { "id": "04", "file": "face/04.svg", "label": "ウインク" }
     ]
   },
-  "defaultCode": "b01_h01_o01_f01",
+  "defaultCode": "b04_h05_o04_f01",
   "layerOrder": ["base", "outfit", "face", "hair"]
 }

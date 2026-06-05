@@ -18,6 +18,8 @@ export type RemoteProfile = {
   display_name: string;
   avatar_code: string;
   message: string;
+  /** ISO 3166-2:JP 下 2 桁 ("01"〜"47") or null=未設定。spec: regional-map.md */
+  home_prefecture: string | null;
 };
 
 export async function fetchRemoteProfile(

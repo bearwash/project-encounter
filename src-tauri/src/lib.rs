@@ -1,5 +1,6 @@
 mod ble;
 mod commands;
+mod db;
 
 use tauri_plugin_sql::{Migration, MigrationKind};
 
@@ -22,9 +23,16 @@ pub fn run() {
             sql: include_str!("../migrations/0002_profile_sync.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 3,
+            description: "add home_prefecture to my_profile / users_cache",
+            sql: include_str!("../migrations/0003_home_prefecture.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_encounter_ble::init())
         .plugin(
             tauri_plugin_sql::Builder::default()
                 .add_migrations(DB_URL, migrations)
@@ -37,7 +45,14 @@ pub fn run() {
             commands::ble::ble_walk_mode_start,
             commands::ble::ble_walk_mode_stop,
             commands::ble::ble_status,
+            commands::profile::profile_get,
+            commands::profile::profile_save,
             commands::profile::profile_fetch_remote,
+            commands::encounter::encounter_list_unread,
+            commands::encounter::encounter_mark_read,
+            commands::encounter::encounter_list_history,
+            commands::settings::settings_get_cooldown_sec,
+            commands::settings::settings_set_cooldown_sec,
         ])
         .setup(|app| {
             if cfg!(debug_assertions) {

@@ -20,11 +20,12 @@ PRAGMA foreign_keys = ON;
 --   BLE Advertise の Service Data には この UUID をバイナリ 16 byte で送出する。
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS my_profile (
-    user_id       TEXT    PRIMARY KEY NOT NULL,    -- Supabase Auth UUID (36 文字 文字列形式)
-    display_name  TEXT    NOT NULL,
-    avatar_code   TEXT    NOT NULL,                -- b{NN}_h{NN}_o{NN}_f{NN} (15 文字)
-    message       TEXT    NOT NULL DEFAULT '',
-    updated_at    INTEGER NOT NULL                 -- Unix epoch (sec)
+    user_id          TEXT    PRIMARY KEY NOT NULL, -- Supabase Auth UUID (36 文字 文字列形式)
+    display_name     TEXT    NOT NULL,
+    avatar_code      TEXT    NOT NULL,             -- b{NN}_h{NN}_o{NN}_f{NN} (15 文字)
+    message          TEXT    NOT NULL DEFAULT '',
+    home_prefecture  TEXT,                         -- ISO 3166-2:JP 下 2 桁 ("01"〜"47")。NULL=未設定。spec: regional-map.md
+    updated_at       INTEGER NOT NULL              -- Unix epoch (sec)
 );
 
 -- ---------------------------------------------------------------------
@@ -38,6 +39,7 @@ CREATE TABLE IF NOT EXISTS users_cache (
     display_name     TEXT    NOT NULL,
     avatar_code      TEXT    NOT NULL,              -- b{NN}_h{NN}_o{NN}_f{NN}
     message          TEXT    NOT NULL DEFAULT '',
+    home_prefecture  TEXT,                          -- "01"〜"47" or NULL=未設定。spec: regional-map.md
     encounter_count  INTEGER NOT NULL DEFAULT 0,    -- encounter_logs を集計した結果（fetch 時に再計算）
     first_seen_at    INTEGER NOT NULL,              -- Unix epoch (sec)
     last_seen_at     INTEGER NOT NULL               -- Unix epoch (sec)
@@ -73,11 +75,12 @@ CREATE INDEX IF NOT EXISTS idx_encounter_logs_user_time
 --   - 設計詳細: profile-sync.md §5.3
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS profile_sync_queue (
-    queue_id     INTEGER PRIMARY KEY AUTOINCREMENT,
-    display_name TEXT    NOT NULL,
-    avatar_code  TEXT    NOT NULL,
-    message      TEXT    NOT NULL DEFAULT '',
-    enqueued_at  INTEGER NOT NULL                   -- Unix epoch (sec)
+    queue_id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    display_name     TEXT    NOT NULL,
+    avatar_code      TEXT    NOT NULL,
+    message          TEXT    NOT NULL DEFAULT '',
+    home_prefecture  TEXT,                              -- "01"〜"47" or NULL=未設定
+    enqueued_at      INTEGER NOT NULL                   -- Unix epoch (sec)
 );
 
 -- ---------------------------------------------------------------------
@@ -94,5 +97,6 @@ CREATE TABLE IF NOT EXISTS app_settings (
 
 INSERT OR IGNORE INTO app_settings (key, value) VALUES
     ('cooldown_sec',       '28800'),   -- 8 時間
-    ('schema_version',     '2');
+    ('schema_version',     '3');
+-- last_session_opened_at: 直近のアプリ起動時刻 (Unix epoch sec)。spec: encounter-popup.md §4.3
 -- cloud_profile_consent_at は同意時に Tauri 側から動的に INSERT する（デフォルトなし）。

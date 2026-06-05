@@ -18,7 +18,7 @@ async function fetchProfile(): Promise<MyProfile | null> {
   try {
     const db = await getDb();
     const rows = await db.select<MyProfile[]>(
-      'SELECT user_id, display_name, avatar_code, message, updated_at FROM my_profile LIMIT 1',
+      'SELECT user_id, display_name, avatar_code, message, home_prefecture, updated_at FROM my_profile LIMIT 1',
     );
     return rows[0] ?? null;
   } catch (e) {
@@ -64,14 +64,22 @@ async function saveProfile(input: ProfileInput): Promise<MyProfile> {
 
     // ローカル先行 (spec §5.3 "ローカル先行")
     await db.execute(
-      `INSERT INTO my_profile (user_id, display_name, avatar_code, message, updated_at)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO my_profile (user_id, display_name, avatar_code, message, home_prefecture, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6)
        ON CONFLICT(user_id) DO UPDATE SET
-         display_name = excluded.display_name,
-         avatar_code  = excluded.avatar_code,
-         message      = excluded.message,
-         updated_at   = excluded.updated_at`,
-      [userId, input.display_name, input.avatar_code, input.message, now],
+         display_name    = excluded.display_name,
+         avatar_code     = excluded.avatar_code,
+         message         = excluded.message,
+         home_prefecture = excluded.home_prefecture,
+         updated_at      = excluded.updated_at`,
+      [
+        userId,
+        input.display_name,
+        input.avatar_code,
+        input.message,
+        input.home_prefecture,
+        now,
+      ],
     );
 
     // Supabase upsert (失敗時は profile_sync_queue へキューイング)
@@ -82,6 +90,7 @@ async function saveProfile(input: ProfileInput): Promise<MyProfile> {
           display_name: input.display_name,
           avatar_code: input.avatar_code,
           message: input.message,
+          home_prefecture: input.home_prefecture,
         });
       } catch (e) {
         console.warn('[profile.save] supabase upsert failed, queueing:', e);
@@ -94,6 +103,7 @@ async function saveProfile(input: ProfileInput): Promise<MyProfile> {
       display_name: input.display_name,
       avatar_code: input.avatar_code,
       message: input.message,
+      home_prefecture: input.home_prefecture,
       updated_at: now,
     };
   } catch (e) {
@@ -115,9 +125,15 @@ async function enqueueSyncPending(
     // 古いキューは捨てて、最新値だけ残す
     await db.execute('DELETE FROM profile_sync_queue');
     await db.execute(
-      `INSERT INTO profile_sync_queue (display_name, avatar_code, message, enqueued_at)
-       VALUES ($1, $2, $3, $4)`,
-      [input.display_name, input.avatar_code, input.message, enqueuedAt],
+      `INSERT INTO profile_sync_queue (display_name, avatar_code, message, home_prefecture, enqueued_at)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [
+        input.display_name,
+        input.avatar_code,
+        input.message,
+        input.home_prefecture,
+        enqueuedAt,
+      ],
     );
   } catch (e) {
     console.error('[profile.enqueue] failed:', e);
@@ -149,8 +165,9 @@ export async function flushProfileSyncQueue(): Promise<void> {
       display_name: string;
       avatar_code: string;
       message: string;
+      home_prefecture: string | null;
     }[]>(
-      'SELECT queue_id, display_name, avatar_code, message FROM profile_sync_queue ORDER BY queue_id DESC LIMIT 1',
+      'SELECT queue_id, display_name, avatar_code, message, home_prefecture FROM profile_sync_queue ORDER BY queue_id DESC LIMIT 1',
     );
     if (rows.length === 0) {
       // 何も送るものが無い = 成功扱いで backoff をリセット
@@ -164,6 +181,7 @@ export async function flushProfileSyncQueue(): Promise<void> {
         display_name: latest.display_name,
         avatar_code: latest.avatar_code,
         message: latest.message,
+        home_prefecture: latest.home_prefecture,
       });
       await db.execute('DELETE FROM profile_sync_queue');
       retryStep = 0;
