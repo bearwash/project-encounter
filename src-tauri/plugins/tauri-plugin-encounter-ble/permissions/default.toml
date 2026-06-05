@@ -1,6 +1,7 @@
 description = "Default permissions for the encounter BLE plugin."
 permissions = [
   "allow-checkPermissions",
+  "allow-drainPending",
   "allow-registerListener",
   "allow-removeListener",
   "allow-requestPermissions",

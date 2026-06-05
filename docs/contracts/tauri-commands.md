@@ -17,9 +17,11 @@
 | `ble.walkStart` | `ble_walk_mode_start` | ✅ |
 | `ble.walkStop` | `ble_walk_mode_stop` | ✅ |
 | `ble.status` | `ble_status` | ✅ `backend` フィールドで実装種別を返す |
+| `ble.drainPending` | `ble_drain_pending_encounters` | ✅ native plugin の短期キューを SQLite へ反映 |
 | `profile.get` | `profile_get` | ✅ SQLite (`my_profile`) |
 | `profile.save` | `profile_save` | ✅ SQLite (`my_profile`) |
 | — | `profile_fetch_remote` | ✅ Supabase の代用 mock (Phase 2 で置換) |
+| — | `encounter_record_received_user_id` | ✅ UUID 検証 + 自己ID除外 + クールダウン + SQLite insert |
 | `encounter.listUnread` | `encounter_list_unread` | ✅ SQLite (`encounter_logs` + `users_cache`) |
 | `encounter.markRead` | `encounter_mark_read` | ✅ SQLite (`encounter_logs`) |
 | `encounter.listHistory` | `encounter_list_history` | ✅ SQLite (`users_cache`) |
@@ -30,8 +32,8 @@
 
 | event 名 | payload | 用途 |
 | --- | --- | --- |
-| `ble://encounter-found` | `BlePayload = { user_id: string }` | mock / btleplug 共通で peer 発見を通知 |
-| plugin `encounter-ble` / `encounter-found` | `BlePayload = { user_id: string }` | iOS / Android native plugin から peer 発見を通知 |
+| `ble://encounter-found` | `BlePayload = { user_id: string, seen_at?: number }` | mock / btleplug 共通で peer 発見を通知 |
+| plugin `encounter-ble` / `encounter-found` | `BlePayload = { user_id: string, seen_at?: number }` | iOS / Android native plugin から peer 発見を通知 |
 
 **バックエンド切り替え**: 環境変数 `BLE_BACKEND=mock` で mock 強制、`btleplug` で btleplug 強制、`tauri-plugin` で iOS / Android native plugin 強制。未指定だと desktop は btleplug、iOS / Android は tauri-plugin、それ以外では mock fallback。
 
@@ -73,6 +75,18 @@ type MyProfile = {
 ---
 
 ## エンカウント (`encounter.*`)
+
+### `encounter_record_received_user_id`
+BLE で受信した `user_id` を `encounter_logs` に保存する唯一の正規入口。
+UUID 検証、自己ID除外、`cooldown_sec`、完全重複排除を Rust 側の transaction で処理する。
+`users_cache` は更新しない。
+
+| 引数 | 型 | 説明 |
+| --- | --- | --- |
+| `user_id` | string (UUID) | BLE / native plugin で受信した相手ID |
+| `encountered_at` | number \| null | 検出時刻 unix sec。null なら Rust 側の現在時刻 |
+
+**戻り値**: `boolean` (`true` = 新規 insert、`false` = 重複 / クールダウン / 自己ID)
 
 ### `encounter.list_unread`
 未読のすれ違いをすべて取得（古い順）。
@@ -165,11 +179,22 @@ type BleStatus = {
 };
 ```
 
+### `ble.drain_pending_encounters`
+native plugin 側の短期キューに残っている検出済み `user_id` を Rust 側へ drain し、
+`encounter_logs` へ反映する。戻り値は新規 insert 件数。クールダウン中・自己ID・完全重複
+(`user_id` + `encountered_at`) は Rust 側で捨てる。
+
+**戻り値**: `number`
+
 ### iOS / Android native plugin
 
 mobile target では `ble_start` / `ble_walk_mode_start` が現在の `my_profile.user_id` を読み、`tauri-plugin-encounter-ble` の native `start` を呼ぶ。plugin の permission identifier は `encounter-ble:default`。
 
-native plugin は `SERVICE_UUID = 4a985948-3bc6-450b-80d2-04a8f98f83cb` を advertise / scan filter に使い、`USER_ID_CHARACTERISTIC_UUID = 4a985948-3bc6-450b-80d2-04a8f98f83cc` を iOS / fallback GATT read に使う。
+native plugin は `SERVICE_UUID = 4a985948-3bc6-450b-80d2-04a8f98f83cb` を advertise / scan filter に使い、`USER_ID_CHARACTERISTIC_UUID = 4a985948-3bc6-450b-80d2-04a8f98f83cc` を mobile の GATT read に使う。128-bit Service UUID + 16 byte user_id の Service Data は BLE Legacy Advertise のサイズ上限を超えるため、mobile は Service UUID advertise + GATT read を標準経路にする。
+
+native plugin は検出イベントを最大 256 件のメモリ内短期キューにも積む。WebView が
+イベントを取りこぼした場合でも、foreground 復帰時に `ble_drain_pending_encounters`
+で Rust 保存経路へ流す。プロセス終了時の永続保証はしない。
 
 plugin listener と mobile permission request のため、`encounter-ble:default` は
 `allow-registerListener` / `allow-removeListener` / `allow-checkPermissions` /

@@ -195,6 +195,9 @@ on_fetch_success(rows):
 - ユーザーには「オフラインのため、新しい出会いの情報を取得できません」のような **控えめなトースト** を 1 回だけ出す（連発しない）。
 - オンライン復帰検知（`navigator.onLine` イベントや Tauri 側の network status）で fetch を再試行。
 - リトライ戦略: 指数バックオフ（5 秒 → 30 秒 → 5 分 → 30 分 → 上限）。バックグラウンドでも条件が許せば実施。
+- 次回 retry 時刻と attempt は `app_settings` に保存する
+  (`profile_fetch_retry_after`, `profile_fetch_retry_attempt`)。アプリ再起動後も
+  foreground 復帰時に未取得 `user_id` の fetch を再スケジュールする。
 
 ### 5.6 オンライン復帰時のフロー
 1. 未取得 `user_id` 一覧をクエリ。

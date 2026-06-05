@@ -307,6 +307,18 @@
           "markdownDescription": "Denies the checkPermissions command without any pre-configured scope."
         },
         {
+          "description": "Enables the drainPending command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-drainPending",
+          "markdownDescription": "Enables the drainPending command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the drainPending command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-drainPending",
+          "markdownDescription": "Denies the drainPending command without any pre-configured scope."
+        },
+        {
           "description": "Enables the registerListener command without any pre-configured scope.",
           "type": "string",
           "const": "allow-registerListener",

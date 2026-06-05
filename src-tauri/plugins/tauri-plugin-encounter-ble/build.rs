@@ -3,6 +3,7 @@ const COMMANDS: &[&str] = &[
     "removeListener",
     "checkPermissions",
     "requestPermissions",
+    "drainPending",
 ];
 
 fn main() {

@@ -36,6 +36,32 @@ Denies the checkPermissions command without any pre-configured scope.
 <tr>
 <td>
 
+`encounter-ble:allow-drainPending`
+
+</td>
+<td>
+
+Enables the drainPending command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`encounter-ble:deny-drainPending`
+
+</td>
+<td>
+
+Denies the drainPending command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `encounter-ble:allow-registerListener`
 
 </td>

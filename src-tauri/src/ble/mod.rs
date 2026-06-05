@@ -210,6 +210,21 @@ impl BleService {
         }
         inner.mode = BleMode::Idle;
     }
+
+    pub fn drain_pending(
+        &self,
+        app: AppHandle,
+    ) -> Result<Vec<tauri_plugin_encounter_ble::MobileEncounter>, String> {
+        if matches!(self.backend, BleBackend::TauriPlugin) {
+            #[cfg(mobile)]
+            {
+                return app.encounter_ble().drain_pending();
+            }
+        }
+        #[cfg(not(mobile))]
+        let _ = app;
+        Ok(Vec::new())
+    }
 }
 
 impl From<BleMode> for MobileBleMode {

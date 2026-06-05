@@ -3,8 +3,11 @@
 
 use serde::Serialize;
 use tauri::AppHandle;
+use uuid::Uuid;
 
 use crate::db;
+
+const DEFAULT_COOLDOWN_SEC: i64 = 28_800;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct EncounterUser {
@@ -36,6 +39,107 @@ pub struct HistoryItem {
     pub first_seen_at: i64,
     pub last_seen_at: i64,
     pub last_encountered_at: i64,
+}
+
+pub async fn record_received_user_id_internal(
+    app: &AppHandle,
+    user_id: String,
+    encountered_at: Option<i64>,
+) -> Result<bool, String> {
+    let user_id = Uuid::parse_str(user_id.trim())
+        .map_err(|_| "invalid encountered user_id".to_string())?
+        .to_string();
+    let now = encountered_at.unwrap_or_else(unix_now);
+    if now <= 0 {
+        return Err("encountered_at must be a unix timestamp".to_string());
+    }
+
+    let pool = db::pool(app).await?;
+    let mut tx = pool
+        .begin()
+        .await
+        .map_err(|e| format!("failed to start encounter transaction: {e}"))?;
+
+    let my_user_id = sqlx::query_as::<_, (String,)>("SELECT user_id FROM my_profile LIMIT 1")
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(|e| format!("failed to read my profile user_id: {e}"))?
+        .map(|(id,)| id);
+    if my_user_id.as_deref() == Some(user_id.as_str()) {
+        tx.commit()
+            .await
+            .map_err(|e| format!("failed to finish encounter transaction: {e}"))?;
+        return Ok(false);
+    }
+
+    let cooldown_sec = sqlx::query_as::<_, (String,)>(
+        "SELECT value FROM app_settings WHERE key = 'cooldown_sec'",
+    )
+    .fetch_optional(&mut *tx)
+    .await
+    .map_err(|e| format!("failed to read cooldown_sec: {e}"))?
+    .and_then(|(value,)| value.parse::<i64>().ok())
+    .filter(|sec| *sec >= 0)
+    .unwrap_or(DEFAULT_COOLDOWN_SEC);
+
+    let exact_duplicate = sqlx::query_as::<_, (i64,)>(
+        r#"SELECT log_id FROM encounter_logs
+           WHERE encountered_user_id = ? AND encountered_at = ?
+           LIMIT 1"#,
+    )
+    .bind(&user_id)
+    .bind(now)
+    .fetch_optional(&mut *tx)
+    .await
+    .map_err(|e| format!("failed to check duplicate encounter: {e}"))?
+    .is_some();
+    if exact_duplicate {
+        tx.commit()
+            .await
+            .map_err(|e| format!("failed to finish encounter transaction: {e}"))?;
+        return Ok(false);
+    }
+
+    let recent = sqlx::query_as::<_, (i64,)>(
+        r#"SELECT encountered_at FROM encounter_logs
+           WHERE encountered_user_id = ?
+           ORDER BY encountered_at DESC LIMIT 1"#,
+    )
+    .bind(&user_id)
+    .fetch_optional(&mut *tx)
+    .await
+    .map_err(|e| format!("failed to read recent encounter: {e}"))?
+    .map(|(encountered_at,)| encountered_at);
+    if recent.is_some_and(|last| now - last < cooldown_sec) {
+        tx.commit()
+            .await
+            .map_err(|e| format!("failed to finish encounter transaction: {e}"))?;
+        return Ok(false);
+    }
+
+    sqlx::query(
+        r#"INSERT INTO encounter_logs (encountered_user_id, encountered_at, is_read)
+           VALUES (?, ?, 0)"#,
+    )
+    .bind(&user_id)
+    .bind(now)
+    .execute(&mut *tx)
+    .await
+    .map_err(|e| format!("failed to insert encounter log: {e}"))?;
+
+    tx.commit()
+        .await
+        .map_err(|e| format!("failed to commit encounter transaction: {e}"))?;
+    Ok(true)
+}
+
+#[tauri::command]
+pub async fn encounter_record_received_user_id(
+    app: AppHandle,
+    user_id: String,
+    encountered_at: Option<i64>,
+) -> Result<bool, String> {
+    record_received_user_id_internal(&app, user_id, encountered_at).await
 }
 
 #[tauri::command]
@@ -106,6 +210,13 @@ pub async fn encounter_list_unread(app: AppHandle) -> Result<Vec<UnreadEncounter
             },
         )
         .collect())
+}
+
+fn unix_now() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs() as i64)
+        .unwrap_or(0)
 }
 
 #[tauri::command]

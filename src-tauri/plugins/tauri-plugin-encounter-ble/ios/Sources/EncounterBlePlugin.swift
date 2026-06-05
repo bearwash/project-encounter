@@ -8,6 +8,8 @@ private let encounterUserIdCharacteristicUuid = CBUUID(string: "4A985948-3BC6-45
 private let encounterEvent = "encounter-found"
 private let dedupWindowSeconds: TimeInterval = 5 * 60
 private let gattTimeoutSeconds: TimeInterval = 10
+private let maxPendingPeripherals = 4
+private let maxPendingEvents = 256
 
 private func bleLog(_ message: String) {
   NSLog("[EncounterBle] %@", message)
@@ -20,6 +22,12 @@ struct StartArgs: Decodable {
 
 struct EncounterPayload: Encodable {
   let user_id: String
+  let seen_at: Int64
+}
+
+struct PendingEncounter {
+  let userId: String
+  let seenAt: Int64
 }
 
 class EncounterBlePlugin: Plugin, CBCentralManagerDelegate, CBPeripheralManagerDelegate, CBPeripheralDelegate {
@@ -32,6 +40,7 @@ class EncounterBlePlugin: Plugin, CBCentralManagerDelegate, CBPeripheralManagerD
   private var lastError: String?
   private var discoveredUserIds = [String: Date]()
   private var pendingPeripherals = [UUID: CBPeripheral]()
+  private var pendingEvents = [PendingEncounter]()
 
   @objc public func start(_ invoke: Invoke) throws {
     let args = try invoke.parseArgs(StartArgs.self)
@@ -47,6 +56,9 @@ class EncounterBlePlugin: Plugin, CBCentralManagerDelegate, CBPeripheralManagerD
     bleLog("start requested mode=\(args.mode ?? "normal") user=\(args.user_id.lowercased())")
 
     DispatchQueue.main.async {
+      self.stopBle(resetError: false)
+      self.active = true
+      self.lastError = nil
       if self.central == nil {
         self.central = CBCentralManager(delegate: self, queue: nil)
       } else {
@@ -66,15 +78,7 @@ class EncounterBlePlugin: Plugin, CBCentralManagerDelegate, CBPeripheralManagerD
   @objc public func stop(_ invoke: Invoke) throws {
     DispatchQueue.main.async {
       bleLog("stop requested")
-      self.active = false
-      self.scanActive = false
-      self.advertiseActive = false
-      self.central?.stopScan()
-      for peripheral in self.pendingPeripherals.values {
-        self.central?.cancelPeripheralConnection(peripheral)
-      }
-      self.pendingPeripherals.removeAll()
-      self.peripheralManager?.stopAdvertising()
+      self.stopBle()
       bleLog("stopped")
       invoke.resolve()
     }
@@ -97,6 +101,16 @@ class EncounterBlePlugin: Plugin, CBCentralManagerDelegate, CBPeripheralManagerD
       "seenCount": discoveredUserIds.count,
       "lastError": lastError.map { $0 as Any } ?? NSNull(),
     ])
+  }
+
+  @objc public func drainPending(_ invoke: Invoke) throws {
+    DispatchQueue.main.async {
+      let events = self.pendingEvents.map {
+        ["userId": $0.userId, "seenAt": $0.seenAt] as [String: Any]
+      }
+      self.pendingEvents.removeAll()
+      invoke.resolve(["encounters": events])
+    }
   }
 
   func centralManagerDidUpdateState(_ central: CBCentralManager) {
@@ -127,6 +141,7 @@ class EncounterBlePlugin: Plugin, CBCentralManagerDelegate, CBPeripheralManagerD
 
   private func startScanIfReady() {
     guard active, central?.state == .poweredOn else { return }
+    central?.stopScan()
     central?.scanForPeripherals(
       withServices: [encounterServiceUuid],
       options: [CBCentralManagerScanOptionAllowDuplicatesKey: false])
@@ -137,6 +152,7 @@ class EncounterBlePlugin: Plugin, CBCentralManagerDelegate, CBPeripheralManagerD
   private func startAdvertisingIfReady() {
     guard active, peripheralManager?.state == .poweredOn, let data = userIdData else { return }
 
+    peripheralManager?.stopAdvertising()
     peripheralManager?.removeAllServices()
     let characteristic = CBMutableCharacteristic(
       type: encounterUserIdCharacteristicUuid,
@@ -170,8 +186,12 @@ class EncounterBlePlugin: Plugin, CBCentralManagerDelegate, CBPeripheralManagerD
       peripheral.respond(to: request, withResult: .requestNotSupported)
       return
     }
-    request.value = data
     bleLog("GATT read request offset=\(request.offset)")
+    guard request.offset <= data.count else {
+      peripheral.respond(to: request, withResult: .invalidOffset)
+      return
+    }
+    request.value = data.subdata(in: request.offset..<data.count)
     peripheral.respond(to: request, withResult: .success)
   }
 
@@ -181,6 +201,7 @@ class EncounterBlePlugin: Plugin, CBCentralManagerDelegate, CBPeripheralManagerD
     advertisementData: [String: Any],
     rssi RSSI: NSNumber
   ) {
+    guard active else { return }
     if let serviceData = advertisementData[CBAdvertisementDataServiceDataKey] as? [CBUUID: Data],
        let data = serviceData[encounterServiceUuid],
        emitIfValid(data) {
@@ -188,6 +209,13 @@ class EncounterBlePlugin: Plugin, CBCentralManagerDelegate, CBPeripheralManagerD
       return
     }
 
+    if pendingPeripherals[peripheral.identifier] != nil {
+      return
+    }
+    if pendingPeripherals.count >= maxPendingPeripherals {
+      bleLog("GATT fallback skipped; pending limit reached")
+      return
+    }
     bleLog("scan result has no service data; connecting GATT peripheral=\(peripheral.identifier)")
     pendingPeripherals[peripheral.identifier] = peripheral
     peripheral.delegate = self
@@ -254,16 +282,51 @@ class EncounterBlePlugin: Plugin, CBCentralManagerDelegate, CBPeripheralManagerD
   }
 
   private func emitIfValid(_ data: Data) -> Bool {
-    guard data.count == 16, let userId = dataToUuidString(data) else { return false }
+    guard data.count == 16, let userId = dataToUuidString(data) else {
+      lastError = "invalid BLE payload size: \(data.count)"
+      return true
+    }
     guard data != userIdData else { return true }
     let now = Date()
+    pruneDiscovered(now: now)
     if let lastSeen = discoveredUserIds[userId], now.timeIntervalSince(lastSeen) < dedupWindowSeconds {
       return true
     }
     discoveredUserIds[userId] = now
-    try? trigger(encounterEvent, data: EncounterPayload(user_id: userId))
+    let seenAt = Int64(now.timeIntervalSince1970)
+    enqueuePending(userId: userId, seenAt: seenAt)
+    try? trigger(encounterEvent, data: EncounterPayload(user_id: userId, seen_at: seenAt))
     bleLog("encounter emitted user=\(userId)")
     return true
+  }
+
+  private func enqueuePending(userId: String, seenAt: Int64) {
+    while pendingEvents.count >= maxPendingEvents {
+      pendingEvents.removeFirst()
+    }
+    pendingEvents.append(PendingEncounter(userId: userId, seenAt: seenAt))
+  }
+
+  private func stopBle(resetError: Bool = true) {
+    active = false
+    scanActive = false
+    advertiseActive = false
+    central?.stopScan()
+    for peripheral in pendingPeripherals.values {
+      central?.cancelPeripheralConnection(peripheral)
+    }
+    pendingPeripherals.removeAll()
+    peripheralManager?.stopAdvertising()
+    peripheralManager?.removeAllServices()
+    if resetError {
+      lastError = nil
+    }
+  }
+
+  private func pruneDiscovered(now: Date) {
+    discoveredUserIds = discoveredUserIds.filter {
+      now.timeIntervalSince($0.value) < dedupWindowSeconds
+    }
   }
 
   private func uuidStringToData(_ value: String) -> Data? {

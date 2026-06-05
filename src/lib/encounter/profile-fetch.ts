@@ -24,9 +24,16 @@ import { isTauri } from '@/lib/tauri/env';
 import { fetchRemoteProfile, type RemoteProfile } from '@/lib/tauri/profile';
 
 const DEBOUNCE_MS = 30_000;
+const RETRY_MS = [5_000, 30_000, 5 * 60_000, 30 * 60_000] as const;
+const RETRY_ATTEMPT_KEY = 'profile_fetch_retry_attempt';
+const RETRY_AFTER_KEY = 'profile_fetch_retry_after';
 
 let pendingTimer: number | null = null;
+let retryTimer: number | null = null;
+let retryAttempt = 0;
 let inflight: Promise<FetchResult> | null = null;
+let latestOnDone: ((r: FetchResult) => void) | undefined;
+let restoredRetry = false;
 
 export type FetchResult = {
   fetchedCount: number;
@@ -38,7 +45,9 @@ export async function flushPendingProfiles(): Promise<FetchResult> {
   if (inflight) return inflight;
   inflight = runFlush();
   try {
-    return await inflight;
+    const result = await inflight;
+    await updateRetry(result, latestOnDone);
+    return result;
   } finally {
     inflight = null;
   }
@@ -63,6 +72,9 @@ async function runFlush(): Promise<FetchResult> {
   let failedIds: string[] = [];
 
   if (isSupabaseEnabled()) {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      return { fetchedCount: 0, failedIds: pendingIds };
+    }
     try {
       profiles = await supabaseBulkFetch(pendingIds);
       const got = new Set(profiles.map((p) => p.user_id));
@@ -138,6 +150,7 @@ async function runFlush(): Promise<FetchResult> {
  * - 1 回発火後、次の呼び出しまた 30 秒待つ
  */
 export function scheduleProfileFetch(onDone?: (r: FetchResult) => void): void {
+  latestOnDone = onDone;
   if (pendingTimer !== null) return;
   pendingTimer = window.setTimeout(async () => {
     pendingTimer = null;
@@ -146,8 +159,30 @@ export function scheduleProfileFetch(onDone?: (r: FetchResult) => void): void {
       onDone?.(r);
     } catch (e) {
       console.warn('[profile-fetch] scheduled flush failed:', e);
+      scheduleRetry(onDone);
     }
   }, DEBOUNCE_MS);
+}
+
+export async function restoreProfileFetchRetry(
+  onDone?: (r: FetchResult) => void,
+): Promise<void> {
+  if (restoredRetry || !isTauri()) return;
+  restoredRetry = true;
+  latestOnDone = onDone;
+
+  const db = await getDb();
+  const rows = await db.select<{ key: string; value: string }[]>(
+    `SELECT key, value FROM app_settings
+     WHERE key IN ($1, $2)`,
+    [RETRY_ATTEMPT_KEY, RETRY_AFTER_KEY],
+  );
+  const values = new Map(rows.map((r) => [r.key, r.value]));
+  const retryAfter = Number(values.get(RETRY_AFTER_KEY));
+  if (!Number.isFinite(retryAfter) || retryAfter <= 0) return;
+
+  retryAttempt = Math.max(0, Number(values.get(RETRY_ATTEMPT_KEY)) || 0);
+  scheduleRetry(onDone, Math.max(0, retryAfter * 1000 - Date.now()));
 }
 
 /** デバウンス中のタイマーをキャンセル (テスト用) */
@@ -156,4 +191,71 @@ export function cancelScheduledFetch(): void {
     window.clearTimeout(pendingTimer);
     pendingTimer = null;
   }
+  if (retryTimer !== null) {
+    window.clearTimeout(retryTimer);
+    retryTimer = null;
+  }
+  retryAttempt = 0;
+  clearRetryState().catch(() => {});
+}
+
+async function updateRetry(
+  result: FetchResult,
+  onDone?: (r: FetchResult) => void,
+): Promise<void> {
+  if (result.failedIds.length === 0) {
+    retryAttempt = 0;
+    if (retryTimer !== null) {
+      window.clearTimeout(retryTimer);
+      retryTimer = null;
+    }
+    await clearRetryState();
+    return;
+  }
+  scheduleRetry(onDone);
+}
+
+function scheduleRetry(onDone?: (r: FetchResult) => void, delayMs?: number): void {
+  if (retryTimer !== null) return;
+  const delay = delayMs ?? RETRY_MS[Math.min(retryAttempt, RETRY_MS.length - 1)]!;
+  const nextAttempt = delayMs === undefined ? retryAttempt + 1 : retryAttempt;
+  persistRetryState(Math.floor((Date.now() + delay) / 1000), nextAttempt).catch(
+    () => {},
+  );
+  retryAttempt = nextAttempt;
+  retryTimer = window.setTimeout(async () => {
+    retryTimer = null;
+    try {
+      const result = await flushPendingProfiles();
+      onDone?.(result);
+    } catch (e) {
+      console.warn('[profile-fetch] retry failed:', e);
+      scheduleRetry(onDone);
+    }
+  }, delay);
+}
+
+async function persistRetryState(retryAfterSec: number, attempt: number): Promise<void> {
+  if (!isTauri()) return;
+  const db = await getDb();
+  await db.execute(
+    `INSERT INTO app_settings (key, value)
+     VALUES ($1, $2), ($3, $4)
+     ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+    [
+      RETRY_AFTER_KEY,
+      String(retryAfterSec),
+      RETRY_ATTEMPT_KEY,
+      String(attempt),
+    ],
+  );
+}
+
+async function clearRetryState(): Promise<void> {
+  if (!isTauri()) return;
+  const db = await getDb();
+  await db.execute(`DELETE FROM app_settings WHERE key IN ($1, $2)`, [
+    RETRY_AFTER_KEY,
+    RETRY_ATTEMPT_KEY,
+  ]);
 }

@@ -100,3 +100,5 @@ INSERT OR IGNORE INTO app_settings (key, value) VALUES
     ('schema_version',     '3');
 -- last_session_opened_at: 直近のアプリ起動時刻 (Unix epoch sec)。spec: encounter-popup.md §4.3
 -- cloud_profile_consent_at は同意時に Tauri 側から動的に INSERT する（デフォルトなし）。
+-- profile_fetch_retry_after / profile_fetch_retry_attempt:
+--   未取得 user_id のプロフィール fetch バックオフ状態。spec: profile-sync.md §5.5

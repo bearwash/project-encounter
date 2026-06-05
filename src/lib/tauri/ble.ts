@@ -28,6 +28,7 @@ export type BleStatus = {
  */
 export type BlePayload = {
   user_id: string;
+  seen_at?: number;
 };
 
 export const BLE_EVENT_ENCOUNTER_FOUND = 'ble://encounter-found';
@@ -68,6 +69,10 @@ export const ble = {
       return invoke<void>('ble_walk_mode_start');
     }),
   walkStop: () => ifTauri(() => invoke<void>('ble_walk_mode_stop')),
+  drainPending: () =>
+    isTauri()
+      ? invoke<number>('ble_drain_pending_encounters')
+      : Promise.resolve(0),
   status: (): Promise<BleStatus> =>
     isTauri() ? invoke<BleStatus>('ble_status') : Promise.resolve(OFFLINE_STATUS),
 };

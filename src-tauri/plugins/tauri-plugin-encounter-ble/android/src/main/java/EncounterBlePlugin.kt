@@ -37,6 +37,7 @@ import app.tauri.plugin.Invoke
 import app.tauri.plugin.JSObject
 import app.tauri.plugin.Plugin
 import java.nio.ByteBuffer
+import org.json.JSONArray
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
@@ -46,6 +47,8 @@ private const val ENCOUNTER_EVENT = "encounter-found"
 private const val PERMISSION_REQUEST_CODE = 48194
 private const val DEDUP_WINDOW_MS = 5 * 60 * 1000L
 private const val GATT_TIMEOUT_MS = 10 * 1000L
+private const val MAX_PENDING_GATTS = 4
+private const val MAX_PENDING_EVENTS = 256
 private const val TAG = "EncounterBle"
 
 @InvokeArg
@@ -53,6 +56,8 @@ class StartArgs {
     lateinit var user_id: String
     var mode: String? = null
 }
+
+data class PendingEncounter(val userId: String, val seenAt: Long)
 
 @TauriPlugin(
     permissions = [
@@ -80,6 +85,7 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
     private var lastError: String? = null
     private val seenUserIds = ConcurrentHashMap<String, Long>()
     private val pendingGatts = ConcurrentHashMap<String, BluetoothGatt>()
+    private val pendingEvents = ArrayDeque<PendingEncounter>()
     private val mainHandler = Handler(Looper.getMainLooper())
 
     @Command
@@ -119,6 +125,7 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
         }
 
         try {
+            stopBle(resetError = false)
             active = true
             lastError = null
             startGattServer()
@@ -128,6 +135,7 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
             invoke.resolve()
         } catch (ex: Exception) {
             lastError = ex.message ?: "failed to start BLE"
+            stopBle(resetError = false)
             Log.e(TAG, "start failed", ex)
             invoke.reject(ex.message ?: "failed to start BLE")
         }
@@ -152,6 +160,23 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
         invoke.resolve(res)
     }
 
+    @Command
+    fun drainPending(invoke: Invoke) {
+        val arr = JSONArray()
+        synchronized(pendingEvents) {
+            while (pendingEvents.isNotEmpty()) {
+                val event = pendingEvents.removeFirst()
+                val item = JSObject()
+                item.put("userId", event.userId)
+                item.put("seenAt", event.seenAt)
+                arr.put(item)
+            }
+        }
+        val res = JSObject()
+        res.put("encounters", arr)
+        invoke.resolve(res)
+    }
+
     @Deprecated("use onDestroy(activity: AppCompatActivity) when appcompat is on the plugin classpath")
     @Suppress("DEPRECATION")
     override fun onDestroy() {
@@ -160,7 +185,7 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
     }
 
     @SuppressLint("MissingPermission")
-    private fun stopBle() {
+    private fun stopBle(resetError: Boolean = true) {
         active = false
         try {
             scanner?.stopScan(scanCallback)
@@ -183,7 +208,9 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
         }
         scanActive = false
         advertiseActive = false
-        lastError = null
+        if (resetError) lastError = null
+        scanner = null
+        advertiser = null
         gattServer = null
         Log.i(TAG, "stopped")
     }
@@ -220,15 +247,16 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
             Log.w(TAG, "advertiser unavailable")
             return
         }
-        val data = userIdBytes ?: return
         val settings = AdvertiseSettings.Builder()
             .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
             .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
             .setConnectable(true)
             .build()
+        // 128-bit Service Data + 16-byte user_id exceeds the BLE legacy
+        // advertising payload. Publish the app service UUID here and expose
+        // the user_id through the GATT characteristic.
         val advertiseData = AdvertiseData.Builder()
             .addServiceUuid(ParcelUuid(SERVICE_UUID))
-            .addServiceData(ParcelUuid(SERVICE_UUID), data)
             .build()
         advertiser?.startAdvertising(settings, advertiseData, advertiseCallback)
         Log.i(TAG, "advertise start requested")
@@ -270,9 +298,14 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
     private val scanCallback = object : ScanCallback() {
         @SuppressLint("MissingPermission")
         override fun onScanResult(callbackType: Int, result: ScanResult) {
+            if (!active) return
             val data = result.scanRecord?.getServiceData(ParcelUuid(SERVICE_UUID))
             if (data != null && emitIfValid(data)) {
                 Log.i(TAG, "scan result handled from service data address=${result.device.address}")
+                return
+            }
+            if (pendingGatts.size >= MAX_PENDING_GATTS) {
+                Log.i(TAG, "GATT fallback skipped; pending limit reached")
                 return
             }
             if (!pendingGatts.containsKey(result.device.address)) {
@@ -303,7 +336,23 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
             if (characteristic.uuid == USER_ID_CHARACTERISTIC_UUID) {
                 val value = userIdBytes ?: ByteArray(0)
                 Log.i(TAG, "GATT read request address=${device.address} offset=$offset")
-                gattServer?.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value)
+                if (offset > value.size) {
+                    gattServer?.sendResponse(
+                        device,
+                        requestId,
+                        BluetoothGatt.GATT_INVALID_OFFSET,
+                        offset,
+                        null
+                    )
+                    return
+                }
+                gattServer?.sendResponse(
+                    device,
+                    requestId,
+                    BluetoothGatt.GATT_SUCCESS,
+                    offset,
+                    value.copyOfRange(offset, value.size)
+                )
             } else {
                 Log.w(TAG, "unsupported GATT read characteristic=${characteristic.uuid}")
                 gattServer?.sendResponse(device, requestId, BluetoothGatt.GATT_REQUEST_NOT_SUPPORTED, offset, null)
@@ -375,19 +424,39 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
     }
 
     private fun emitIfValid(data: ByteArray): Boolean {
-        if (data.size != 16) return false
+        if (data.size != 16) {
+            lastError = "invalid BLE payload size: ${data.size}"
+            return true
+        }
         if (userIdBytes?.contentEquals(data) == true) return true
         val userId = bytesToUuid(data).toString().lowercase()
         val now = System.currentTimeMillis()
+        pruneSeen(now)
         val lastSeen = seenUserIds[userId]
         if (lastSeen != null && now - lastSeen < DEDUP_WINDOW_MS) return true
         seenUserIds[userId] = now
 
+        val seenAt = now / 1000L
+        enqueuePending(userId, seenAt)
         val payload = JSObject()
         payload.put("user_id", userId)
+        payload.put("seen_at", seenAt)
         trigger(ENCOUNTER_EVENT, payload)
         Log.i(TAG, "encounter emitted user=$userId")
         return true
+    }
+
+    private fun pruneSeen(now: Long) {
+        seenUserIds.entries.removeIf { now - it.value >= DEDUP_WINDOW_MS }
+    }
+
+    private fun enqueuePending(userId: String, seenAt: Long) {
+        synchronized(pendingEvents) {
+            while (pendingEvents.size >= MAX_PENDING_EVENTS) {
+                pendingEvents.removeFirst()
+            }
+            pendingEvents.addLast(PendingEncounter(userId, seenAt))
+        }
     }
 
     private fun hasBlePermissions(): Boolean {

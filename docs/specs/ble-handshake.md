@@ -45,9 +45,9 @@ Rust 側の正本は `src-tauri/src/ble/mod.rs` の `SERVICE_UUID` 定数。nati
 
 ### 4.2.1 iOS / Android native 実装
 - 実装は `src-tauri/plugins/tauri-plugin-encounter-ble`。
-- Android: `BluetoothLeAdvertiser` で `SERVICE_UUID` の Service Data に 16 byte `user_id` を載せ、同時に GATT characteristic も公開する。
+- Android: `BluetoothLeAdvertiser` で `SERVICE_UUID` を advertise し、GATT characteristic で 16 byte `user_id` を公開する。128-bit Service UUID の Service Data に 16 byte `user_id` を載せると BLE Legacy Advertise の 31 byte 枠を超えるため、現行実装では GATT read fallback を主経路にする。
 - iOS: CoreBluetooth の通常アプリ制約により任意 Service Data advertise は使わず、`SERVICE_UUID` advertise + `USER_ID_CHARACTERISTIC_UUID` read characteristic で `user_id` を公開する。
-- Scanner は Service Data があれば即時保存し、無い場合は短時間だけ GATT 接続して characteristic を読む。
+- Scanner は Service Data があれば即時保存し、無い場合は短時間だけ GATT 接続して characteristic を読む。現行 mobile 実装では Service UUID advertise + GATT read が標準経路。
 - この fallback はプロフィール交換には使わない。交換する値は引き続き `user_id` のみ。
 
 ### 4.3 動作モード
@@ -64,17 +64,16 @@ on_advertisement_received(service_data):
   user_id = parse_user_id(service_data_or_gatt_characteristic)
   if user_id is invalid: return  # スキーマ違反は破棄
 
-  last = db.last_encounter_at(user_id)
-  if last and (now - last) < COOLDOWN_SEC:
-    return  # クールダウン中は無視
-
-  db.insert(encounter_logs {
-    encountered_user_id: user_id,
-    encountered_at: now,
-    is_read: false
-  })
+  encounter_record_received_user_id(user_id, seen_at)
+    -> Rust 側で UUID 検証 / 自己ID除外 / クールダウン / insert を行う
   # users_cache への書き込みは行わない。fetch されるまでは「ID だけ知ってる」状態
 ```
+
+`encounter_logs` への保存は UI / TypeScript 層ではなく Rust command
+`encounter_record_received_user_id` を正規入口にする。native plugin は検出イベントを
+短期キューにも積み、foreground 復帰時に `ble_drain_pending_encounters` で同じ
+Rust 保存経路へ流す。これにより WebView が寝ている間のイベント取りこぼしを減らす。
+短期キューはメモリ内最大 256 件で、OS にプロセスを終了された場合の永続保証はしない。
 
 ### 4.5 クールダウン
 - 同一 `user_id` との 2 回目以降の受信は、前回 `encounter_logs.encountered_at` から `COOLDOWN_SEC` 経過後にのみ新規ログとして記録する。
@@ -150,3 +149,23 @@ on_advertisement_received(service_data):
   - 残りは署名済み実機インストールと、端末間の advertise / scan / fallback GATT read の実測。
 - [ ] 同時に複数の `user_id` が検出された場合のキューイング戦略
   - 現状: btleplug 側で 5 秒の dedup window のみ。実機計測後に再検討
+
+### 将来の高速化オプション
+
+現行 mobile 実装は、通常アプリ権限で成立しやすい `Service UUID advertise + GATT read`
+を標準経路にする。COCOA / Exposure Notification のような広告パケット完結型は
+Apple/Google の OS 特権 API と 16-bit Service UUID (`0xFD6F`) に依存しており、
+通常アプリでは同等のバックグラウンド性能を前提にしない。
+
+ただし、特に Android 同士では次の高速経路を追加できる余地がある。
+
+- Android / desktop: Manufacturer Data に短い `app_magic` / `version` / `short_id`
+  / checksum を載せ、GATT 接続なしで即時検出する。
+- iOS: CoreBluetooth 制約により、引き続き Service UUID 検出 + GATT read を基本にする。
+- 共通: RSSI が弱すぎる相手は GATT read しない、GATT timeout を通常時と
+  ウォークモードで分ける、既知 peripheral への再接続を短時間抑止する。
+
+この高速経路を採用する場合、`short_id` から `user_id` / 公開プロフィールへどう
+安全に到達するかを別仕様で定義する必要がある。固定 hash は追跡可能性が高いため、
+日替わり・時間替わり token や鍵設計を検討する。ただし「すれ違い履歴をサーバーへ
+アップロードしない」方針と衝突しないことを必須条件にする。

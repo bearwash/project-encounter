@@ -42,6 +42,21 @@ pub struct MobileBleStatus {
     pub last_error: Option<String>,
 }
 
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MobileEncounter {
+    #[serde(alias = "user_id")]
+    pub user_id: String,
+    #[serde(alias = "seen_at")]
+    pub seen_at: i64,
+}
+
+#[derive(Debug, Clone, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct MobileEncounterBatch {
+    pub encounters: Vec<MobileEncounter>,
+}
+
 pub struct EncounterBle<R: Runtime> {
     #[cfg(mobile)]
     handle: PluginHandle<R>,
@@ -84,6 +99,19 @@ impl<R: Runtime> EncounterBle<R> {
     #[cfg(not(mobile))]
     pub fn status(&self) -> Result<MobileBleStatus, String> {
         Ok(MobileBleStatus::default())
+    }
+
+    #[cfg(mobile)]
+    pub fn drain_pending(&self) -> Result<Vec<MobileEncounter>, String> {
+        self.handle
+            .run_mobile_plugin::<MobileEncounterBatch>("drainPending", ())
+            .map(|batch| batch.encounters)
+            .map_err(|e| e.to_string())
+    }
+
+    #[cfg(not(mobile))]
+    pub fn drain_pending(&self) -> Result<Vec<MobileEncounter>, String> {
+        Ok(Vec::new())
     }
 }
 

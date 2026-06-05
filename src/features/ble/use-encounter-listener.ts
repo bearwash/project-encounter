@@ -1,17 +1,23 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import type Database from '@tauri-apps/plugin-sql';
-import { addPluginListener, type PluginListener } from '@tauri-apps/api/core';
+import {
+  addPluginListener,
+  invoke,
+  type PluginListener,
+} from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { useEffect } from 'react';
-import { getDb } from '@/lib/db/client';
 import {
   flushPendingProfiles,
+  restoreProfileFetchRetry,
   scheduleProfileFetch,
 } from '@/lib/encounter/profile-fetch';
-import { BLE_EVENT_ENCOUNTER_FOUND, type BlePayload } from '@/lib/tauri/ble';
+import { ble, BLE_EVENT_ENCOUNTER_FOUND, type BlePayload } from '@/lib/tauri/ble';
 import { isTauri } from '@/lib/tauri/env';
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /**
  * Tauri event `ble://encounter-found` を購読し、
@@ -34,25 +40,48 @@ export function useEncounterListener() {
     let pluginListener: PluginListener | null = null;
     let disposed = false;
 
-    const handlePayload = async (payload: BlePayload) => {
-      try {
-        const inserted = await persistEncounterLog(payload);
-        if (!inserted) return;
+    const afterInserted = () => {
+      qc.invalidateQueries({ queryKey: ['encounters', 'unread'] });
+      qc.invalidateQueries({ queryKey: ['encounters', 'history'] });
+      qc.invalidateQueries({ queryKey: ['encounters', 'todayCount'] });
 
+      // §5.4.1: 受信時の一括 fetch は最大 30s でデバウンス
+      scheduleProfileFetch(() => {
         qc.invalidateQueries({ queryKey: ['encounters', 'unread'] });
         qc.invalidateQueries({ queryKey: ['encounters', 'history'] });
         qc.invalidateQueries({ queryKey: ['encounters', 'todayCount'] });
+      });
+    };
 
-        // §5.4.1: 受信時の一括 fetch は最大 30s でデバウンス
-        scheduleProfileFetch(() => {
-          qc.invalidateQueries({ queryKey: ['encounters', 'unread'] });
-          qc.invalidateQueries({ queryKey: ['encounters', 'history'] });
-          qc.invalidateQueries({ queryKey: ['encounters', 'todayCount'] });
-        });
+    const handlePayload = async (payload: BlePayload) => {
+      try {
+        const inserted = await recordEncounter(payload);
+        if (!inserted) return;
+        afterInserted();
       } catch (e) {
         console.error('[encounter-listener] failed:', e);
       }
     };
+
+    const drainNativePending = async () => {
+      try {
+        const inserted = await ble.drainPending();
+        if (inserted > 0) afterInserted();
+      } catch (e) {
+        console.warn('[encounter-listener] drain pending failed:', e);
+      }
+    };
+
+    drainNativePending();
+    restoreProfileFetchRetry(() => {
+      qc.invalidateQueries({ queryKey: ['encounters', 'unread'] });
+      qc.invalidateQueries({ queryKey: ['encounters', 'history'] });
+      qc.invalidateQueries({ queryKey: ['encounters', 'todayCount'] });
+    }).catch(() => {});
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') drainNativePending();
+    };
+    document.addEventListener('visibilitychange', onVisible);
 
     const unlistenPromise = listen<BlePayload>(
       BLE_EVENT_ENCOUNTER_FOUND,
@@ -75,44 +104,33 @@ export function useEncounterListener() {
 
     return () => {
       disposed = true;
+      document.removeEventListener('visibilitychange', onVisible);
       unlistenPromise.then((un) => un()).catch(() => {});
       pluginListener?.unregister().catch(() => {});
     };
   }, [qc]);
 }
 
-/**
- * encounter_logs への 1 行追加。クールダウン中なら捨てる。
- * users_cache は触らない (一括 fetch 側の責務)。
- */
-async function persistEncounterLog(p: BlePayload): Promise<boolean> {
-  const db = await getDb();
-  const now = Math.floor(Date.now() / 1000);
+async function recordEncounter(p: BlePayload): Promise<boolean> {
+  const userId = normalizeUserId(p.user_id);
+  if (!userId) return false;
 
-  const cooldownSec = await getCooldownSec(db);
-  const recent = await db.select<{ encountered_at: number }[]>(
-    `SELECT encountered_at FROM encounter_logs
-     WHERE encountered_user_id = $1
-     ORDER BY encountered_at DESC LIMIT 1`,
-    [p.user_id],
-  );
-  if (recent.length > 0 && now - recent[0]!.encountered_at < cooldownSec) {
-    return false;
-  }
-
-  await db.execute(
-    `INSERT INTO encounter_logs (encountered_user_id, encountered_at, is_read)
-     VALUES ($1, $2, 0)`,
-    [p.user_id, now],
-  );
-  return true;
+  return invoke<boolean>('encounter_record_received_user_id', {
+    userId,
+    encounteredAt: normalizeSeenAt(p.seen_at),
+  });
 }
 
-async function getCooldownSec(db: Database): Promise<number> {
-  const rows = await db.select<{ value: string }[]>(
-    "SELECT value FROM app_settings WHERE key = 'cooldown_sec'",
-  );
-  return Number(rows[0]?.value ?? 28800);
+function normalizeUserId(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const userId = value.trim().toLowerCase();
+  return UUID_RE.test(userId) ? userId : null;
+}
+
+function normalizeSeenAt(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0
+    ? Math.floor(value)
+    : null;
 }
 
 /**

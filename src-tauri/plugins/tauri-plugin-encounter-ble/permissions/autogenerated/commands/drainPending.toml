@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-drainPending"
+description = "Enables the drainPending command without any pre-configured scope."
+commands.allow = ["drainPending"]
+
+[[permission]]
+identifier = "deny-drainPending"
+description = "Denies the drainPending command without any pre-configured scope."
+commands.deny = ["drainPending"]
