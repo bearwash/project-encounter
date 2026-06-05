@@ -83,6 +83,8 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
     private var advertiseActive = false
     private var scanActive = false
     private var lastError: String? = null
+    private var lastSeenAt: Long? = null
+    private var lastSeenUserId: String? = null
     private val seenUserIds = ConcurrentHashMap<String, Long>()
     private val pendingGatts = ConcurrentHashMap<String, BluetoothGatt>()
     private val pendingEvents = ArrayDeque<PendingEncounter>()
@@ -156,6 +158,12 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
         res.put("advertiseActive", advertiseActive)
         res.put("scanActive", scanActive)
         res.put("seenCount", seenUserIds.size)
+        synchronized(pendingEvents) {
+            res.put("pendingCount", pendingEvents.size)
+        }
+        res.put("pendingGattCount", pendingGatts.size)
+        res.put("lastSeenAt", lastSeenAt)
+        res.put("lastSeenUserId", lastSeenUserId)
         res.put("lastError", lastError)
         invoke.resolve(res)
     }
@@ -451,6 +459,8 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
     }
 
     private fun enqueuePending(userId: String, seenAt: Long) {
+        lastSeenAt = seenAt
+        lastSeenUserId = userId
         synchronized(pendingEvents) {
             while (pendingEvents.size >= MAX_PENDING_EVENTS) {
                 pendingEvents.removeFirst()

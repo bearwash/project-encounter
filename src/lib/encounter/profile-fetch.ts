@@ -195,8 +195,7 @@ export function cancelScheduledFetch(): void {
     window.clearTimeout(retryTimer);
     retryTimer = null;
   }
-  retryAttempt = 0;
-  clearRetryState().catch(() => {});
+  resetRetry().catch(() => {});
 }
 
 async function updateRetry(
@@ -204,12 +203,7 @@ async function updateRetry(
   onDone?: (r: FetchResult) => void,
 ): Promise<void> {
   if (result.failedIds.length === 0) {
-    retryAttempt = 0;
-    if (retryTimer !== null) {
-      window.clearTimeout(retryTimer);
-      retryTimer = null;
-    }
-    await clearRetryState();
+    await resetRetry();
     return;
   }
   scheduleRetry(onDone);
@@ -258,4 +252,13 @@ async function clearRetryState(): Promise<void> {
     RETRY_AFTER_KEY,
     RETRY_ATTEMPT_KEY,
   ]);
+}
+
+async function resetRetry(): Promise<void> {
+  retryAttempt = 0;
+  if (retryTimer !== null) {
+    window.clearTimeout(retryTimer);
+    retryTimer = null;
+  }
+  await clearRetryState();
 }

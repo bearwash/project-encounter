@@ -3,7 +3,7 @@
 
 use tauri::{AppHandle, State};
 
-use crate::ble::{BleMode, BleService, BleStatus};
+use crate::ble::{BleDebugSnapshot, BleMode, BleService, BleStatus};
 use crate::commands::encounter;
 use crate::db;
 
@@ -52,11 +52,23 @@ pub fn ble_status(app: AppHandle, service: State<'_, BleService>) -> BleStatus {
 }
 
 #[tauri::command]
+pub fn ble_debug_snapshot(service: State<'_, BleService>) -> BleDebugSnapshot {
+    service.debug_snapshot()
+}
+
+#[tauri::command]
+pub fn ble_debug_note(service: State<'_, BleService>, label: String, detail: String) {
+    service.debug_event(label, detail);
+}
+
+#[tauri::command]
 pub async fn ble_drain_pending_encounters(
     app: AppHandle,
     service: State<'_, BleService>,
 ) -> Result<u32, String> {
     let pending = service.drain_pending(app.clone())?;
+    log::info!("[ble] drain pending received {} event(s)", pending.len());
+    service.debug_event("drain-command", format!("pending={}", pending.len()));
     let mut inserted = 0;
     for encounter in pending {
         if encounter::record_received_user_id_internal(
@@ -69,5 +81,7 @@ pub async fn ble_drain_pending_encounters(
             inserted += 1;
         }
     }
+    log::info!("[ble] drain pending inserted {} row(s)", inserted);
+    service.debug_event("drain-result", format!("inserted={inserted}"));
     Ok(inserted)
 }

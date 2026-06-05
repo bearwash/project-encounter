@@ -39,6 +39,10 @@ pub struct MobileBleStatus {
     pub advertise_active: bool,
     pub scan_active: bool,
     pub seen_count: u32,
+    pub pending_count: u32,
+    pub pending_gatt_count: u32,
+    pub last_seen_at: Option<i64>,
+    pub last_seen_user_id: Option<String>,
     pub last_error: Option<String>,
 }
 

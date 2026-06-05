@@ -38,6 +38,8 @@ class EncounterBlePlugin: Plugin, CBCentralManagerDelegate, CBPeripheralManagerD
   private var advertiseActive = false
   private var scanActive = false
   private var lastError: String?
+  private var lastSeenAt: Int64?
+  private var lastSeenUserId: String?
   private var discoveredUserIds = [String: Date]()
   private var pendingPeripherals = [UUID: CBPeripheral]()
   private var pendingEvents = [PendingEncounter]()
@@ -99,6 +101,10 @@ class EncounterBlePlugin: Plugin, CBCentralManagerDelegate, CBPeripheralManagerD
       "advertiseActive": advertiseActive,
       "scanActive": scanActive,
       "seenCount": discoveredUserIds.count,
+      "pendingCount": pendingEvents.count,
+      "pendingGattCount": pendingPeripherals.count,
+      "lastSeenAt": lastSeenAt.map { $0 as Any } ?? NSNull(),
+      "lastSeenUserId": lastSeenUserId.map { $0 as Any } ?? NSNull(),
       "lastError": lastError.map { $0 as Any } ?? NSNull(),
     ])
   }
@@ -301,6 +307,8 @@ class EncounterBlePlugin: Plugin, CBCentralManagerDelegate, CBPeripheralManagerD
   }
 
   private func enqueuePending(userId: String, seenAt: Int64) {
+    lastSeenAt = seenAt
+    lastSeenUserId = userId
     while pendingEvents.count >= maxPendingEvents {
       pendingEvents.removeFirst()
     }

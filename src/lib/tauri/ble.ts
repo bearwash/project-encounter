@@ -16,6 +16,12 @@ export type BleStatus = {
   advertise_active: boolean;
   scan_active: boolean;
   seen_count: number;
+  pending_count: number;
+  pending_gatt_count: number;
+  last_seen_at: number | null;
+  last_seen_user_id: string | null;
+  last_drained_count: number;
+  last_drained_at: number | null;
   last_error: string | null;
 };
 
@@ -31,6 +37,18 @@ export type BlePayload = {
   seen_at?: number;
 };
 
+export type BleDebugEvent = {
+  at: number;
+  label: string;
+  detail: string;
+};
+
+export type BleDebugSnapshot = {
+  backend: BleBackend;
+  mode: BleMode;
+  events: BleDebugEvent[];
+};
+
 export const BLE_EVENT_ENCOUNTER_FOUND = 'ble://encounter-found';
 
 const OFFLINE_STATUS: BleStatus = {
@@ -41,7 +59,19 @@ const OFFLINE_STATUS: BleStatus = {
   advertise_active: false,
   scan_active: false,
   seen_count: 0,
+  pending_count: 0,
+  pending_gatt_count: 0,
+  last_seen_at: null,
+  last_seen_user_id: null,
+  last_drained_count: 0,
+  last_drained_at: null,
   last_error: null,
+};
+
+const OFFLINE_DEBUG: BleDebugSnapshot = {
+  backend: 'mock',
+  mode: 'idle',
+  events: [],
 };
 
 const ifTauri = <T>(fn: () => Promise<T>): Promise<T> =>
@@ -75,4 +105,12 @@ export const ble = {
       : Promise.resolve(0),
   status: (): Promise<BleStatus> =>
     isTauri() ? invoke<BleStatus>('ble_status') : Promise.resolve(OFFLINE_STATUS),
+  debugSnapshot: (): Promise<BleDebugSnapshot> =>
+    isTauri()
+      ? invoke<BleDebugSnapshot>('ble_debug_snapshot')
+      : Promise.resolve(OFFLINE_DEBUG),
+  debugNote: (label: string, detail: string): Promise<void> =>
+    isTauri()
+      ? invoke<void>('ble_debug_note', { label, detail })
+      : Promise.resolve(),
 };

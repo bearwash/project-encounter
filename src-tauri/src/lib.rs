@@ -45,6 +45,8 @@ pub fn run() {
             commands::ble::ble_walk_mode_start,
             commands::ble::ble_walk_mode_stop,
             commands::ble::ble_status,
+            commands::ble::ble_debug_snapshot,
+            commands::ble::ble_debug_note,
             commands::ble::ble_drain_pending_encounters,
             commands::profile::profile_get,
             commands::profile::profile_save,

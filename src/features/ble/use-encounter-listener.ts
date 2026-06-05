@@ -18,6 +18,11 @@ import { isTauri } from '@/lib/tauri/env';
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const ENCOUNTER_QUERY_KEYS = [
+  ['encounters', 'unread'],
+  ['encounters', 'history'],
+  ['encounters', 'todayCount'],
+] as const;
 
 /**
  * Tauri event `ble://encounter-found` を購読し、
@@ -40,22 +45,31 @@ export function useEncounterListener() {
     let pluginListener: PluginListener | null = null;
     let disposed = false;
 
-    const afterInserted = () => {
-      qc.invalidateQueries({ queryKey: ['encounters', 'unread'] });
-      qc.invalidateQueries({ queryKey: ['encounters', 'history'] });
-      qc.invalidateQueries({ queryKey: ['encounters', 'todayCount'] });
+    const invalidateEncounters = () => {
+      for (const queryKey of ENCOUNTER_QUERY_KEYS) {
+        qc.invalidateQueries({ queryKey });
+      }
+    };
 
+    const afterInserted = () => {
+      invalidateEncounters();
       // §5.4.1: 受信時の一括 fetch は最大 30s でデバウンス
-      scheduleProfileFetch(() => {
-        qc.invalidateQueries({ queryKey: ['encounters', 'unread'] });
-        qc.invalidateQueries({ queryKey: ['encounters', 'history'] });
-        qc.invalidateQueries({ queryKey: ['encounters', 'todayCount'] });
-      });
+      scheduleProfileFetch(invalidateEncounters);
     };
 
     const handlePayload = async (payload: BlePayload) => {
       try {
+        console.info('[encounter-listener] event', {
+          user_id: shortUserId(payload.user_id),
+          seen_at: payload.seen_at ?? null,
+        });
+        debugNote('event', `${shortUserId(payload.user_id)} seen=${payload.seen_at ?? 'now'}`);
         const inserted = await recordEncounter(payload);
+        console.info('[encounter-listener] record result', {
+          inserted,
+          user_id: shortUserId(payload.user_id),
+        });
+        debugNote('record', `${inserted ? 'inserted' : 'skipped'} ${shortUserId(payload.user_id)}`);
         if (!inserted) return;
         afterInserted();
       } catch (e) {
@@ -66,6 +80,8 @@ export function useEncounterListener() {
     const drainNativePending = async () => {
       try {
         const inserted = await ble.drainPending();
+        console.info('[encounter-listener] drained pending', { inserted });
+        debugNote('drain-ui', `inserted=${inserted}`);
         if (inserted > 0) afterInserted();
       } catch (e) {
         console.warn('[encounter-listener] drain pending failed:', e);
@@ -73,11 +89,7 @@ export function useEncounterListener() {
     };
 
     drainNativePending();
-    restoreProfileFetchRetry(() => {
-      qc.invalidateQueries({ queryKey: ['encounters', 'unread'] });
-      qc.invalidateQueries({ queryKey: ['encounters', 'history'] });
-      qc.invalidateQueries({ queryKey: ['encounters', 'todayCount'] });
-    }).catch(() => {});
+    restoreProfileFetchRetry(invalidateEncounters).catch(() => {});
     const onVisible = () => {
       if (document.visibilityState === 'visible') drainNativePending();
     };
@@ -131,6 +143,15 @@ function normalizeSeenAt(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) && value > 0
     ? Math.floor(value)
     : null;
+}
+
+function shortUserId(value: unknown): string {
+  if (typeof value !== 'string') return 'invalid';
+  return value.length > 8 ? value.slice(-8) : value;
+}
+
+function debugNote(label: string, detail: string): void {
+  ble.debugNote(label, detail).catch(() => {});
 }
 
 /**

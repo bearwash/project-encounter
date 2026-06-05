@@ -1,20 +1,27 @@
 'use client';
 
 import type { BleStatus } from '@/lib/tauri/ble';
-import { useStartBle, useStopBle } from './use-ble-status';
+import {
+  useBleDebugSnapshot,
+  useStartBle,
+  useStopBle,
+} from './use-ble-status';
 
 export function BlePanel({ status }: { status: BleStatus | undefined }) {
   const start = useStartBle();
   const stop = useStopBle();
+  const debug = useBleDebugSnapshot();
 
   const mode = status?.mode ?? 'idle';
   const pending = start.isPending || stop.isPending;
+  const events = debug.data?.events.slice(-6).reverse() ?? [];
 
   return (
-    <section className="flex items-center justify-between gap-3 rounded-toy border border-cream-deep bg-cream-soft px-4 py-3 shadow-toy">
-      <div className="flex min-w-0 items-center gap-3">
-        <Indicator mode={mode} />
-        <div className="flex min-w-0 flex-col gap-1">
+    <section className="rounded-toy border border-cream-deep bg-cream-soft px-4 py-3 shadow-toy">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <Indicator mode={mode} />
+          <div className="flex min-w-0 flex-col gap-1">
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-bold tracking-widest text-ink-muted">
               BLE
@@ -50,7 +57,22 @@ export function BlePanel({ status }: { status: BleStatus | undefined }) {
               <span className="rounded-full bg-cream-deep px-1.5 py-0.5 text-[9px] font-black tracking-widest text-ink-muted">
                 SEEN {status.seen_count}
               </span>
+              <span className="rounded-full bg-cream-deep px-1.5 py-0.5 text-[9px] font-black tracking-widest text-ink-muted">
+                PEND {status.pending_count}
+              </span>
+              <span className="rounded-full bg-cream-deep px-1.5 py-0.5 text-[9px] font-black tracking-widest text-ink-muted">
+                GATT {status.pending_gatt_count}
+              </span>
+              <span className="rounded-full bg-cream-deep px-1.5 py-0.5 text-[9px] font-black tracking-widest text-ink-muted">
+                DRAIN {status.last_drained_count}
+              </span>
             </div>
+          )}
+          {status?.last_seen_user_id && (
+            <span className="max-w-[220px] truncate text-[10px] font-bold text-ink-muted">
+              LAST {shortUserId(status.last_seen_user_id)}{' '}
+              {formatSeenAt(status.last_seen_at)}
+            </span>
           )}
           {status?.last_error && (
             <span className="max-w-[220px] truncate text-[10px] font-bold text-pop-red">
@@ -58,28 +80,56 @@ export function BlePanel({ status }: { status: BleStatus | undefined }) {
             </span>
           )}
         </div>
+        </div>
+        <div>
+          {mode === 'idle' ? (
+            <button
+              onClick={() => start.mutate()}
+              disabled={pending}
+              className="rounded-toy border border-pop-green bg-pop-green px-4 py-1.5 text-xs font-bold tracking-wider text-cream-soft shadow-toy transition active:translate-y-[2px] active:shadow-none disabled:opacity-50"
+            >
+              開始
+            </button>
+          ) : mode === 'normal' ? (
+            <button
+              onClick={() => stop.mutate()}
+              disabled={pending}
+              className="rounded-toy border border-cream-deep bg-cream px-4 py-1.5 text-xs font-bold tracking-wider text-ink-soft shadow-toy transition active:translate-y-[2px] active:shadow-none disabled:opacity-50"
+            >
+              停止
+            </button>
+          ) : null}
+        </div>
       </div>
-      <div>
-        {mode === 'idle' ? (
-          <button
-            onClick={() => start.mutate()}
-            disabled={pending}
-            className="rounded-toy border border-pop-green bg-pop-green px-4 py-1.5 text-xs font-bold tracking-wider text-cream-soft shadow-toy transition active:translate-y-[2px] active:shadow-none disabled:opacity-50"
-          >
-            開始
-          </button>
-        ) : mode === 'normal' ? (
-          <button
-            onClick={() => stop.mutate()}
-            disabled={pending}
-            className="rounded-toy border border-cream-deep bg-cream px-4 py-1.5 text-xs font-bold tracking-wider text-ink-soft shadow-toy transition active:translate-y-[2px] active:shadow-none disabled:opacity-50"
-          >
-            停止
-          </button>
-        ) : null}
-      </div>
+      {events.length > 0 && (
+        <div className="mt-3 grid gap-1 border-t border-cream-deep pt-2">
+          {events.map((event) => (
+            <div
+              key={`${event.at}-${event.label}-${event.detail}`}
+              className="grid grid-cols-[64px_88px_minmax(0,1fr)] gap-2 text-[10px] font-bold text-ink-muted"
+            >
+              <span className="font-mono">{formatSeenAt(event.at)}</span>
+              <span className="truncate text-pop-blue">{event.label}</span>
+              <span className="truncate font-mono">{event.detail}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
+}
+
+function shortUserId(value: string): string {
+  return value.length > 8 ? value.slice(-8) : value;
+}
+
+function formatSeenAt(value: number | null): string {
+  if (!value) return '';
+  return new Date(value * 1000).toLocaleTimeString('ja-JP', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
 }
 
 function StateChip({ label, active }: { label: string; active: boolean }) {

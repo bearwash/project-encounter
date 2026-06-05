@@ -13,7 +13,7 @@
 pub mod payload;
 pub mod profile_resolver;
 
-use std::sync::Mutex;
+use std::{collections::VecDeque, sync::Mutex};
 
 use rand::Rng;
 use serde::{Deserialize, Serialize};
@@ -26,6 +26,7 @@ use uuid::Uuid;
 use self::payload::BlePayload;
 
 pub const EVENT_ENCOUNTER_FOUND: &str = "ble://encounter-found";
+const DEBUG_EVENTS_MAX: usize = 32;
 
 /// アプリ固有 BLE Service UUID。spec ble-handshake.md §4.1 で確定。
 /// scan のフィルタおよび advertise の Service Data Service UUID として使う。
@@ -62,7 +63,27 @@ pub struct BleStatus {
     pub advertise_active: bool,
     pub scan_active: bool,
     pub seen_count: u32,
+    pub pending_count: u32,
+    pub pending_gatt_count: u32,
+    pub last_seen_at: Option<i64>,
+    pub last_seen_user_id: Option<String>,
+    pub last_drained_count: u32,
+    pub last_drained_at: Option<i64>,
     pub last_error: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct BleDebugEvent {
+    pub at: i64,
+    pub label: String,
+    pub detail: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct BleDebugSnapshot {
+    pub backend: BleBackend,
+    pub mode: BleMode,
+    pub events: Vec<BleDebugEvent>,
 }
 
 pub struct BleService {
@@ -73,6 +94,9 @@ pub struct BleService {
 struct Inner {
     mode: BleMode,
     task: Option<async_runtime::JoinHandle<()>>,
+    last_drained_count: u32,
+    last_drained_at: Option<i64>,
+    debug_events: VecDeque<BleDebugEvent>,
 }
 
 impl BleService {
@@ -86,6 +110,9 @@ impl BleService {
             inner: Mutex::new(Inner {
                 mode: BleMode::Idle,
                 task: None,
+                last_drained_count: 0,
+                last_drained_at: None,
+                debug_events: VecDeque::with_capacity(DEBUG_EVENTS_MAX),
             }),
             backend,
         }
@@ -108,6 +135,12 @@ impl BleService {
             advertise_active: matches!(self.backend, BleBackend::Mock) && active,
             scan_active: active,
             seen_count: 0,
+            pending_count: 0,
+            pending_gatt_count: 0,
+            last_seen_at: None,
+            last_seen_user_id: None,
+            last_drained_count: inner.last_drained_count,
+            last_drained_at: inner.last_drained_at,
             last_error: None,
         };
 
@@ -119,6 +152,10 @@ impl BleService {
                 status.advertise_active = native.advertise_active;
                 status.scan_active = native.scan_active;
                 status.seen_count = native.seen_count;
+                status.pending_count = native.pending_count;
+                status.pending_gatt_count = native.pending_gatt_count;
+                status.last_seen_at = native.last_seen_at;
+                status.last_seen_user_id = native.last_seen_user_id;
                 status.last_error = native.last_error;
             }
         }
@@ -138,6 +175,7 @@ impl BleService {
         }
         inner.mode = mode;
         let backend = self.backend;
+        push_debug(&mut inner, "start", format!("backend={backend:?} mode={mode:?}"));
 
         if matches!(backend, BleBackend::TauriPlugin) {
             #[cfg(mobile)]
@@ -147,6 +185,7 @@ impl BleService {
                 })?;
                 if let Err(e) = app.encounter_ble().start(&user_id, mode.into()) {
                     inner.mode = BleMode::Idle;
+                    push_debug(&mut inner, "start-error", e.clone());
                     return Err(e);
                 }
                 return Ok(());
@@ -155,6 +194,7 @@ impl BleService {
             {
                 let _ = user_id;
                 inner.mode = BleMode::Idle;
+                push_debug(&mut inner, "start-error", "native plugin unavailable");
                 return Err("encounter BLE native plugin is only available on mobile".to_string());
             }
         }
@@ -202,6 +242,7 @@ impl BleService {
         if let Some(h) = inner.task.take() {
             h.abort();
         }
+        push_debug(&mut inner, "stop", format!("backend={:?}", self.backend));
         if matches!(self.backend, BleBackend::TauriPlugin) {
             #[cfg(mobile)]
             if let Err(e) = app.encounter_ble().stop() {
@@ -215,16 +256,65 @@ impl BleService {
         &self,
         app: AppHandle,
     ) -> Result<Vec<tauri_plugin_encounter_ble::MobileEncounter>, String> {
-        if matches!(self.backend, BleBackend::TauriPlugin) {
+        let drained = if matches!(self.backend, BleBackend::TauriPlugin) {
             #[cfg(mobile)]
             {
-                return app.encounter_ble().drain_pending();
+                app.encounter_ble().drain_pending()?
             }
-        }
-        #[cfg(not(mobile))]
-        let _ = app;
-        Ok(Vec::new())
+            #[cfg(not(mobile))]
+            {
+                let _ = app;
+                Vec::new()
+            }
+        } else {
+            #[cfg(not(mobile))]
+            let _ = app;
+            Vec::new()
+        };
+
+        let mut inner = self.inner.lock().expect("ble lock poisoned");
+        inner.last_drained_count = drained.len() as u32;
+        let drained_at = unix_now();
+        inner.last_drained_at = Some(drained_at);
+        push_debug(
+            &mut inner,
+            "drain",
+            format!("received={} at={drained_at}", drained.len()),
+        );
+        Ok(drained)
     }
+
+    pub fn debug_snapshot(&self) -> BleDebugSnapshot {
+        let inner = self.inner.lock().expect("ble lock poisoned");
+        BleDebugSnapshot {
+            backend: self.backend,
+            mode: inner.mode,
+            events: inner.debug_events.iter().cloned().collect(),
+        }
+    }
+
+    pub fn debug_event(&self, label: impl Into<String>, detail: impl Into<String>) {
+        let mut inner = self.inner.lock().expect("ble lock poisoned");
+        push_debug(&mut inner, label, detail);
+    }
+}
+
+fn unix_now() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs() as i64)
+        .unwrap_or(0)
+}
+
+fn push_debug(inner: &mut Inner, label: impl Into<String>, detail: impl Into<String>) {
+    if inner.debug_events.len() >= DEBUG_EVENTS_MAX {
+        inner.debug_events.pop_front();
+    }
+    inner.debug_events.push_back(BleDebugEvent {
+        at: unix_now(),
+        label: label.into(),
+        detail: detail.into(),
+    });
 }
 
 impl From<BleMode> for MobileBleMode {

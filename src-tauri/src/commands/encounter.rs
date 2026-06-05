@@ -2,6 +2,7 @@
 //! 契約: docs/contracts/tauri-commands.md (encounter.*)
 
 use serde::Serialize;
+use sqlx::{Sqlite, Transaction};
 use tauri::AppHandle;
 use uuid::Uuid;
 
@@ -66,10 +67,8 @@ pub async fn record_received_user_id_internal(
         .map_err(|e| format!("failed to read my profile user_id: {e}"))?
         .map(|(id,)| id);
     if my_user_id.as_deref() == Some(user_id.as_str()) {
-        tx.commit()
-            .await
-            .map_err(|e| format!("failed to finish encounter transaction: {e}"))?;
-        return Ok(false);
+        log::info!("[encounter] skipped self user_id={}", tail(&user_id));
+        return finish_without_insert(tx).await;
     }
 
     let cooldown_sec = sqlx::query_as::<_, (String,)>(
@@ -94,10 +93,12 @@ pub async fn record_received_user_id_internal(
     .map_err(|e| format!("failed to check duplicate encounter: {e}"))?
     .is_some();
     if exact_duplicate {
-        tx.commit()
-            .await
-            .map_err(|e| format!("failed to finish encounter transaction: {e}"))?;
-        return Ok(false);
+        log::info!(
+            "[encounter] skipped exact duplicate user_id={} at={}",
+            tail(&user_id),
+            now
+        );
+        return finish_without_insert(tx).await;
     }
 
     let recent = sqlx::query_as::<_, (i64,)>(
@@ -111,10 +112,13 @@ pub async fn record_received_user_id_internal(
     .map_err(|e| format!("failed to read recent encounter: {e}"))?
     .map(|(encountered_at,)| encountered_at);
     if recent.is_some_and(|last| now - last < cooldown_sec) {
-        tx.commit()
-            .await
-            .map_err(|e| format!("failed to finish encounter transaction: {e}"))?;
-        return Ok(false);
+        log::info!(
+            "[encounter] skipped cooldown user_id={} at={} cooldown_sec={}",
+            tail(&user_id),
+            now,
+            cooldown_sec
+        );
+        return finish_without_insert(tx).await;
     }
 
     sqlx::query(
@@ -130,6 +134,7 @@ pub async fn record_received_user_id_internal(
     tx.commit()
         .await
         .map_err(|e| format!("failed to commit encounter transaction: {e}"))?;
+    log::info!("[encounter] inserted user_id={} at={}", tail(&user_id), now);
     Ok(true)
 }
 
@@ -217,6 +222,19 @@ fn unix_now() -> i64 {
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_secs() as i64)
         .unwrap_or(0)
+}
+
+async fn finish_without_insert(tx: Transaction<'_, Sqlite>) -> Result<bool, String> {
+    tx.commit()
+        .await
+        .map_err(|e| format!("failed to finish encounter transaction: {e}"))?;
+    Ok(false)
+}
+
+fn tail(value: &str) -> &str {
+    value
+        .get(value.len().saturating_sub(8)..)
+        .unwrap_or(value)
 }
 
 #[tauri::command]
