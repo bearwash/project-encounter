@@ -6,10 +6,9 @@
 //
 // チェック項目:
 // - /avatar-preview が 200 で開く
-// - 4 軸 SVG パーツが全アバターで描画されている
+// - 3D Canvas が全アバターで描画されている
 // - AvatarEditor のタブ切替で表示パーツが入れ替わる
 // - パーツボタン押下で上部 3 体 (idle/walking/popup) のコードが同期する
-// - CSS アニメ (breath / step / blink) が running
 // - フォールバック 4 ケース (empty / xyz / unknown-id / 旧形式) でクラッシュなし
 // - console エラー / pageerror / requestfailed なし
 
@@ -29,6 +28,16 @@ const consoleMessages = [];
 const pageErrors = [];
 const failedRequests = [];
 
+async function waitForAvatarCanvas(testId) {
+  const canvas = page.locator(`[data-testid="${testId}"] .avatar-root canvas`);
+  await canvas.waitFor({ state: 'visible', timeout: 15_000 });
+  const box = await canvas.boundingBox();
+  if (!box || box.width < 24 || box.height < 36) {
+    throw new Error(`${testId} canvas has invalid box: ${JSON.stringify(box)}`);
+  }
+  return box;
+}
+
 page.on('console', (m) => consoleMessages.push({ type: m.type(), text: m.text() }));
 page.on('pageerror', (e) => pageErrors.push(e.message));
 page.on('requestfailed', (r) => failedRequests.push(`${r.method()} ${r.url()} — ${r.failure()?.errorText}`));
@@ -37,21 +46,11 @@ console.log(`▶ ${BASE}`);
 const resp = await page.goto(BASE, { waitUntil: 'networkidle', timeout: 30_000 });
 console.log(`  status: ${resp?.status()}`);
 
-// 全 avatar (3 modes + 4 fallback + editor preview + 4 swatch = 12) の layer が
-// 埋まるまで待つ。最初の 3 体だけでも先に確認する。
-await page.waitForSelector('[data-testid="mode-idle"] .avatar-figure', { timeout: 15_000 });
-await page.waitForFunction(
-  () => {
-    const ids = ['mode-idle', 'mode-walking', 'mode-popup'];
-    return ids.every((id) => {
-      const svg = document.querySelector(`[data-testid="${id}"] .avatar-figure`);
-      return svg && ['base', 'hair', 'outfit', 'face'].every(
-        (a) => svg.querySelector(`.layer-${a}`)?.innerHTML.trim(),
-      );
-    });
-  },
-  { timeout: 15_000 },
-);
+// 最初の 3 モードで Canvas が初期化されるまで待つ。
+for (const id of ['mode-idle', 'mode-walking', 'mode-popup']) {
+  const box = await waitForAvatarCanvas(id);
+  console.log(`  ${id} canvas: ${Math.round(box.width)}x${Math.round(box.height)}`);
+}
 
 const initialCode = await page.locator('[data-testid="avatar-code-top"]').textContent();
 console.log(`  initial code: ${initialCode}`);
@@ -66,7 +65,9 @@ for (const tab of tabs) {
   await page.waitForFunction(
     (label) => {
       const axis = label.toLowerCase();
-      return document.querySelectorAll(`[data-testid^="pick-${axis}-"]`).length === 4;
+      return [1, 2, 3, 4].every((n) =>
+        document.querySelector(`[data-testid="pick-${axis}-0${n}"]`),
+      );
     },
     tab,
     { timeout: 5_000 },
@@ -92,28 +93,7 @@ console.log(`  after picks: ${pickedCode}`);
 
 await page.screenshot({ path: `${OUT_DIR}/02-picked.png`, fullPage: true });
 
-// --- アニメ確認: CSS @keyframes が running か ---
-const animProbe = await page.evaluate(() => {
-  const probe = (sel) => {
-    const el = document.querySelector(sel);
-    if (!el) return null;
-    const cs = getComputedStyle(el);
-    return {
-      name: cs.animationName,
-      duration: cs.animationDuration,
-      state: cs.animationPlayState,
-    };
-  };
-  return {
-    breath: probe('[data-testid="mode-idle"] .avatar-figure'),
-    stepL: probe('[data-testid="mode-walking"] .avatar-figure .leg-l'),
-    stepR: probe('[data-testid="mode-walking"] .avatar-figure .leg-r'),
-    blink: probe('[data-testid="mode-idle"] .avatar-figure .eyes'),
-  };
-});
-console.log('  anim:', JSON.stringify(animProbe));
-
-// --- フォールバック: 4 ケースすべて 4 軸描画されているか ---
+// --- フォールバック: 4 ケースすべて Canvas が描画されているか ---
 const fallback = await page.evaluate(() => {
   const ids = [
     'fallback-empty',
@@ -122,17 +102,20 @@ const fallback = await page.evaluate(() => {
     'fallback-b01_h02_o03',
   ];
   return ids.map((id) => {
-    const fig = document.querySelector(`[data-testid="${id}"] .avatar-figure`);
+    const canvas = document.querySelector(`[data-testid="${id}"] .avatar-root canvas`);
+    const rect = canvas?.getBoundingClientRect();
     return {
       id,
-      base: !!fig?.querySelector('.layer-base')?.innerHTML.trim(),
-      hair: !!fig?.querySelector('.layer-hair')?.innerHTML.trim(),
-      outfit: !!fig?.querySelector('.layer-outfit')?.innerHTML.trim(),
-      face: !!fig?.querySelector('.layer-face')?.innerHTML.trim(),
+      canvas: !!canvas,
+      width: rect?.width ?? 0,
+      height: rect?.height ?? 0,
     };
   });
 });
 console.log('  fallback:', JSON.stringify(fallback));
+if (fallback.some((f) => !f.canvas || f.width < 24 || f.height < 36)) {
+  throw new Error(`fallback canvas check failed: ${JSON.stringify(fallback)}`);
+}
 
 await page.screenshot({ path: `${OUT_DIR}/03-fallback.png`, fullPage: true });
 

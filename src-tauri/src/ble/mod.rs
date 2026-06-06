@@ -175,7 +175,11 @@ impl BleService {
         }
         inner.mode = mode;
         let backend = self.backend;
-        push_debug(&mut inner, "start", format!("backend={backend:?} mode={mode:?}"));
+        push_debug(
+            &mut inner,
+            "start",
+            format!("backend={backend:?} mode={mode:?}"),
+        );
 
         if matches!(backend, BleBackend::TauriPlugin) {
             #[cfg(mobile)]

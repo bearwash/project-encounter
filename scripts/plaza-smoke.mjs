@@ -18,6 +18,16 @@ const consoleMessages = [];
 const pageErrors = [];
 const failedRequests = [];
 
+async function waitForPlazaCanvas() {
+  const canvas = page.locator('[data-testid="encounter-plaza-3d"] canvas');
+  await canvas.waitFor({ state: 'visible', timeout: 15_000 });
+  const box = await canvas.boundingBox();
+  if (!box || box.width < 300 || box.height < 300) {
+    throw new Error(`plaza canvas has invalid box: ${JSON.stringify(box)}`);
+  }
+  return box;
+}
+
 page.on('console', (m) => consoleMessages.push({ type: m.type(), text: m.text() }));
 page.on('pageerror', (e) => pageErrors.push(e.message));
 page.on('requestfailed', (r) => failedRequests.push(`${r.method()} ${r.url()} — ${r.failure()?.errorText}`));
@@ -28,80 +38,48 @@ console.log(`  status: ${resp?.status()}`);
 
 // --- 空状態 ---
 await page.locator('[data-testid="count-0"]').click();
-await page.waitForFunction(
-  () => document.querySelector('[data-testid="plaza-stage"]') === null,
-  { timeout: 5_000 },
-);
-const emptyText = await page.getByText('歩き出すと、ここに住人が増えていきます').count();
+await waitForPlazaCanvas();
+await page.getByText('まだだれもいないみたい').waitFor({ timeout: 5_000 });
+await page.getByText('歩き出すと、ここに住人が増えていくよ').waitFor({ timeout: 5_000 });
+const emptyText = await page.getByText('まだだれもいないみたい').count();
 console.log(`  empty state visible: ${emptyText === 1}`);
 await page.screenshot({ path: `${OUT_DIR}/01-empty.png`, fullPage: true });
 
 // --- 1 人 ---
 await page.locator('[data-testid="count-1"]').click();
-await page.waitForSelector('[data-testid="plaza-stage"]', { timeout: 5_000 });
-await page.waitForFunction(
-  () => document.querySelectorAll('[data-testid^="plaza-resident-"]').length === 1,
-);
-const stageWidth1 = await page.evaluate(
-  () => document.querySelector('[data-testid="plaza-stage"]').getBoundingClientRect().width,
-);
-console.log(`  1 person stage width: ${stageWidth1}`);
+await page.getByText('住人 1 人').waitFor({ timeout: 5_000 });
+const canvas1 = await waitForPlazaCanvas();
+console.log(`  1 person canvas: ${Math.round(canvas1.width)}x${Math.round(canvas1.height)}`);
 await page.screenshot({ path: `${OUT_DIR}/02-one.png`, fullPage: true });
 
-// --- 32 人: ステージ幅が拡張、横スクロール可 ---
+// --- 32 人: Canvas が維持され、カメラパンできる ---
 await page.locator('[data-testid="count-32"]').click();
-await page.waitForFunction(
-  () => document.querySelectorAll('[data-testid^="plaza-resident-"]').length === 32,
-);
-const stageWidth32 = await page.evaluate(
-  () => document.querySelector('[data-testid="plaza-stage"]').getBoundingClientRect().width,
-);
-console.log(`  32 people stage width: ${stageWidth32}`);
+await page.getByText('住人 32 人').waitFor({ timeout: 5_000 });
+const canvas32 = await waitForPlazaCanvas();
+await page.mouse.move(canvas32.x + canvas32.width * 0.75, canvas32.y + canvas32.height * 0.5);
+await page.mouse.down();
+await page.mouse.move(canvas32.x + canvas32.width * 0.25, canvas32.y + canvas32.height * 0.5, {
+  steps: 8,
+});
+await page.mouse.up();
+console.log(`  32 people canvas: ${Math.round(canvas32.width)}x${Math.round(canvas32.height)}`);
 await page.screenshot({ path: `${OUT_DIR}/03-thirty-two.png`, fullPage: true });
 
-// --- 60 人: ステージがさらに 2 倍に ---
+// --- 60 人: 多人数でも Canvas が落ちない ---
 await page.locator('[data-testid="count-60"]').click();
-await page.waitForFunction(
-  () => document.querySelectorAll('[data-testid^="plaza-resident-"]').length === 60,
-);
-const stageWidth60 = await page.evaluate(
-  () => document.querySelector('[data-testid="plaza-stage"]').getBoundingClientRect().width,
-);
-console.log(`  60 people stage width: ${stageWidth60}`);
+await page.getByText('住人 60 人').waitFor({ timeout: 5_000 });
+const canvas60 = await waitForPlazaCanvas();
+console.log(`  60 people canvas: ${Math.round(canvas60.width)}x${Math.round(canvas60.height)}`);
 await page.screenshot({ path: `${OUT_DIR}/04-sixty.png`, fullPage: true });
 
-// --- 8 人 で詳細パネルテスト ---
+// --- 8 人 + 合流アニメテスト ---
 await page.locator('[data-testid="count-8"]').click();
-await page.waitForFunction(
-  () => document.querySelectorAll('[data-testid^="plaza-resident-"]').length === 8,
-);
-
-// 1 体目をタップ
-const first = page.locator('[data-testid^="plaza-resident-"]').first();
-await first.click({ force: true });
-await page.waitForSelector('[data-testid="plaza-detail-panel"]', { timeout: 5_000 });
-console.log('  detail panel opened');
-await page.screenshot({ path: `${OUT_DIR}/05-detail.png`, fullPage: true });
-
-// 背面 (overlay) クリックで閉じる
-await page.locator('.bg-ink\\/40').click();
-await page.waitForFunction(
-  () => document.querySelector('[data-testid="plaza-detail-panel"]') === null,
-);
-console.log('  detail panel closed');
-
-// --- 自律行動: 2 秒待って住人が動いているか (状態が時間とともに変わるか) ---
-const before = await page.evaluate(() => {
-  const residents = document.querySelectorAll('[data-testid^="plaza-resident-"]');
-  return Array.from(residents).map((el) => el.getAttribute('data-state'));
-});
-await page.waitForTimeout(3500);
-const after = await page.evaluate(() => {
-  const residents = document.querySelectorAll('[data-testid^="plaza-resident-"]');
-  return Array.from(residents).map((el) => el.getAttribute('data-state'));
-});
-const changed = before.filter((s, i) => s !== after[i]).length;
-console.log(`  residents that changed state in 3.5s: ${changed} / ${before.length}`);
+await page.getByText('住人 8 人').waitFor({ timeout: 5_000 });
+await waitForPlazaCanvas();
+await page.locator('[data-testid="join-demo"]').click();
+await page.waitForTimeout(2200);
+await page.screenshot({ path: `${OUT_DIR}/05-join-demo.png`, fullPage: true });
+console.log('  join demo replayed');
 
 // --- レポート ---
 console.log('\n=== console ===');

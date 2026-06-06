@@ -71,15 +71,14 @@ pub async fn record_received_user_id_internal(
         return finish_without_insert(tx).await;
     }
 
-    let cooldown_sec = sqlx::query_as::<_, (String,)>(
-        "SELECT value FROM app_settings WHERE key = 'cooldown_sec'",
-    )
-    .fetch_optional(&mut *tx)
-    .await
-    .map_err(|e| format!("failed to read cooldown_sec: {e}"))?
-    .and_then(|(value,)| value.parse::<i64>().ok())
-    .filter(|sec| *sec >= 0)
-    .unwrap_or(DEFAULT_COOLDOWN_SEC);
+    let cooldown_sec =
+        sqlx::query_as::<_, (String,)>("SELECT value FROM app_settings WHERE key = 'cooldown_sec'")
+            .fetch_optional(&mut *tx)
+            .await
+            .map_err(|e| format!("failed to read cooldown_sec: {e}"))?
+            .and_then(|(value,)| value.parse::<i64>().ok())
+            .filter(|sec| *sec >= 0)
+            .unwrap_or(DEFAULT_COOLDOWN_SEC);
 
     let exact_duplicate = sqlx::query_as::<_, (i64,)>(
         r#"SELECT log_id FROM encounter_logs
@@ -232,9 +231,7 @@ async fn finish_without_insert(tx: Transaction<'_, Sqlite>) -> Result<bool, Stri
 }
 
 fn tail(value: &str) -> &str {
-    value
-        .get(value.len().saturating_sub(8)..)
-        .unwrap_or(value)
+    value.get(value.len().saturating_sub(8)..).unwrap_or(value)
 }
 
 #[tauri::command]

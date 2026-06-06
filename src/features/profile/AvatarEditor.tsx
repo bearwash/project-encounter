@@ -13,6 +13,12 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useMemo, useState } from 'react';
 import { Avatar } from '@/features/encounter/Avatar';
 import {
+  findBase,
+  findHair,
+  findOutfit,
+  type AxisKey as CatalogAxisKey,
+} from '@/features/encounter/parts/catalog';
+import {
   avatarCodeFromParts,
   resolveAvatarCode,
   type ResolvedAvatar,
@@ -82,7 +88,6 @@ export function AvatarEditor({
             className="grid grid-cols-4 gap-2"
           >
             {manifest.axes[activeAxis].map((part) => {
-              const swatchCode = avatarCodeFromParts({ ...parts, [activeAxis]: part.id });
               const selected = parts[activeAxis] === part.id;
               return (
                 <PartSwatch
@@ -90,7 +95,6 @@ export function AvatarEditor({
                   axis={activeAxis}
                   id={part.id}
                   label={part.label}
-                  swatchCode={swatchCode}
                   selected={selected}
                   onClick={() => handlePick(activeAxis, part.id)}
                 />
@@ -166,14 +170,12 @@ function PartSwatch({
   axis,
   id,
   label,
-  swatchCode,
   selected,
   onClick,
 }: {
   axis: AxisKey;
   id: string;
   label: string;
-  swatchCode: string;
   selected: boolean;
   onClick: () => void;
 }) {
@@ -195,12 +197,74 @@ function PartSwatch({
           : 'border-cream-deep bg-cream-soft'
       }`}
     >
-      <div className="pointer-events-none">
-        <Avatar code={swatchCode} mode="idle" size={48} />
-      </div>
+      <PartSwatchPreview axis={axis} id={id} />
       <span className={`text-[10px] font-bold tracking-widest ${selected ? 'text-pop-red' : 'text-ink-soft'}`}>
         {id}
       </span>
     </motion.button>
+  );
+}
+
+function PartSwatchPreview({ axis, id }: { axis: CatalogAxisKey; id: string }) {
+  if (axis === 'base') {
+    const base = findBase(id);
+    return (
+      <div
+        className="h-12 w-12 rounded-full border-2 border-cream-deep shadow-inner"
+        style={{ backgroundColor: base.skin }}
+        aria-hidden="true"
+      />
+    );
+  }
+
+  if (axis === 'hair') {
+    const hair = findHair(id);
+    return (
+      <div
+        className="relative h-12 w-12 overflow-hidden rounded-full border-2 border-cream-deep bg-cream shadow-inner"
+        aria-hidden="true"
+      >
+        <div
+          className="absolute inset-x-1 top-2 h-6 rounded-t-full rounded-b-md"
+          style={{ backgroundColor: hair.colors.primary }}
+        />
+        {hair.colors.secondary && (
+          <div
+            className="absolute right-1 top-2 h-6 w-5 rounded-tr-full rounded-bl-md"
+            style={{ backgroundColor: hair.colors.secondary }}
+          />
+        )}
+      </div>
+    );
+  }
+
+  if (axis === 'outfit') {
+    const outfit = findOutfit(id);
+    return (
+      <div
+        className="flex h-12 w-12 flex-col overflow-hidden rounded-toy border-2 border-cream-deep shadow-inner"
+        aria-hidden="true"
+      >
+        <div className="h-7" style={{ backgroundColor: outfit.colors.top }} />
+        <div className="h-3" style={{ backgroundColor: outfit.colors.bottom }} />
+        <div className="h-2" style={{ backgroundColor: outfit.colors.shoeUpper }} />
+      </div>
+    );
+  }
+
+  const faceLabel: Record<string, string> = {
+    '01': ':)',
+    '02': ':o',
+    '03': ':]',
+    '04': ';)',
+  };
+
+  return (
+    <div
+      className="grid h-12 w-12 place-items-center rounded-full border-2 border-cream-deep bg-cream text-sm font-black text-ink shadow-inner"
+      aria-hidden="true"
+    >
+      {faceLabel[id] ?? ':)'}
+    </div>
   );
 }
