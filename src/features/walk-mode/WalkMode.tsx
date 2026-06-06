@@ -150,21 +150,27 @@ export function WalkMode() {
   const cancelExit = () => setConfirming(false);
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center overflow-hidden bg-black p-8 text-white/70">
+    <div className="game-screen-dark fixed inset-0 flex flex-col items-center justify-center overflow-hidden p-8 text-white/80">
+      <div className="pointer-events-none absolute inset-0 opacity-50">
+        <div className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
+        <div className="absolute left-1/2 top-1/2 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full border border-pop-green/20" />
+        <div className="absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full border border-pop-blue/10" />
+      </div>
+
       {/* 終了ボタン (長押し) — spec §4.2 右上 */}
       <button
         onPointerDown={startPress}
         onPointerUp={cancelPress}
         onPointerCancel={cancelPress}
         onPointerLeave={cancelPress}
-        className="absolute right-4 top-4 select-none rounded-toy border border-white/20 bg-white/5 px-3 py-1.5 text-[10px] font-bold tracking-widest text-white/70 transition active:translate-y-[2px]"
+        className="game-hud-dark absolute right-4 top-4 select-none rounded-full px-4 py-2 text-[10px] font-black tracking-widest text-white/75 transition active:translate-y-[2px]"
       >
         終了（長押し）
       </button>
 
       {/* 長押し進捗ゲージ */}
       <div
-        className="absolute right-4 top-12 h-1 w-20 overflow-hidden rounded-full bg-white/10"
+        className="absolute right-5 top-[54px] h-1 w-24 overflow-hidden rounded-full bg-white/10"
         aria-hidden
         style={{ opacity: pressing ? 1 : 0, transition: 'opacity 120ms' }}
       >
@@ -178,14 +184,17 @@ export function WalkMode() {
       </div>
 
       {/* 中央: 脈動アイコン + メッセージ + きょうのカウンタ */}
-      <div className="flex flex-col items-center gap-5">
+      <div className="game-panel-dark relative flex min-w-[260px] flex-col items-center gap-5 rounded-[28px] px-10 py-9">
+        <span className="rounded-full border border-white/[0.15] bg-white/[0.08] px-3 py-1 text-[10px] font-black tracking-[0.28em] text-white/55">
+          WALK SCAN
+        </span>
         <PulseDot warning={lowBattery} />
-        <span className="text-sm font-bold tracking-wider text-white/55">
+        <span className="text-sm font-black tracking-wider text-white/80">
           すれちがいを待っています
         </span>
         {/* spec §4.2: 3DS 緑 LED 相当のサイレント・カウンタ */}
         <span
-          className="text-[11px] font-mono font-black tracking-[0.3em] text-white/55"
+          className="rounded-full border border-pop-green/20 bg-pop-green/10 px-4 py-1.5 text-[11px] font-mono font-black tracking-[0.3em] text-pop-green"
           data-testid="walk-today-count"
         >
           きょう {todayCount.data ?? 0} 回
@@ -193,14 +202,14 @@ export function WalkMode() {
       </div>
 
       {/* 下部: 経過時間 + バッテリー残量 (spec §4.2 / §4.4.1) */}
-      <div className="absolute bottom-8 flex items-center gap-4 text-xs font-mono font-bold tracking-[0.25em]">
-        <span className="text-white/45" data-testid="walk-elapsed">
+      <div className="game-hud-dark absolute bottom-8 flex items-center gap-4 rounded-full px-5 py-2 text-xs font-mono font-bold tracking-[0.25em]">
+        <span className="text-white/50" data-testid="walk-elapsed">
           {formatTime(elapsed)}
         </span>
         {battery !== null && (
           <span
             className={
-              lowBattery ? 'text-pop-orange' : 'text-white/45'
+              lowBattery ? 'text-pop-orange' : 'text-white/50'
             }
             data-testid="walk-battery"
           >
@@ -212,20 +221,20 @@ export function WalkMode() {
       {/* 確認ダイアログ — spec §4.3 step 2 */}
       {confirming && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-6 bg-black/60 backdrop-blur-sm">
-          <div className="animate-bounce-in flex flex-col items-center gap-6 rounded-toy border border-cream-deep bg-cream-soft px-8 py-7 shadow-toy-lg">
+          <div className="game-panel animate-bounce-in flex flex-col items-center gap-6 rounded-[24px] px-8 py-7">
             <p className="font-bold tracking-wider text-ink">
               ウォークモードを終了しますか?
             </p>
             <div className="flex gap-3">
               <button
                 onClick={cancelExit}
-                className="rounded-toy border border-cream-deep bg-cream px-5 py-2 text-sm font-bold text-ink-soft shadow-toy transition active:translate-y-[2px] active:shadow-none"
+                className="game-chip rounded-full px-5 py-2 text-sm font-black text-ink-soft transition active:translate-y-[2px]"
               >
                 キャンセル
               </button>
               <button
                 onClick={confirmExit}
-                className="rounded-toy border-2 border-pop-red bg-pop-red px-5 py-2 text-sm font-bold text-cream-soft shadow-toy transition active:translate-y-[2px] active:shadow-none"
+                className="game-button game-button-danger rounded-full px-5 py-2 text-sm font-black"
               >
                 終了する
               </button>
@@ -244,12 +253,14 @@ function PulseDot({ warning = false }: { warning?: boolean }) {
     ? '0 0 12px rgba(245,166,35,0.55)'
     : '0 0 8px rgba(118,194,91,0.45)';
   return (
-    <div className="relative h-4 w-4" data-testid="walk-pulse-dot" data-warning={warning}>
+    <div className="relative h-24 w-24" data-testid="walk-pulse-dot" data-warning={warning}>
+      <span className={`absolute inset-0 animate-ping rounded-full ${dotColor} opacity-[0.15]`} />
+      <span className={`absolute inset-5 animate-ping rounded-full ${dotColor} opacity-25`} />
       <span
-        className={`absolute inset-0 rounded-full ${dotColor}`}
+        className={`absolute inset-[34px] rounded-full ${dotColor}`}
         style={{ boxShadow: glow }}
       />
-      <span className={`absolute inset-0 animate-ping rounded-full ${dotColor} opacity-60`} />
+      <span className="absolute inset-8 rounded-full border border-white/[0.35]" />
     </div>
   );
 }

@@ -76,7 +76,7 @@ export function AvatarEditor({
         ))}
       </div>
 
-      <div className="relative overflow-hidden rounded-toy border border-cream-deep bg-cream-soft p-3 shadow-toy">
+      <div className="game-hud relative overflow-hidden rounded-[22px] p-3">
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={activeAxis}
@@ -126,7 +126,7 @@ export function AvatarEditor({
 
 function PreviewArea({ code }: { code: string }) {
   return (
-    <div className="flex items-center justify-center rounded-toy border border-cream-deep bg-cream-soft p-4 shadow-toy">
+    <div className="game-hud flex items-center justify-center rounded-[22px] p-4">
       <motion.div
         key={code}
         initial={{ y: -16, scale: 0.9 }}
@@ -155,10 +155,10 @@ function TabButton({
       onClick={onClick}
       whileTap={{ scale: 0.92 }}
       transition={{ type: 'spring', stiffness: 600, damping: 18 }}
-      className={`flex-1 rounded-toy border-2 px-3 py-1.5 text-sm font-black tracking-wider shadow-toy transition-[transform,box-shadow] active:translate-y-[3px] active:translate-x-[3px] active:shadow-none ${
+      className={`flex-1 rounded-full px-3 py-2 text-sm font-black tracking-wider transition-[transform,box-shadow] active:translate-y-[2px] ${
         active
-          ? 'border-pop-red bg-pop-red text-cream-soft'
-          : 'border-cream-deep bg-cream-soft text-ink-soft'
+          ? 'game-button game-button-danger text-cream-soft'
+          : 'game-chip text-ink-soft'
       }`}
     >
       {label}
@@ -191,14 +191,14 @@ function PartSwatch({
       aria-label={label}
       title={label}
       aria-pressed={selected}
-      className={`flex flex-col items-center gap-1 rounded-toy border-2 p-1.5 shadow-toy transition active:translate-y-[2px] active:shadow-none ${
+      className={`flex flex-col items-center gap-1 rounded-[18px] p-1.5 transition active:translate-y-[2px] ${
         selected
-          ? 'border-pop-red bg-pop-red/10'
-          : 'border-cream-deep bg-cream-soft'
+          ? 'game-button game-button-danger'
+          : 'game-chip'
       }`}
     >
       <PartSwatchPreview axis={axis} id={id} />
-      <span className={`text-[10px] font-bold tracking-widest ${selected ? 'text-pop-red' : 'text-ink-soft'}`}>
+      <span className={`text-[10px] font-black tracking-widest ${selected ? 'text-cream-soft' : 'text-ink-soft'}`}>
         {id}
       </span>
     </motion.button>

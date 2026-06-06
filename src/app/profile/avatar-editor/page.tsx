@@ -35,7 +35,7 @@ export default function AvatarEditorPage() {
   }, [profile, code]);
 
   if (isLoading || !profile || code === null) {
-    return <div className="p-6 text-ink-muted">読み込み中…</div>;
+    return <div className="game-screen min-h-screen p-6 text-ink-muted">読み込み中…</div>;
   }
 
   const handleSave = () => {
@@ -53,24 +53,26 @@ export default function AvatarEditorPage() {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col gap-4 p-5">
+    <main className="game-screen mx-auto flex min-h-screen max-w-md flex-col gap-4 p-5">
       <header className="flex items-center justify-between">
         <Link
           href="/profile"
-          className="rounded-toy border border-cream-deep bg-cream-soft px-3 py-1 text-xs font-bold text-ink-soft shadow-toy transition active:translate-y-[2px] active:shadow-none"
+          className="game-chip rounded-full px-3 py-1.5 text-xs font-black text-ink-soft transition active:translate-y-[2px]"
         >
           ← 戻る
         </Link>
-        <h1 className="text-xl font-black tracking-wide text-pop-red">AVATAR</h1>
+        <h1 className="text-xl font-black tracking-wide text-pop-red drop-shadow-sm">AVATAR</h1>
         <span className="w-16" />
       </header>
 
-      <AvatarEditor
-        value={code}
-        onChange={setCode}
-        onSave={handleSave}
-        savePending={save.isPending}
-      />
+      <section className="game-panel rounded-[24px] p-4">
+        <AvatarEditor
+          value={code}
+          onChange={setCode}
+          onSave={handleSave}
+          savePending={save.isPending}
+        />
+      </section>
 
       {save.isError && (
         <p className="text-sm font-bold text-pop-red">

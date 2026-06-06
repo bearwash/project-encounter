@@ -22,7 +22,7 @@ export function PrefectureSelect({ value, onChange, id }: Props) {
       id={id}
       value={value ?? ''}
       onChange={(e) => onChange(e.target.value === '' ? null : e.target.value)}
-      className="w-full rounded-toy border border-cream-deep bg-cream-soft px-3 py-2 text-ink shadow-toy focus:border-pop-red focus:outline-none"
+      className="game-input w-full rounded-[16px] px-3 py-2.5 text-ink focus:border-pop-red focus:outline-none"
     >
       <option value="">未設定（非公開）</option>
       {REGION_ORDER.map((region) => (

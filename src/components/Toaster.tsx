@@ -12,8 +12,8 @@ export function Toaster() {
 
   const color =
     toast.kind === 'warn'
-      ? 'border-pop-orange bg-pop-orange/95 text-cream-soft'
-      : 'border-ink bg-cream-soft text-ink';
+      ? 'game-button-danger text-cream-soft'
+      : 'text-ink';
 
   return (
     <div
@@ -23,7 +23,7 @@ export function Toaster() {
     >
       <div
         key={toast.id}
-        className={`animate-bounce-in rounded-full border-2 px-4 py-2 text-xs font-bold tracking-wider shadow-toy-lg ${color}`}
+        className={`game-hud animate-bounce-in rounded-full px-4 py-2 text-xs font-black tracking-wider ${color}`}
       >
         {toast.message}
       </div>

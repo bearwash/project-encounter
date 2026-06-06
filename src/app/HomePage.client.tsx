@@ -176,7 +176,7 @@ export default function HomePage() {
   }
 
   return (
-    <main className="fixed inset-0 overflow-hidden bg-cream">
+    <main className="game-screen fixed inset-0 overflow-hidden">
       {/* メインの広場ビュー (全画面) */}
       <EncounterPlaza residents={residents} joiningIds={joiningIds} />
 
@@ -239,15 +239,15 @@ export default function HomePage() {
 function PlazaTopBar({ today, total }: { today: number; total: number }) {
   return (
     <header className="pointer-events-none absolute left-3 right-3 top-3 z-20 flex items-center justify-between gap-3">
-      <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-cream-deep bg-cream-soft/85 px-3 py-1 shadow-toy backdrop-blur">
-        <span className="rounded-full bg-pop-red px-2 py-0.5 text-[10px] font-black tracking-widest text-cream-soft">
+      <div className="game-hud pointer-events-auto flex items-center gap-2 rounded-full px-2.5 py-1.5">
+        <span className="rounded-full bg-pop-red px-2 py-0.5 text-[10px] font-black tracking-widest text-cream-soft shadow-sm">
           TODAY
         </span>
-        <span className="text-[11px] font-black tracking-wider text-ink">
+        <span className="text-[11px] font-black tracking-wider text-ink drop-shadow-sm">
           きょうのすれちがい {today} 人
         </span>
-        <span className="h-3 w-px bg-cream-deep" />
-        <span className="text-[11px] font-bold tracking-wider text-ink-soft">
+        <span className="h-4 w-px bg-ink/10" />
+        <span className="text-[11px] font-black tracking-wider text-pop-blue">
           なかま {total} 人
         </span>
       </div>
@@ -257,7 +257,7 @@ function PlazaTopBar({ today, total }: { today: number; total: number }) {
         <Link
           href="/map"
           aria-label="日本地図"
-          className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-cream-deep bg-cream-soft text-lg shadow-toy transition active:translate-y-[2px] active:shadow-none"
+          className="game-icon-button flex h-11 w-11 items-center justify-center rounded-full text-lg transition active:translate-y-[2px]"
         >
           <span aria-hidden>🗾</span>
         </Link>
@@ -265,7 +265,7 @@ function PlazaTopBar({ today, total }: { today: number; total: number }) {
         <Link
           href="/profile"
           aria-label="プロフィール設定"
-          className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-cream-deep bg-cream-soft shadow-toy transition active:translate-y-[2px] active:shadow-none"
+          className="game-icon-button flex h-11 w-11 items-center justify-center rounded-full transition active:translate-y-[2px]"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
             <circle cx="12" cy="8" r="3.5" stroke="#3B3024" strokeWidth="2" />
@@ -296,9 +296,9 @@ function PlazaBottomActions({
     <div className="pointer-events-none absolute bottom-5 left-3 right-3 z-20 flex items-end justify-between gap-3">
       <Link
         href="/walk"
-        className="pointer-events-auto flex items-center gap-2 rounded-toy border-2 border-pop-blue bg-cream-soft px-4 py-2.5 font-black tracking-wider text-pop-blue shadow-toy-lg transition active:translate-y-[3px] active:shadow-none"
+        className="game-button pointer-events-auto flex min-h-12 items-center gap-2 rounded-full px-5 py-3 font-black tracking-wider"
       >
-        <span aria-hidden className="text-base">
+        <span aria-hidden className="grid h-7 w-7 place-items-center rounded-full bg-white/20 text-base">
           👣
         </span>
         <span className="text-sm">ウォークモード</span>
@@ -309,10 +309,10 @@ function PlazaBottomActions({
         onClick={onOpenDev}
         aria-label="Dev panel"
         aria-pressed={devOpen}
-        className={`pointer-events-auto flex h-9 w-9 items-center justify-center rounded-full border-2 text-xs font-black shadow-toy transition active:translate-y-[2px] active:shadow-none ${
+        className={`pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full text-xs font-black transition active:translate-y-[2px] ${
           devOpen
-            ? 'border-pop-red bg-pop-red text-cream-soft'
-            : 'border-cream-deep bg-cream-soft/85 text-ink-soft backdrop-blur'
+            ? 'game-button game-button-danger text-cream-soft'
+            : 'game-icon-button text-ink-soft'
         }`}
       >
         ?
@@ -345,18 +345,18 @@ function DevDrawer({
 }) {
   return (
     <div
-      className="absolute inset-x-3 bottom-16 z-30 max-h-[60vh] overflow-y-auto rounded-toy border-2 border-cream-deep bg-cream-soft/95 p-4 shadow-toy-lg backdrop-blur"
+      className="game-panel absolute inset-x-3 bottom-16 z-30 max-h-[60vh] overflow-y-auto rounded-[22px] p-4"
       data-testid="dev-drawer"
     >
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-[10px] tracking-widest text-ink-muted">
+        <span className="text-[10px] font-black tracking-widest text-ink-muted">
           DEV — BLE 実装までの検証用
         </span>
         <button
           type="button"
           onClick={onClose}
           aria-label="閉じる"
-          className="rounded-full border border-cream-deep px-2 text-xs font-bold text-ink-muted"
+          className="game-icon-button h-8 w-8 rounded-full text-xs font-black text-ink-muted"
         >
           ×
         </button>
@@ -368,14 +368,14 @@ function DevDrawer({
         <button
           onClick={onSeed}
           disabled={seedPending}
-          className="flex-1 rounded-toy border border-pop-blue bg-cream-soft px-3 py-1.5 text-xs font-bold text-pop-blue shadow-toy transition active:translate-y-[2px] active:shadow-none disabled:opacity-50"
+          className="game-button flex-1 rounded-full px-3 py-2 text-xs font-black disabled:opacity-50"
         >
           {seedPending ? '…' : '擬似エンカウント追加'}
         </button>
         <button
           onClick={onClear}
           disabled={clearPending}
-          className="rounded-toy border border-pop-red bg-cream-soft px-3 py-1.5 text-xs font-bold text-pop-red shadow-toy transition active:translate-y-[2px] active:shadow-none disabled:opacity-50"
+          className="game-button game-button-danger rounded-full px-3 py-2 text-xs font-black disabled:opacity-50"
         >
           {clearPending ? '…' : 'クリア'}
         </button>
@@ -383,7 +383,7 @@ function DevDrawer({
       <button
         onClick={onResetProfile}
         disabled={resetProfilePending}
-        className="mt-2 w-full rounded-toy border border-cream-deep bg-cream-soft px-3 py-1.5 text-xs text-ink-soft shadow-toy transition active:translate-y-[2px] active:shadow-none disabled:opacity-50"
+        className="game-chip mt-2 w-full rounded-full px-3 py-2 text-xs font-bold text-ink-soft transition active:translate-y-[2px] disabled:opacity-50"
       >
         {resetProfilePending ? '…' : 'プロフィールをリセット (初回状態に戻す)'}
       </button>

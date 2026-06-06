@@ -3,20 +3,20 @@ import { ProfileForm } from '@/features/profile/ProfileForm';
 
 export default function ProfilePage() {
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col gap-6 p-5">
+    <main className="game-screen mx-auto flex min-h-screen max-w-md flex-col gap-6 p-5">
       <header className="flex items-center justify-between">
         <Link
           href="/"
-          className="rounded-toy border border-cream-deep bg-cream-soft px-3 py-1 text-xs font-bold text-ink-soft shadow-toy transition active:translate-y-[2px] active:shadow-none"
+          className="game-chip rounded-full px-3 py-1.5 text-xs font-black text-ink-soft transition active:translate-y-[2px]"
         >
           ← ホーム
         </Link>
-        <h1 className="text-xl font-black tracking-wide text-pop-red">
+        <h1 className="text-xl font-black tracking-wide text-pop-red drop-shadow-sm">
           PROFILE
         </h1>
         <span className="w-16" />
       </header>
-      <section className="rounded-toy border border-cream-deep bg-cream-soft p-5 shadow-toy">
+      <section className="game-panel rounded-[24px] p-5">
         <ProfileForm />
       </section>
     </main>

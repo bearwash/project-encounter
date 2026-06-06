@@ -87,13 +87,13 @@ export function ProfileForm() {
           value={form.display_name}
           onChange={update('display_name')}
           maxLength={PROFILE_LIMITS.DISPLAY_NAME_MAX}
-          className="w-full rounded-toy border border-cream-deep bg-cream-soft px-3 py-2 text-ink shadow-toy focus:border-pop-red focus:outline-none"
+          className="game-input w-full rounded-[16px] px-3 py-2.5 text-ink focus:border-pop-red focus:outline-none"
         />
       </Field>
 
       <div className="flex flex-col gap-2">
         <span className="text-sm font-bold tracking-wide text-ink-soft">アバター</span>
-        <div className="flex items-center gap-3 rounded-toy border border-cream-deep bg-cream-soft p-3 shadow-toy">
+        <div className="game-hud flex items-center gap-3 rounded-[20px] p-3">
           <Avatar code={form.avatar_code} size={64} />
           <div className="flex-1 min-w-0">
             <code className="block truncate font-mono text-xs text-ink-muted">
@@ -102,7 +102,7 @@ export function ProfileForm() {
           </div>
           <Link
             href="/profile/avatar-editor"
-            className="rounded-toy border-2 border-pop-blue bg-pop-blue/10 px-3 py-1.5 text-xs font-bold text-pop-blue shadow-toy transition active:translate-y-[2px] active:shadow-none"
+            className="game-button rounded-full px-3 py-2 text-xs font-black"
           >
             編集
           </Link>
@@ -123,7 +123,7 @@ export function ProfileForm() {
           value={form.message}
           onChange={update('message')}
           maxLength={PROFILE_LIMITS.MESSAGE_MAX}
-          className="w-full rounded-toy border border-cream-deep bg-cream-soft px-3 py-2 text-ink shadow-toy focus:border-pop-red focus:outline-none"
+          className="game-input w-full rounded-[16px] px-3 py-2.5 text-ink focus:border-pop-red focus:outline-none"
           placeholder="(空でも OK)"
         />
       </Field>
@@ -152,7 +152,7 @@ export function ProfileForm() {
       </div>
 
       {/* 効果音トグル — spec: sfx.md */}
-      <label className="flex items-center justify-between rounded-toy border border-cream-deep bg-cream-soft px-3 py-2 shadow-toy">
+      <label className="game-hud flex items-center justify-between rounded-[18px] px-3 py-2.5">
         <span className="flex flex-col gap-0.5">
           <span className="text-sm font-bold tracking-wide text-ink-soft">
             効果音
@@ -171,7 +171,7 @@ export function ProfileForm() {
       </label>
 
       {/* 振動 (Haptics) トグル */}
-      <label className="flex items-center justify-between rounded-toy border border-cream-deep bg-cream-soft px-3 py-2 shadow-toy">
+      <label className="game-hud flex items-center justify-between rounded-[18px] px-3 py-2.5">
         <span className="flex flex-col gap-0.5">
           <span className="text-sm font-bold tracking-wide text-ink-soft">
             振動
@@ -192,7 +192,7 @@ export function ProfileForm() {
       <button
         type="submit"
         disabled={save.isPending}
-        className="mt-2 rounded-toy border border-pop-red bg-pop-red px-4 py-2.5 font-bold tracking-wider text-cream-soft shadow-toy transition active:translate-y-[2px] active:shadow-none disabled:opacity-50"
+        className="game-button game-button-danger mt-2 rounded-full px-4 py-3 font-black tracking-wider disabled:opacity-50"
       >
         {save.isPending ? '保存中…' : '保存'}
       </button>

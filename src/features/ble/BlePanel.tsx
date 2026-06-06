@@ -17,13 +17,13 @@ export function BlePanel({ status }: { status: BleStatus | undefined }) {
   const events = debug.data?.events.slice(-6).reverse() ?? [];
 
   return (
-    <section className="rounded-toy border border-cream-deep bg-cream-soft px-4 py-3 shadow-toy">
+    <section className="game-panel rounded-[18px] px-4 py-3">
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <Indicator mode={mode} />
           <div className="flex min-w-0 flex-col gap-1">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold tracking-widest text-ink-muted">
+            <span className="text-[10px] font-black tracking-widest text-ink-muted">
               BLE
             </span>
             {status?.backend && (
@@ -41,7 +41,7 @@ export function BlePanel({ status }: { status: BleStatus | undefined }) {
               </span>
             )}
           </div>
-          <span className="text-sm font-bold text-ink">
+          <span className="text-sm font-black text-ink">
             {mode === 'idle'
               ? '停止中'
               : mode === 'walk'
@@ -54,16 +54,16 @@ export function BlePanel({ status }: { status: BleStatus | undefined }) {
               <StateChip label="PERM" active={status.permission_granted} />
               <StateChip label="ADV" active={status.advertise_active} />
               <StateChip label="SCAN" active={status.scan_active} />
-              <span className="rounded-full bg-cream-deep px-1.5 py-0.5 text-[9px] font-black tracking-widest text-ink-muted">
+              <span className="game-chip rounded-full px-1.5 py-0.5 text-[9px] font-black tracking-widest text-ink-muted">
                 SEEN {status.seen_count}
               </span>
-              <span className="rounded-full bg-cream-deep px-1.5 py-0.5 text-[9px] font-black tracking-widest text-ink-muted">
+              <span className="game-chip rounded-full px-1.5 py-0.5 text-[9px] font-black tracking-widest text-ink-muted">
                 PEND {status.pending_count}
               </span>
-              <span className="rounded-full bg-cream-deep px-1.5 py-0.5 text-[9px] font-black tracking-widest text-ink-muted">
+              <span className="game-chip rounded-full px-1.5 py-0.5 text-[9px] font-black tracking-widest text-ink-muted">
                 GATT {status.pending_gatt_count}
               </span>
-              <span className="rounded-full bg-cream-deep px-1.5 py-0.5 text-[9px] font-black tracking-widest text-ink-muted">
+              <span className="game-chip rounded-full px-1.5 py-0.5 text-[9px] font-black tracking-widest text-ink-muted">
                 DRAIN {status.last_drained_count}
               </span>
             </div>
@@ -86,7 +86,7 @@ export function BlePanel({ status }: { status: BleStatus | undefined }) {
             <button
               onClick={() => start.mutate()}
               disabled={pending}
-              className="rounded-toy border border-pop-green bg-pop-green px-4 py-1.5 text-xs font-bold tracking-wider text-cream-soft shadow-toy transition active:translate-y-[2px] active:shadow-none disabled:opacity-50"
+              className="game-button rounded-full px-4 py-2 text-xs font-black tracking-wider disabled:opacity-50"
             >
               開始
             </button>
@@ -94,7 +94,7 @@ export function BlePanel({ status }: { status: BleStatus | undefined }) {
             <button
               onClick={() => stop.mutate()}
               disabled={pending}
-              className="rounded-toy border border-cream-deep bg-cream px-4 py-1.5 text-xs font-bold tracking-wider text-ink-soft shadow-toy transition active:translate-y-[2px] active:shadow-none disabled:opacity-50"
+              className="game-chip rounded-full px-4 py-2 text-xs font-black tracking-wider text-ink-soft transition active:translate-y-[2px] disabled:opacity-50"
             >
               停止
             </button>
@@ -102,11 +102,11 @@ export function BlePanel({ status }: { status: BleStatus | undefined }) {
         </div>
       </div>
       {events.length > 0 && (
-        <div className="mt-3 grid gap-1 border-t border-cream-deep pt-2">
+        <div className="mt-3 grid gap-1 border-t border-ink/10 pt-2">
           {events.map((event) => (
             <div
               key={`${event.at}-${event.label}-${event.detail}`}
-              className="grid grid-cols-[64px_88px_minmax(0,1fr)] gap-2 text-[10px] font-bold text-ink-muted"
+              className="grid grid-cols-[64px_88px_minmax(0,1fr)] gap-2 rounded-lg bg-white/[0.28] px-2 py-1 text-[10px] font-bold text-ink-muted"
             >
               <span className="font-mono">{formatSeenAt(event.at)}</span>
               <span className="truncate text-pop-blue">{event.label}</span>
@@ -135,8 +135,10 @@ function formatSeenAt(value: number | null): string {
 function StateChip({ label, active }: { label: string; active: boolean }) {
   return (
     <span
-      className={`rounded-full px-1.5 py-0.5 text-[9px] font-black tracking-widest ${
-        active ? 'bg-pop-green/15 text-pop-green' : 'bg-cream-deep text-ink-muted'
+      className={`rounded-full border px-1.5 py-0.5 text-[9px] font-black tracking-widest ${
+        active
+          ? 'border-pop-green/20 bg-pop-green/15 text-pop-green'
+          : 'border-ink/5 bg-ink/5 text-ink-muted'
       }`}
     >
       {label}
@@ -146,11 +148,11 @@ function StateChip({ label, active }: { label: string; active: boolean }) {
 
 function Indicator({ mode }: { mode: BleStatus['mode'] }) {
   if (mode === 'idle') {
-    return <span className="block h-2.5 w-2.5 rounded-full bg-cream-deep" />;
+    return <span className="block h-3 w-3 rounded-full bg-ink/20 shadow-inner" />;
   }
   const dotColor = mode === 'walk' ? 'bg-pop-orange' : 'bg-pop-green';
   return (
-    <span className="relative block h-2.5 w-2.5">
+    <span className="relative block h-3 w-3">
       <span className={`absolute inset-0 rounded-full ${dotColor}`} />
       <span className={`absolute inset-0 animate-ping rounded-full ${dotColor} opacity-60`} />
     </span>

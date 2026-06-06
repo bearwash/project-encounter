@@ -18,6 +18,9 @@ const rounded = M_PLUS_Rounded_1c({
 export const metadata: Metadata = {
   title: 'Project Encounter',
   description: 'BLE すれ違いアバターアプリ',
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export const viewport: Viewport = {

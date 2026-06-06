@@ -41,16 +41,22 @@ export function CloudConsentDialog({ onDecided }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-cream/90 p-6 backdrop-blur-sm"
+      className="game-screen fixed inset-0 z-[60] flex items-center justify-center p-6"
       role="dialog"
       aria-modal="true"
       aria-labelledby="consent-title"
       data-testid="cloud-consent-dialog"
     >
-      <div className="animate-bounce-in flex max-w-md flex-col gap-4 rounded-toy border-2 border-pop-red bg-cream-soft px-6 py-6 shadow-toy-lg">
+      <div className="game-panel animate-bounce-in flex max-w-md flex-col gap-4 rounded-[28px] px-6 py-6">
+        <div className="flex items-center justify-between gap-3">
+          <span className="rounded-full bg-pop-blue/15 px-3 py-1 text-[10px] font-black tracking-[0.24em] text-pop-blue">
+            FIRST SETUP
+          </span>
+          <span className="h-2 w-2 rounded-full bg-pop-green shadow-[0_0_14px_rgba(118,194,91,0.8)]" />
+        </div>
         <h2
           id="consent-title"
-          className="text-xl font-black tracking-wider text-pop-red"
+          className="text-2xl font-black tracking-wider text-pop-red drop-shadow-sm"
         >
           プロフィールを公開しますか?
         </h2>
@@ -60,7 +66,7 @@ export function CloudConsentDialog({ onDecided }: Props) {
           がサーバーに保存され、すれちがった相手のアプリに表示されます。
         </p>
 
-        <ul className="flex flex-col gap-2 rounded-toy border border-cream-deep bg-cream/60 px-3 py-3 text-xs leading-relaxed text-ink-soft">
+        <ul className="game-hud flex flex-col gap-2 rounded-[18px] px-3 py-3 text-xs leading-relaxed text-ink-soft">
           <li>
             <span className="font-black text-pop-green">✓</span>
             <span className="ml-2">
@@ -83,7 +89,7 @@ export function CloudConsentDialog({ onDecided }: Props) {
             onClick={handleAgree}
             disabled={setConsent.isPending}
             data-testid="consent-agree"
-            className="rounded-toy border-2 border-pop-red bg-pop-red px-5 py-2.5 font-black tracking-wider text-cream-soft shadow-toy-lg transition active:translate-y-[3px] active:shadow-none disabled:opacity-50"
+            className="game-button game-button-danger rounded-full px-5 py-3 font-black tracking-wider disabled:opacity-50"
           >
             同意してはじめる
           </button>
@@ -92,14 +98,14 @@ export function CloudConsentDialog({ onDecided }: Props) {
             onClick={handleDecline}
             disabled={setConsent.isPending}
             data-testid="consent-decline"
-            className="rounded-toy border border-cream-deep bg-cream-soft px-5 py-2 text-sm font-bold tracking-wider text-ink-soft shadow-toy transition active:translate-y-[2px] active:shadow-none disabled:opacity-50"
+            className="game-chip rounded-full px-5 py-2.5 text-sm font-black tracking-wider text-ink-soft transition active:translate-y-[2px] disabled:opacity-50"
           >
             いまは始めない
           </button>
         </div>
 
         {!isSupabaseEnabled() && (
-          <p className="rounded-toy bg-cream-deep/60 px-3 py-2 text-[10px] leading-relaxed text-ink-muted">
+          <p className="rounded-[16px] bg-ink/5 px-3 py-2 text-[10px] leading-relaxed text-ink-muted">
             DEV: Supabase 未設定なのでローカルのみで動作します
             (`.env.local` に NEXT_PUBLIC_SUPABASE_URL / ANON_KEY を設定すると有効化)
           </p>
