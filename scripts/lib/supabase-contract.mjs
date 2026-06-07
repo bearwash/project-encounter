@@ -53,8 +53,14 @@ export function checkSupabaseContract(contract) {
 
   must('display_name max matches client', /BETWEEN 1 AND 16/.test(schema));
   must('avatar_code max matches client', /BETWEEN 1 AND 64/.test(schema));
+  must(
+    'avatar_code uses structured axis pattern',
+    /\^\[a-z\]\[0-9\]\{2\}\(_\[a-z\]\[0-9\]\{2\}\)\*\$/.test(schema),
+  );
   must('message max matches client', /char_length\(message\) <= 30/.test(schema));
   must('home_prefecture allows 01-47', /\^\(0\[1-9\]\|\[1-3\]\[0-9\]\|4\[0-7\]\)\$/.test(schema));
+
+  must('validation constraints are validated, not left NOT VALID', /VALIDATE CONSTRAINT/.test(schema));
 
   must(
     'schema does not define encounter storage',

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getDb } from '@/lib/db/client';
-import { ensureAuthUserId } from '@/lib/supabase/auth';
+import { ensureAuthUserId, signOut } from '@/lib/supabase/auth';
 import { isSupabaseEnabled } from '@/lib/supabase/client';
 import {
   deleteMyProfile as supabaseDelete,
@@ -9,7 +9,17 @@ import {
 import { isTauri, TauriUnavailableError } from '@/lib/tauri/env';
 import { showToast } from '@/lib/ui/toast';
 import type { MyProfile } from '@/types/profile';
+import { getCloudConsentStatus } from './consent';
 import { validateProfile, type ProfileInput } from './validation';
+
+/**
+ * クラウド送信して良いか = Supabase 設定済み かつ 明示同意 (granted)。
+ * spec §5.7 / 要件 §6: 同意なしには Supabase を一切起動しない。
+ */
+async function canSyncToCloud(): Promise<boolean> {
+  if (!isSupabaseEnabled()) return false;
+  return (await getCloudConsentStatus()) === 'granted';
+}
 
 const QUERY_KEY = ['profile'] as const;
 
@@ -37,7 +47,13 @@ function asError(e: unknown): Error {
   }
 }
 
-async function saveProfile(input: ProfileInput): Promise<MyProfile> {
+async function saveProfile(rawInput: ProfileInput): Promise<MyProfile> {
+  // 保存前に前後空白を除去 (検証も保存もトリム後の値で行う)
+  const input: ProfileInput = {
+    ...rawInput,
+    display_name: rawInput.display_name.trim(),
+    message: rawInput.message.trim(),
+  };
   const errors = validateProfile(input);
   if (errors.length > 0) {
     throw new Error(errors.map((e) => `${e.field}: ${e.message}`).join('\n'));
@@ -48,14 +64,16 @@ async function saveProfile(input: ProfileInput): Promise<MyProfile> {
     const db = await getDb();
     const now = Math.floor(Date.now() / 1000);
     const existing = await fetchProfile();
+    // 同意 (granted) がなければ Supabase は一切起動しない (要件 §6 / spec §5.7)
+    const syncToCloud = await canSyncToCloud();
 
     // user_id の決定:
     //   1. すでに my_profile に保存済みなら、それを保持
-    //   2. Supabase 設定済みなら auth.uid() を使う (= サーバーと一致)
-    //   3. それ以外 (mock モード) は randomUUID で発行
+    //   2. クラウド同期可 (設定済み + 同意済み) なら auth.uid() を使う (= サーバーと一致)
+    //   3. それ以外 (mock / 未同意) は randomUUID で発行 (ローカルのみ)
     let userId = existing?.user_id;
     if (!userId) {
-      if (isSupabaseEnabled()) {
+      if (syncToCloud) {
         userId = (await ensureAuthUserId().catch(() => null)) ?? crypto.randomUUID();
       } else {
         userId = crypto.randomUUID();
@@ -82,8 +100,9 @@ async function saveProfile(input: ProfileInput): Promise<MyProfile> {
       ],
     );
 
-    // Supabase upsert (失敗時は profile_sync_queue へキューイング)
-    if (isSupabaseEnabled()) {
+    // Supabase upsert (失敗時は profile_sync_queue へキューイング)。
+    // 同意がなければ送信もキューイングもしない (ローカル保存のみ)。
+    if (syncToCloud) {
       try {
         await supabaseUpsert({
           user_id: userId,
@@ -153,7 +172,8 @@ let offlineToastShown = false;
 
 export async function flushProfileSyncQueue(): Promise<void> {
   if (!isTauri()) return;
-  if (!isSupabaseEnabled()) return;
+  // 同意 (granted) がなければ送信しない (要件 §6 / spec §5.7)
+  if (!(await canSyncToCloud())) return;
   if (flushInflight) return;
   flushInflight = true;
   try {
@@ -183,7 +203,11 @@ export async function flushProfileSyncQueue(): Promise<void> {
         message: latest.message,
         home_prefecture: latest.home_prefecture,
       });
-      await db.execute('DELETE FROM profile_sync_queue');
+      // 送信した行 (および古い行) のみ削除。送信中に enqueue された
+      // より新しい行 (queue_id > latest) は取りこぼさず次回 flush へ残す。
+      await db.execute('DELETE FROM profile_sync_queue WHERE queue_id <= $1', [
+        latest.queue_id,
+      ]);
       retryStep = 0;
       offlineToastShown = false;
     } catch (e) {
@@ -239,8 +263,14 @@ async function resetProfile(): Promise<void> {
       try {
         await supabaseDelete(existing.user_id);
       } catch (e) {
-        console.warn('[profile.reset] supabase delete failed:', e);
+        console.warn('[profile.reset] supabase delete failed:', asError(e).message);
       }
+      // session を破棄して localStorage の auth を消す。これをしないと
+      // 次回保存で getSession() が同じ UUID を返し、退会した ID が復活する
+      // (spec §5.8: 退会で user_id を失効させる)。
+      await signOut().catch((e) =>
+        console.warn('[profile.reset] sign-out failed:', asError(e).message),
+      );
     }
 
     // ローカル DB を初期化 (my_profile + sync queue + 同意フラグ)

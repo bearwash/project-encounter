@@ -27,9 +27,11 @@ test('Supabase contract enforces profile validation at the database boundary', (
   assert.match(schema, /profiles_display_name_valid/);
   assert.match(schema, /char_length\(btrim\(display_name\)\) BETWEEN 1 AND 16/);
   assert.match(schema, /NOT VALID/);
-  assert.match(schema, /conrelid = 'public\.profiles'::regclass/);
+  // 制約は追加後に VALIDATE して有効化される (NOT VALID のまま放置しない)
+  assert.match(schema, /VALIDATE CONSTRAINT/);
   assert.match(schema, /profiles_avatar_code_valid/);
-  assert.match(schema, /avatar_code ~ '\^\[A-Za-z0-9_-\]\+\$'/);
+  // avatar_code は b{NN}_h{NN}_o{NN}_f{NN} の構造化パターン (将来の軸も許容)
+  assert.match(schema, /avatar_code ~ '\^\[a-z\]\[0-9\]\{2\}\(_\[a-z\]\[0-9\]\{2\}\)\*\$'/);
   assert.match(schema, /profiles_message_valid/);
   assert.match(schema, /char_length\(message\) <= 30/);
   assert.match(schema, /profiles_home_prefecture_valid/);

@@ -63,6 +63,7 @@ export function CloudConsentDialog({ onDecided }: Props) {
 
         <p className="text-sm leading-relaxed text-ink">
           あなたの<strong className="text-pop-red">名前・アバター・一言メッセージ</strong>
+          （設定した場合は<strong className="text-pop-red">居住している都道府県</strong>も）
           がサーバーに保存され、すれちがった相手のアプリに表示されます。
         </p>
 

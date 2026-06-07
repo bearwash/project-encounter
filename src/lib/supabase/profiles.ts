@@ -60,7 +60,7 @@ export async function upsertMyProfile(p: {
   });
 
   if (error) {
-    console.error('[supabase profiles] upsert failed:', error);
+    console.error('[supabase profiles] upsert failed:', error.message);
     throw error;
   }
 }
@@ -79,7 +79,7 @@ export async function fetchProfile(
     .maybeSingle();
 
   if (error) {
-    console.warn('[supabase profiles] fetch failed:', error);
+    console.warn('[supabase profiles] fetch failed:', error.message);
     return null;
   }
   if (!data) return null;
@@ -103,7 +103,7 @@ export async function fetchProfiles(
       .select(SELECT_COLS)
       .in('id', slice);
     if (error) {
-      console.warn('[supabase profiles] bulk fetch failed:', error);
+      console.warn('[supabase profiles] bulk fetch failed:', error.message);
       continue;
     }
     (data as ProfileRow[] | null)?.forEach((r) => out.push(rowToRemote(r)));
@@ -117,7 +117,7 @@ export async function deleteMyProfile(userId: string): Promise<void> {
   if (!sb) return;
   const { error } = await sb.from('profiles').delete().eq('id', userId);
   if (error) {
-    console.error('[supabase profiles] delete failed:', error);
+    console.error('[supabase profiles] delete failed:', error.message);
     throw error;
   }
 }

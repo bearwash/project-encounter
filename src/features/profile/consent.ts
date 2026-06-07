@@ -57,6 +57,14 @@ async function setConsent(status: ConsentStatus): Promise<void> {
   );
 }
 
+/**
+ * 非フック経路 (saveProfile / flush 等) から同意状態を確認するためのヘルパ。
+ * spec §5.7: 同意 (granted) なしに Supabase へは一切送信しない。
+ */
+export async function getCloudConsentStatus(): Promise<ConsentStatus> {
+  return (await fetchConsent()).status;
+}
+
 export function useCloudConsent() {
   return useQuery({ queryKey: KEY, queryFn: fetchConsent });
 }
