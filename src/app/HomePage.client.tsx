@@ -216,6 +216,7 @@ export default function HomePage() {
       <PlazaBottomActions
         onOpenDev={() => setDevOpen((v) => !v)}
         devOpen={devOpen}
+        bleStatus={bleStatus.data}
       />
 
       {/* Dev drawer (折り畳み) */}
@@ -225,15 +226,19 @@ export default function HomePage() {
           onSeed={() => seed.mutate()}
           seedPending={seed.isPending}
           onClear={() => {
-            if (confirm('すべてのすれ違いデータを削除しますか?')) {
-              clear.mutate();
-            }
+            clear.mutate();
+            setSnapshot(null);
+            setJoiningIds([]);
           }}
           clearPending={clear.isPending}
           onResetProfile={() => {
-            if (confirm('プロフィールを削除して初回起動状態に戻しますか?')) {
-              resetProfile.mutate();
-            }
+            ble.stop().catch(() => {});
+            resetProfile.mutate(undefined, {
+              onSuccess: () => {
+                setSnapshot(null);
+                setJoiningIds([]);
+              },
+            });
           }}
           resetProfilePending={resetProfile.isPending}
           onClose={() => setDevOpen(false)}
@@ -325,40 +330,118 @@ function PlazaTopBar({ today, total }: { today: number; total: number }) {
 function PlazaBottomActions({
   onOpenDev,
   devOpen,
+  bleStatus,
 }: {
   onOpenDev: () => void;
   devOpen: boolean;
+  bleStatus: ReturnType<typeof useBleStatus>['data'];
 }) {
   const [walkOpening, setWalkOpening] = useState(false);
+  const bleHealth = getBleHealth(bleStatus);
 
   return (
-    <div className="pointer-events-none absolute bottom-5 left-3 right-3 z-20 flex items-end justify-between gap-3">
-      <Link
-        href="/walk"
-        onClick={() => setWalkOpening(true)}
-        className="game-button pointer-events-auto flex min-h-12 items-center gap-2 rounded-full px-5 py-3 font-black tracking-wider"
-      >
-        <span aria-hidden className="grid h-7 w-7 place-items-center rounded-full bg-white/20 text-base">
-          👣
-        </span>
-        <span className="text-sm">{walkOpening ? '起動中...' : 'ウォークモード'}</span>
-      </Link>
+    <div className="pointer-events-none absolute bottom-5 left-3 right-3 z-20 flex flex-col gap-2">
+      {bleHealth.kind !== 'ok' && (
+        <button
+          type="button"
+          onClick={onOpenDev}
+          className={`game-hud pointer-events-auto flex min-h-11 items-center justify-between gap-3 rounded-full px-3 py-2 text-left transition active:translate-y-[2px] ${bleHealth.bg}`}
+        >
+          <span className="flex min-w-0 items-center gap-2">
+            <span
+              className={`h-2.5 w-2.5 shrink-0 rounded-full ${bleHealth.dot}`}
+              aria-hidden
+            />
+            <span className={`truncate text-[11px] font-black ${bleHealth.text}`}>
+              {bleHealth.label}
+            </span>
+          </span>
+          <span className="shrink-0 text-[10px] font-black tracking-widest text-ink-muted">
+            詳細
+          </span>
+        </button>
+      )}
 
-      <button
-        type="button"
-        onClick={onOpenDev}
-        aria-label="Dev panel"
-        aria-pressed={devOpen}
-        className={`pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full text-xs font-black transition active:translate-y-[2px] ${
-          devOpen
-            ? 'game-button game-button-danger text-cream-soft'
-            : 'game-icon-button text-ink-soft'
-        }`}
-      >
-        ?
-      </button>
+      <div className="flex items-end justify-between gap-3">
+        <Link
+          href="/walk"
+          onClick={() => setWalkOpening(true)}
+          className="game-button pointer-events-auto flex min-h-12 items-center gap-2 rounded-full px-5 py-3 font-black tracking-wider"
+        >
+          <span aria-hidden className="grid h-7 w-7 place-items-center rounded-full bg-white/20 text-base">
+            👣
+          </span>
+          <span className="text-sm">{walkOpening ? '起動中...' : 'ウォークモード'}</span>
+        </Link>
+
+        <button
+          type="button"
+          onClick={onOpenDev}
+          aria-label="Dev panel"
+          aria-pressed={devOpen}
+          className={`pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full text-xs font-black transition active:translate-y-[2px] ${
+            devOpen
+              ? 'game-button game-button-danger text-cream-soft'
+              : 'game-icon-button text-ink-soft'
+          }`}
+        >
+          ?
+        </button>
+      </div>
     </div>
   );
+}
+
+function getBleHealth(status: ReturnType<typeof useBleStatus>['data']): {
+  kind: 'ok' | 'warning' | 'error';
+  label: string;
+  bg: string;
+  dot: string;
+  text: string;
+} {
+  if (!status || status.mode === 'idle') {
+    return {
+      kind: 'ok',
+      label: 'BLE停止中',
+      bg: '',
+      dot: 'bg-ink/20',
+      text: 'text-ink-muted',
+    };
+  }
+  if (!status.bluetooth_on) {
+    return {
+      kind: 'error',
+      label: 'BluetoothがOFFです',
+      bg: 'border-pop-red/30 bg-pop-red/10',
+      dot: 'bg-pop-red',
+      text: 'text-pop-red',
+    };
+  }
+  if (!status.permission_granted) {
+    return {
+      kind: 'error',
+      label: 'Bluetooth権限がありません',
+      bg: 'border-pop-red/30 bg-pop-red/10',
+      dot: 'bg-pop-red',
+      text: 'text-pop-red',
+    };
+  }
+  if (!status.advertise_active || !status.scan_active) {
+    return {
+      kind: 'warning',
+      label: 'BLEを準備しています',
+      bg: 'border-pop-orange/30 bg-pop-orange/10',
+      dot: 'bg-pop-orange',
+      text: 'text-pop-orange',
+    };
+  }
+  return {
+    kind: 'ok',
+    label: 'BLE待機中',
+    bg: '',
+    dot: 'bg-pop-green',
+    text: 'text-pop-green',
+  };
 }
 
 // =============================================================
@@ -383,6 +466,10 @@ function DevDrawer({
   resetProfilePending: boolean;
   onClose: () => void;
 }) {
+  const [confirming, setConfirming] = useState<'clear' | 'reset' | null>(null);
+
+  const busy = seedPending || clearPending || resetProfilePending;
+
   return (
     <div
       className="game-panel absolute inset-x-3 bottom-16 z-30 max-h-[60vh] overflow-y-auto rounded-[22px] p-4"
@@ -407,26 +494,60 @@ function DevDrawer({
       <div className="mt-3 flex gap-2">
         <button
           onClick={onSeed}
-          disabled={seedPending}
+          onPointerDown={() => setConfirming(null)}
+          disabled={busy}
           className="game-button flex-1 rounded-full px-3 py-2 text-xs font-black disabled:opacity-50"
         >
           {seedPending ? '…' : '擬似エンカウント追加'}
         </button>
         <button
-          onClick={onClear}
-          disabled={clearPending}
+          onClick={() => setConfirming('clear')}
+          disabled={busy}
           className="game-button game-button-danger rounded-full px-3 py-2 text-xs font-black disabled:opacity-50"
         >
           {clearPending ? '…' : 'クリア'}
         </button>
       </div>
       <button
-        onClick={onResetProfile}
-        disabled={resetProfilePending}
+        onClick={() => setConfirming('reset')}
+        disabled={busy}
         className="game-chip mt-2 w-full rounded-full px-3 py-2 text-xs font-bold text-ink-soft transition active:translate-y-[2px] disabled:opacity-50"
       >
         {resetProfilePending ? '…' : 'プロフィールをリセット (初回状態に戻す)'}
       </button>
+      {confirming && (
+        <div className="mt-3 rounded-[16px] border border-pop-red/20 bg-pop-red/10 p-3">
+          <p className="text-xs font-black leading-snug text-pop-red">
+            {confirming === 'clear'
+              ? 'すれ違い履歴をすべて削除します。'
+              : 'プロフィールを削除して初回状態に戻します。'}
+          </p>
+          <div className="mt-2 flex gap-2">
+            <button
+              type="button"
+              onClick={() => setConfirming(null)}
+              className="game-chip flex-1 rounded-full px-3 py-2 text-xs font-black text-ink-soft transition active:translate-y-[2px]"
+            >
+              キャンセル
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const action = confirming;
+                setConfirming(null);
+                if (action === 'clear') {
+                  onClear();
+                } else {
+                  onResetProfile();
+                }
+              }}
+              className="game-button game-button-danger flex-1 rounded-full px-3 py-2 text-xs font-black"
+            >
+              {confirming === 'clear' ? '削除する' : '初期化する'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

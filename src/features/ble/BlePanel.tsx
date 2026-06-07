@@ -14,6 +14,7 @@ export function BlePanel({ status }: { status: BleStatus | undefined }) {
 
   const mode = status?.mode ?? 'idle';
   const pending = start.isPending || stop.isPending;
+  const readiness = getReadiness(status, start.isPending, stop.isPending);
   const events = debug.data?.events.slice(-6).reverse() ?? [];
 
   return (
@@ -41,13 +42,14 @@ export function BlePanel({ status }: { status: BleStatus | undefined }) {
               </span>
             )}
           </div>
-          <span className="text-sm font-black text-ink">
-            {mode === 'idle'
-              ? '停止中'
-              : mode === 'walk'
-                ? 'ウォーキング中'
-                : 'すれ違い待機中'}
+          <span className={`text-sm font-black ${readiness.tone}`}>
+            {readiness.label}
           </span>
+          {readiness.detail && (
+            <span className={`text-[10px] font-bold leading-snug ${readiness.tone}`}>
+              {readiness.detail}
+            </span>
+          )}
           {status && (
             <div className="flex flex-wrap gap-1">
               <StateChip label="BT" active={status.bluetooth_on} />
@@ -148,6 +150,61 @@ function StateChip({ label, active }: { label: string; active: boolean }) {
       {label}
     </span>
   );
+}
+
+function getReadiness(
+  status: BleStatus | undefined,
+  starting: boolean,
+  stopping: boolean,
+): { label: string; detail: string | null; tone: string } {
+  if (starting) {
+    return {
+      label: '開始中',
+      detail: 'Bluetooth状態を確認しています',
+      tone: 'text-pop-blue',
+    };
+  }
+  if (stopping) {
+    return { label: '停止中...', detail: null, tone: 'text-ink-muted' };
+  }
+  if (!status || status.mode === 'idle') {
+    return { label: '停止中', detail: null, tone: 'text-ink' };
+  }
+  if (!status.bluetooth_on) {
+    return {
+      label: 'Bluetooth OFF',
+      detail: '端末のBluetoothをオンにしてください',
+      tone: 'text-pop-red',
+    };
+  }
+  if (!status.permission_granted) {
+    return {
+      label: 'BLE権限なし',
+      detail: '設定からBluetooth権限を許可してください',
+      tone: 'text-pop-red',
+    };
+  }
+  if (!status.advertise_active && !status.scan_active) {
+    return {
+      label: 'BLE準備中',
+      detail: status.last_error ?? 'OSのBluetooth開始待ちです',
+      tone: 'text-pop-orange',
+    };
+  }
+  if (!status.advertise_active || !status.scan_active) {
+    return {
+      label: '一部待機中',
+      detail: `ADV ${status.advertise_active ? 'OK' : 'NG'} / SCAN ${
+        status.scan_active ? 'OK' : 'NG'
+      }`,
+      tone: 'text-pop-orange',
+    };
+  }
+  return {
+    label: status.mode === 'walk' ? 'ウォーキング中' : 'すれ違い待機中',
+    detail: null,
+    tone: 'text-ink',
+  };
 }
 
 function Indicator({ mode }: { mode: BleStatus['mode'] }) {

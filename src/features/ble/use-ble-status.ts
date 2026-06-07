@@ -30,18 +30,19 @@ function useBleAction(action: () => Promise<void>, optimisticMode: BleMode) {
   return useMutation({
     mutationFn: action,
     onMutate: async () => {
-      await qc.cancelQueries({ queryKey: STATUS_KEY });
-      qc.setQueryData<BleStatus>(STATUS_KEY, (current) => {
-        if (!current) return current;
-        const active = optimisticMode !== 'idle';
-        return {
-          ...current,
-          mode: optimisticMode,
-          advertise_active: active ? current.advertise_active : false,
-          scan_active: active ? current.scan_active : false,
-          last_error: null,
-        };
-      });
+      if (optimisticMode === 'idle') {
+        await qc.cancelQueries({ queryKey: STATUS_KEY });
+        qc.setQueryData<BleStatus>(STATUS_KEY, (current) => {
+          if (!current) return current;
+          return {
+            ...current,
+            mode: 'idle',
+            advertise_active: false,
+            scan_active: false,
+            last_error: null,
+          };
+        });
+      }
       qc.setQueryData<BleDebugSnapshot>(DEBUG_KEY, (current) => {
         if (!current) return current;
         return {

@@ -309,6 +309,9 @@ export function useClearEncounters() {
   return useMutation({
     mutationFn: clearAllEncounters,
     onSuccess: () => {
+      qc.setQueryData(UNREAD_KEY, []);
+      qc.setQueryData(HISTORY_KEY, []);
+      qc.setQueryData(TODAY_COUNT_KEY, 0);
       qc.invalidateQueries({ queryKey: UNREAD_KEY });
       qc.invalidateQueries({ queryKey: HISTORY_KEY });
       qc.invalidateQueries({ queryKey: TODAY_COUNT_KEY });

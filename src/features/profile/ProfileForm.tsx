@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Avatar } from '@/features/encounter/Avatar';
@@ -11,6 +10,7 @@ import {
   useHapticsMuted,
 } from '@/lib/haptics';
 import { DEFAULT_AVATAR_CODE, PROFILE_LIMITS } from '@/types/profile';
+import { AvatarEditor } from './AvatarEditor';
 import { PrefectureSelect } from './PrefectureSelect';
 import { useProfile, useSaveProfile } from './queries';
 import {
@@ -35,6 +35,7 @@ export function ProfileForm() {
 
   const [form, setForm] = useState<ProfileInput>(EMPTY_FORM);
   const [errors, setErrors] = useState<ValidationError[]>([]);
+  const [avatarEditing, setAvatarEditing] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -100,13 +101,32 @@ export function ProfileForm() {
               {form.avatar_code}
             </code>
           </div>
-          <Link
-            href="/profile/avatar-editor"
+          <button
+            type="button"
+            onClick={() => setAvatarEditing((v) => !v)}
             className="game-button rounded-full px-3 py-2 text-xs font-black"
           >
-            編集
-          </Link>
+            {avatarEditing ? '閉じる' : '編集'}
+          </button>
         </div>
+        {avatarEditing && (
+          <div className="game-hud rounded-[20px] p-3">
+            <AvatarEditor
+              value={form.avatar_code}
+              onChange={(avatar_code) =>
+                setForm((prev) => ({ ...prev, avatar_code }))
+              }
+              showCode={false}
+            />
+            <button
+              type="button"
+              onClick={() => setAvatarEditing(false)}
+              className="game-button game-button-danger mt-3 w-full rounded-full px-4 py-2.5 text-sm font-black"
+            >
+              このアバターにする
+            </button>
+          </div>
+        )}
         {errOf('avatar_code') && (
           <span className="text-xs font-bold text-pop-red">{errOf('avatar_code')}</span>
         )}
