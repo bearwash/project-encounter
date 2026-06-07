@@ -77,13 +77,19 @@ const OFFLINE_DEBUG: BleDebugSnapshot = {
 const ifTauri = <T>(fn: () => Promise<T>): Promise<T> =>
   isTauri() ? fn() : Promise.reject(new TauriUnavailableError());
 
+let permissionRequestPromise: Promise<void> | null = null;
+
 async function requestNativeBlePermissions(): Promise<void> {
   if (!isTauri()) return;
-  try {
-    await requestPermissions('encounter-ble');
-  } catch {
-    // Desktop / unsupported plugin path. Native start still reports hard failures.
-  }
+  permissionRequestPromise ??= requestPermissions('encounter-ble')
+    .then(() => undefined)
+    .catch(() => {
+      // Desktop / unsupported plugin path. Native start still reports hard failures.
+    })
+    .finally(() => {
+      permissionRequestPromise = null;
+    });
+  await permissionRequestPromise;
 }
 
 export const ble = {

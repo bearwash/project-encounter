@@ -10,9 +10,20 @@
  */
 
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useEncounterHistory } from '@/features/encounter/queries';
 import { useProfile } from '@/features/profile/queries';
-import { RegionalMap } from '@/features/regional-map/RegionalMap';
+
+const RegionalMap = dynamic(
+  () => import('@/features/regional-map/RegionalMap').then((mod) => mod.RegionalMap),
+  {
+    loading: () => (
+      <div className="fixed inset-0 grid place-items-center bg-cream text-sm font-black text-ink-muted">
+        読み込み中...
+      </div>
+    ),
+  },
+);
 
 export default function MapPage() {
   const profile = useProfile();

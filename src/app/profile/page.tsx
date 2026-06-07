@@ -1,5 +1,14 @@
 import Link from 'next/link';
-import { ProfileForm } from '@/features/profile/ProfileForm';
+import dynamic from 'next/dynamic';
+
+const ProfileForm = dynamic(
+  () => import('@/features/profile/ProfileForm').then((mod) => mod.ProfileForm),
+  {
+    loading: () => (
+      <div className="text-sm font-bold text-ink-muted">読み込み中...</div>
+    ),
+  },
+);
 
 export default function ProfilePage() {
   return (

@@ -75,7 +75,7 @@ export function BlePanel({ status }: { status: BleStatus | undefined }) {
             </span>
           )}
           {status?.last_error && (
-            <span className="max-w-[220px] truncate text-[10px] font-bold text-pop-red">
+            <span className="max-w-[260px] break-words text-[10px] font-bold leading-snug text-pop-red">
               {status.last_error}
             </span>
           )}
@@ -106,11 +106,15 @@ export function BlePanel({ status }: { status: BleStatus | undefined }) {
           {events.map((event) => (
             <div
               key={`${event.at}-${event.label}-${event.detail}`}
-              className="grid grid-cols-[64px_88px_minmax(0,1fr)] gap-2 rounded-lg bg-white/[0.28] px-2 py-1 text-[10px] font-bold text-ink-muted"
+              className={`grid grid-cols-[64px_88px_minmax(0,1fr)] gap-2 rounded-lg px-2 py-1 text-[10px] font-bold ${
+                event.label.endsWith('error')
+                  ? 'bg-pop-red/10 text-pop-red'
+                  : 'bg-white/[0.28] text-ink-muted'
+              }`}
             >
               <span className="font-mono">{formatSeenAt(event.at)}</span>
               <span className="truncate text-pop-blue">{event.label}</span>
-              <span className="truncate font-mono">{event.detail}</span>
+              <span className="break-words font-mono leading-snug">{event.detail}</span>
             </div>
           ))}
         </div>

@@ -65,7 +65,8 @@ data class PendingEncounter(val userId: String, val seenAt: Long)
             strings = [
                 Manifest.permission.BLUETOOTH_SCAN,
                 Manifest.permission.BLUETOOTH_ADVERTISE,
-                Manifest.permission.BLUETOOTH_CONNECT
+                Manifest.permission.BLUETOOTH_CONNECT,
+                Manifest.permission.POST_NOTIFICATIONS
             ],
             alias = "ble"
         )
@@ -130,9 +131,12 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
             stopBle(resetError = false)
             active = true
             lastError = null
+            EncounterBleStore.setSession(activity.applicationContext, uuid.toString().lowercase())
+            EncounterBleForegroundService.start(activity.applicationContext)
             startGattServer()
             startAdvertising()
             startScanning()
+            startPendingIntentScanning()
             Log.i(TAG, "start completed")
             invoke.resolve()
         } catch (ex: Exception) {
@@ -159,7 +163,7 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
         res.put("scanActive", scanActive)
         res.put("seenCount", seenUserIds.size)
         synchronized(pendingEvents) {
-            res.put("pendingCount", pendingEvents.size)
+            res.put("pendingCount", pendingEvents.size + EncounterBleStore.pendingCount(activity.applicationContext))
         }
         res.put("pendingGattCount", pendingGatts.size)
         res.put("lastSeenAt", lastSeenAt)
@@ -171,6 +175,13 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
     @Command
     fun drainPending(invoke: Invoke) {
         val arr = JSONArray()
+        val stored = EncounterBleStore.drainPending(activity.applicationContext)
+        for (event in stored) {
+            val item = JSObject()
+            item.put("userId", event.userId)
+            item.put("seenAt", event.seenAt)
+            arr.put(item)
+        }
         synchronized(pendingEvents) {
             while (pendingEvents.isNotEmpty()) {
                 val event = pendingEvents.removeFirst()
@@ -188,7 +199,7 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
     @Deprecated("use onDestroy(activity: AppCompatActivity) when appcompat is on the plugin classpath")
     @Suppress("DEPRECATION")
     override fun onDestroy() {
-        stopBle()
+        Log.i(TAG, "plugin destroyed; keeping BLE foreground service state=${active}")
         super.onDestroy()
     }
 
@@ -199,6 +210,7 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
             scanner?.stopScan(scanCallback)
         } catch (_: Exception) {
         }
+        EncounterBlePendingIntentScan.stop(activity.applicationContext)
         try {
             advertiser?.stopAdvertising(advertiseCallback)
         } catch (_: Exception) {
@@ -214,6 +226,8 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
             gattServer?.close()
         } catch (_: Exception) {
         }
+        EncounterBleStore.clearSession(activity.applicationContext)
+        EncounterBleForegroundService.stop(activity.applicationContext)
         scanActive = false
         advertiseActive = false
         if (resetError) lastError = null
@@ -288,6 +302,13 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
         scanner?.startScan(listOf(filter), settings, scanCallback)
         scanActive = true
         Log.i(TAG, "scan started")
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun startPendingIntentScanning() {
+        if (!EncounterBlePendingIntentScan.start(activity.applicationContext)) {
+            Log.w(TAG, "pending-intent scan unavailable")
+        }
     }
 
     private val advertiseCallback = object : AdvertiseCallback() {
@@ -446,6 +467,7 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
 
         val seenAt = now / 1000L
         enqueuePending(userId, seenAt)
+        EncounterBleForegroundService.notifyEncounter(activity.applicationContext, userId)
         val payload = JSObject()
         payload.put("user_id", userId)
         payload.put("seen_at", seenAt)
@@ -470,13 +492,13 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
     }
 
     private fun hasBlePermissions(): Boolean {
-        return requiredPermissions().all {
+        return requiredBlePermissions().all {
             ActivityCompat.checkSelfPermission(activity, it) == PackageManager.PERMISSION_GRANTED
         }
     }
 
     private fun requestBlePermissions() {
-        val missing = requiredPermissions()
+        val missing = (requiredBlePermissions() + optionalNotificationPermissions())
             .filter { ActivityCompat.checkSelfPermission(activity, it) != PackageManager.PERMISSION_GRANTED }
             .toTypedArray()
         if (missing.isNotEmpty()) {
@@ -484,13 +506,21 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
         }
     }
 
-    private fun requiredPermissions(): Array<String> {
+    private fun requiredBlePermissions(): Array<String> {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             arrayOf(
                 Manifest.permission.BLUETOOTH_SCAN,
                 Manifest.permission.BLUETOOTH_ADVERTISE,
                 Manifest.permission.BLUETOOTH_CONNECT
             )
+        } else {
+            emptyArray()
+        }
+    }
+
+    private fun optionalNotificationPermissions(): Array<String> {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            arrayOf(Manifest.permission.POST_NOTIFICATIONS)
         } else {
             emptyArray()
         }

@@ -96,6 +96,7 @@ struct Inner {
     task: Option<async_runtime::JoinHandle<()>>,
     last_drained_count: u32,
     last_drained_at: Option<i64>,
+    last_error: Option<String>,
     debug_events: VecDeque<BleDebugEvent>,
 }
 
@@ -112,6 +113,7 @@ impl BleService {
                 task: None,
                 last_drained_count: 0,
                 last_drained_at: None,
+                last_error: None,
                 debug_events: VecDeque::with_capacity(DEBUG_EVENTS_MAX),
             }),
             backend,
@@ -141,7 +143,7 @@ impl BleService {
             last_seen_user_id: None,
             last_drained_count: inner.last_drained_count,
             last_drained_at: inner.last_drained_at,
-            last_error: None,
+            last_error: inner.last_error.clone(),
         };
 
         if matches!(self.backend, BleBackend::TauriPlugin) {
@@ -156,7 +158,9 @@ impl BleService {
                 status.pending_gatt_count = native.pending_gatt_count;
                 status.last_seen_at = native.last_seen_at;
                 status.last_seen_user_id = native.last_seen_user_id;
-                status.last_error = native.last_error;
+                if native.last_error.is_some() {
+                    status.last_error = native.last_error;
+                }
             }
         }
 
@@ -169,26 +173,45 @@ impl BleService {
         mode: BleMode,
         user_id: Option<String>,
     ) -> Result<(), String> {
-        let mut inner = self.inner.lock().expect("ble lock poisoned");
-        if let Some(h) = inner.task.take() {
-            h.abort();
-        }
-        inner.mode = mode;
         let backend = self.backend;
-        push_debug(
-            &mut inner,
-            "start",
-            format!("backend={backend:?} mode={mode:?}"),
-        );
+        {
+            let mut inner = self.inner.lock().expect("ble lock poisoned");
+            if inner.mode == mode && !matches!(backend, BleBackend::TauriPlugin) {
+                push_debug(
+                    &mut inner,
+                    "start-skip",
+                    format!("backend={backend:?} mode={mode:?}"),
+                );
+                return Ok(());
+            }
+            if let Some(h) = inner.task.take() {
+                h.abort();
+            }
+            inner.mode = mode;
+            inner.last_error = None;
+            push_debug(
+                &mut inner,
+                "start",
+                format!("backend={backend:?} mode={mode:?}"),
+            );
+        }
 
         if matches!(backend, BleBackend::TauriPlugin) {
             #[cfg(mobile)]
             {
-                let user_id = user_id.ok_or_else(|| {
-                    "profile is required before starting mobile BLE advertise".to_string()
-                })?;
-                if let Err(e) = app.encounter_ble().start(&user_id, mode.into()) {
+                let Some(user_id) = user_id else {
+                    let message =
+                        "profile is required before starting mobile BLE advertise".to_string();
+                    let mut inner = self.inner.lock().expect("ble lock poisoned");
                     inner.mode = BleMode::Idle;
+                    inner.last_error = Some(message.clone());
+                    push_debug(&mut inner, "start-error", message.clone());
+                    return Err(message);
+                };
+                if let Err(e) = app.encounter_ble().start(&user_id, mode.into()) {
+                    let mut inner = self.inner.lock().expect("ble lock poisoned");
+                    inner.mode = BleMode::Idle;
+                    inner.last_error = Some(e.clone());
                     push_debug(&mut inner, "start-error", e.clone());
                     return Err(e);
                 }
@@ -197,7 +220,9 @@ impl BleService {
             #[cfg(not(mobile))]
             {
                 let _ = user_id;
+                let mut inner = self.inner.lock().expect("ble lock poisoned");
                 inner.mode = BleMode::Idle;
+                inner.last_error = Some("native plugin unavailable".to_string());
                 push_debug(&mut inner, "start-error", "native plugin unavailable");
                 return Err("encounter BLE native plugin is only available on mobile".to_string());
             }
@@ -235,25 +260,29 @@ impl BleService {
                 }
             }
         });
+        let mut inner = self.inner.lock().expect("ble lock poisoned");
         inner.task = Some(handle);
         Ok(())
     }
 
     pub fn stop(&self, app: AppHandle) {
-        let mut inner = self.inner.lock().expect("ble lock poisoned");
         #[cfg(not(mobile))]
         let _ = &app;
-        if let Some(h) = inner.task.take() {
-            h.abort();
+        {
+            let mut inner = self.inner.lock().expect("ble lock poisoned");
+            if let Some(h) = inner.task.take() {
+                h.abort();
+            }
+            push_debug(&mut inner, "stop", format!("backend={:?}", self.backend));
+            inner.mode = BleMode::Idle;
+            inner.last_error = None;
         }
-        push_debug(&mut inner, "stop", format!("backend={:?}", self.backend));
         if matches!(self.backend, BleBackend::TauriPlugin) {
             #[cfg(mobile)]
             if let Err(e) = app.encounter_ble().stop() {
                 log::warn!("[ble] native plugin stop failed: {e}");
             }
         }
-        inner.mode = BleMode::Idle;
     }
 
     pub fn drain_pending(
@@ -299,6 +328,11 @@ impl BleService {
 
     pub fn debug_event(&self, label: impl Into<String>, detail: impl Into<String>) {
         let mut inner = self.inner.lock().expect("ble lock poisoned");
+        let label = label.into();
+        let detail = detail.into();
+        if label.ends_with("error") || label == "start-error" {
+            inner.last_error = Some(detail.clone());
+        }
         push_debug(&mut inner, label, detail);
     }
 }

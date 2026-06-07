@@ -243,6 +243,7 @@ function EmptyOverlay() {
         </p>
         <Link
           href="/walk"
+          prefetch={false}
           className="rounded-toy border-2 border-pop-blue bg-pop-blue px-5 py-2 font-black tracking-wider text-cream-soft shadow-toy-lg transition active:translate-y-[3px] active:shadow-none"
         >
           ウォークモードへ

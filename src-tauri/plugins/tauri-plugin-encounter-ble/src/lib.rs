@@ -27,6 +27,7 @@ pub enum MobileBleMode {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct StartPayload<'a> {
+    #[serde(rename = "user_id")]
     user_id: &'a str,
     mode: MobileBleMode,
 }

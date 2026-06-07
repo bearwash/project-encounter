@@ -21,7 +21,21 @@
     android:usesPermissionFlags="neverForLocation" />
 <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
 <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
 <!-- BLE 必須デバイスの宣言 (BLE 非対応端末では Play Store 上で除外される) -->
 <uses-feature android:name="android.hardware.bluetooth_le"
     android:required="true" />
+
+<!-- BLE 待機を画面外でも維持する Foreground Service -->
+<application>
+    <service
+        android:name="com.projectencounter.encounterble.EncounterBleForegroundService"
+        android:exported="false"
+        android:foregroundServiceType="connectedDevice" />
+    <receiver
+        android:name="com.projectencounter.encounterble.EncounterBleScanReceiver"
+        android:exported="false" />
+</application>

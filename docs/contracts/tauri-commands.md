@@ -192,9 +192,29 @@ mobile target では `ble_start` / `ble_walk_mode_start` が現在の `my_profil
 
 native plugin は `SERVICE_UUID = 4a985948-3bc6-450b-80d2-04a8f98f83cb` を advertise / scan filter に使い、`USER_ID_CHARACTERISTIC_UUID = 4a985948-3bc6-450b-80d2-04a8f98f83cc` を mobile の GATT read に使う。128-bit Service UUID + 16 byte user_id の Service Data は BLE Legacy Advertise のサイズ上限を超えるため、mobile は Service UUID advertise + GATT read を標準経路にする。
 
-native plugin は検出イベントを最大 256 件のメモリ内短期キューにも積む。WebView が
+native plugin は検出イベントを最大 256 件の短期キューにも積む。WebView が
 イベントを取りこぼした場合でも、foreground 復帰時に `ble_drain_pending_encounters`
-で Rust 保存経路へ流す。プロセス終了時の永続保証はしない。
+で Rust 保存経路へ流す。iOS はメモリ内キュー、Android は foreground plugin 内の
+メモリキューに加えて `PendingIntent` scan / `BroadcastReceiver` 経由の検出を
+SharedPreferences の短期キューに保持する。
+
+iOS plugin は CoreBluetooth の restore identifier を central / peripheral manager に設定し、
+最後に `ble.start` した `user_id` を `UserDefaults` に保持する。これにより、一度セットアップ
+済みで OS が BLE イベントによる復元を許可する状態では、アプリが前面に出ていなくても
+scan / advertise の復元を試みる。初回起動前、Bluetooth 権限未付与、Bluetooth 無効、
+ユーザーによる force quit 後は OS が復元しないため対象外。
+
+Android plugin は `ble.start` 成功時に `EncounterBleForegroundService` を開始し、
+`ble.stop` 時に停止する。Foreground Service は `connectedDevice` type で、BLE 待機中で
+あることを通知に表示する。これにより画面を閉じた通常バックグラウンド状態でも、
+既存プロセス内の native Scan / Advertise が継続しやすくなる。さらに同じ Service UUID の
+`PendingIntent` scan を登録し、プロセスが停止していても OS から scan result が配信された場合は
+`EncounterBleScanReceiver` が起動して GATT read を行い、取得できた `user_id` を短期永続
+キューへ保存する。初回起動前、権限未付与、Bluetooth 無効、ユーザーによる強制停止後は対象外。
+
+native plugin は新規 `user_id` を検出したタイミングでローカル通知を出す。通知は
+「すれ違いました」という事実だけを伝え、プロフィール本体や位置情報は含めない。通知権限が
+拒否されている場合でも、検出イベントと pending queue への保存は継続する。
 
 plugin listener と mobile permission request のため、`encounter-ble:default` は
 `allow-registerListener` / `allow-removeListener` / `allow-checkPermissions` /

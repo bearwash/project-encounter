@@ -66,6 +66,7 @@ export function WalkMode() {
   const [pressing, setPressing] = useState(false);
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
   const pressTimer = useRef<number | null>(null);
+  const bleModeSwitching = useRef(false);
 
   const battery = useBatteryLevel();
   const lowBattery = battery !== null && battery <= LOW_BATTERY_PCT;
@@ -123,7 +124,14 @@ export function WalkMode() {
 
   // ウォークモード中は BLE を高頻度モードに切り替える (spec §4.4)
   useEffect(() => {
-    ble.walkStart().catch((e) => console.warn('[walk-mode] walkStart:', e));
+    if (!bleModeSwitching.current) {
+      bleModeSwitching.current = true;
+      ble.walkStart()
+        .catch((e) => console.warn('[walk-mode] walkStart:', e))
+        .finally(() => {
+          bleModeSwitching.current = false;
+        });
+    }
     return () => {
       ble.start().catch((e) => console.warn('[walk-mode] back to normal:', e));
     };

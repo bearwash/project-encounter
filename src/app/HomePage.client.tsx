@@ -14,7 +14,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Toaster } from '@/components/Toaster';
 import { BlePanel } from '@/features/ble/BlePanel';
 import { useBleStatus } from '@/features/ble/use-ble-status';
@@ -54,9 +54,35 @@ export default function HomePage() {
   const bleStatus = useBleStatus();
   const consent = useCloudConsent();
   const profileData = profile.data;
+  const autoBleStartInFlight = useRef(false);
   // 起動時 1 回だけ。前回開いた時刻を取得して、即座に「いま」で上書きする。
   // 返り値 = 前回値 (= 「N 日ぶり」表示の基準)。初回起動は null。
   const lastOpened = useLastSessionOpened();
+
+  useEffect(() => {
+    router.prefetch('/walk');
+    const prefetchSecondaryRoutes = () => {
+      router.prefetch('/map');
+      router.prefetch('/profile');
+    };
+
+    const requestIdle = window.requestIdleCallback as
+      | ((callback: IdleRequestCallback, options?: IdleRequestOptions) => number)
+      | undefined;
+    const cancelIdle = window.cancelIdleCallback as
+      | ((handle: number) => void)
+      | undefined;
+
+    if (requestIdle && cancelIdle) {
+      const idleId = requestIdle(prefetchSecondaryRoutes, {
+        timeout: 2000,
+      });
+      return () => cancelIdle(idleId);
+    }
+
+    const timer = globalThis.setTimeout(prefetchSecondaryRoutes, 800);
+    return () => globalThis.clearTimeout(timer);
+  }, [router]);
 
   // BLE mock peer 発見イベントを購読 → DB 永続化 + クールダウン制御
   useEncounterListener();
@@ -102,6 +128,8 @@ export default function HomePage() {
     let retryTimer: number | null = null;
 
     const start = async (allowRetry: boolean) => {
+      if (autoBleStartInFlight.current) return;
+      autoBleStartInFlight.current = true;
       try {
         await ble.start();
       } catch (e) {
@@ -116,6 +144,8 @@ export default function HomePage() {
             if (!cancelled) start(false);
           }, 1500);
         }
+      } finally {
+        autoBleStartInFlight.current = false;
       }
     };
 
@@ -123,7 +153,6 @@ export default function HomePage() {
     return () => {
       cancelled = true;
       if (retryTimer != null) window.clearTimeout(retryTimer);
-      ble.stop().catch(() => {});
     };
   }, [consent.data?.status, profileData]);
 
@@ -237,6 +266,8 @@ export default function HomePage() {
 // 上部スコアバー
 // =============================================================
 function PlazaTopBar({ today, total }: { today: number; total: number }) {
+  const router = useRouter();
+
   return (
     <header className="pointer-events-none absolute left-3 right-3 top-3 z-20 flex items-center justify-between gap-3">
       <div className="game-hud pointer-events-auto flex items-center gap-2 rounded-full px-2.5 py-1.5">
@@ -256,6 +287,9 @@ function PlazaTopBar({ today, total }: { today: number; total: number }) {
         {/* 🗾 日本地図ビュー (出会った人のコレクション) — spec: regional-map.md */}
         <Link
           href="/map"
+          prefetch={false}
+          onPointerEnter={() => router.prefetch('/map')}
+          onTouchStart={() => router.prefetch('/map')}
           aria-label="日本地図"
           className="game-icon-button flex h-11 w-11 items-center justify-center rounded-full text-lg transition active:translate-y-[2px]"
         >
@@ -264,6 +298,9 @@ function PlazaTopBar({ today, total }: { today: number; total: number }) {
 
         <Link
           href="/profile"
+          prefetch={false}
+          onPointerEnter={() => router.prefetch('/profile')}
+          onTouchStart={() => router.prefetch('/profile')}
           aria-label="プロフィール設定"
           className="game-icon-button flex h-11 w-11 items-center justify-center rounded-full transition active:translate-y-[2px]"
         >
@@ -292,16 +329,19 @@ function PlazaBottomActions({
   onOpenDev: () => void;
   devOpen: boolean;
 }) {
+  const [walkOpening, setWalkOpening] = useState(false);
+
   return (
     <div className="pointer-events-none absolute bottom-5 left-3 right-3 z-20 flex items-end justify-between gap-3">
       <Link
         href="/walk"
+        onClick={() => setWalkOpening(true)}
         className="game-button pointer-events-auto flex min-h-12 items-center gap-2 rounded-full px-5 py-3 font-black tracking-wider"
       >
         <span aria-hidden className="grid h-7 w-7 place-items-center rounded-full bg-white/20 text-base">
           👣
         </span>
-        <span className="text-sm">ウォークモード</span>
+        <span className="text-sm">{walkOpening ? '起動中...' : 'ウォークモード'}</span>
       </Link>
 
       <button

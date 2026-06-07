@@ -2,6 +2,7 @@ import CoreBluetooth
 import Foundation
 import SwiftRs
 import Tauri
+import UserNotifications
 
 private let encounterServiceUuid = CBUUID(string: "4A985948-3BC6-450B-80D2-04A8F98F83CB")
 private let encounterUserIdCharacteristicUuid = CBUUID(string: "4A985948-3BC6-450B-80D2-04A8F98F83CC")
@@ -10,6 +11,12 @@ private let dedupWindowSeconds: TimeInterval = 5 * 60
 private let gattTimeoutSeconds: TimeInterval = 10
 private let maxPendingPeripherals = 4
 private let maxPendingEvents = 256
+private let centralRestoreIdentifier = "com.projectencounter.encounterble.central"
+private let peripheralRestoreIdentifier = "com.projectencounter.encounterble.peripheral"
+private let defaultsActiveKey = "encounter_ble.active"
+private let defaultsUserIdKey = "encounter_ble.user_id"
+private let defaultsNotificationRequestedKey = "encounter_ble.notification_requested"
+private let notificationThreadIdentifier = "encounter_ble"
 
 private func bleLog(_ message: String) {
   NSLog("[EncounterBle] %@", message)
@@ -61,20 +68,47 @@ class EncounterBlePlugin: Plugin, CBCentralManagerDelegate, CBPeripheralManagerD
       self.stopBle(resetError: false)
       self.active = true
       self.lastError = nil
+      UserDefaults.standard.set(true, forKey: defaultsActiveKey)
+      UserDefaults.standard.set(args.user_id.lowercased(), forKey: defaultsUserIdKey)
+      self.requestNotificationPermission()
       if self.central == nil {
-        self.central = CBCentralManager(delegate: self, queue: nil)
+        self.central = self.makeCentralManager()
       } else {
         self.startScanIfReady()
       }
 
       if self.peripheralManager == nil {
-        self.peripheralManager = CBPeripheralManager(delegate: self, queue: nil)
+        self.peripheralManager = self.makePeripheralManager()
       } else {
         self.startAdvertisingIfReady()
       }
       bleLog("start completed")
       invoke.resolve()
     }
+  }
+
+  private func makeCentralManager() -> CBCentralManager {
+    CBCentralManager(
+      delegate: self,
+      queue: nil,
+      options: [CBCentralManagerOptionRestoreIdentifierKey: centralRestoreIdentifier])
+  }
+
+  private func makePeripheralManager() -> CBPeripheralManager {
+    CBPeripheralManager(
+      delegate: self,
+      queue: nil,
+      options: [CBPeripheralManagerOptionRestoreIdentifierKey: peripheralRestoreIdentifier])
+  }
+
+  private func restoreStoredSessionIfNeeded() {
+    guard UserDefaults.standard.bool(forKey: defaultsActiveKey),
+          let userId = UserDefaults.standard.string(forKey: defaultsUserIdKey),
+          let data = uuidStringToData(userId)
+    else { return }
+    userIdData = data
+    active = true
+    bleLog("restored persisted BLE session user=\(userId.lowercased())")
   }
 
   @objc public func stop(_ invoke: Invoke) throws {
@@ -120,6 +154,7 @@ class EncounterBlePlugin: Plugin, CBCentralManagerDelegate, CBPeripheralManagerD
   }
 
   func centralManagerDidUpdateState(_ central: CBCentralManager) {
+    restoreStoredSessionIfNeeded()
     if central.state == .poweredOn {
       bleLog("central powered on")
       startScanIfReady()
@@ -132,7 +167,22 @@ class EncounterBlePlugin: Plugin, CBCentralManagerDelegate, CBPeripheralManagerD
     }
   }
 
+  func centralManager(_ central: CBCentralManager, willRestoreState dict: [String: Any]) {
+    restoreStoredSessionIfNeeded()
+    if let restored = dict[CBCentralManagerRestoredStatePeripheralsKey] as? [CBPeripheral] {
+      for peripheral in restored {
+        pendingPeripherals[peripheral.identifier] = peripheral
+        peripheral.delegate = self
+      }
+      bleLog("central restored peripherals=\(restored.count)")
+    } else {
+      bleLog("central restored")
+    }
+    startScanIfReady()
+  }
+
   func peripheralManagerDidUpdateState(_ peripheral: CBPeripheralManager) {
+    restoreStoredSessionIfNeeded()
     if peripheral.state == .poweredOn {
       bleLog("peripheral powered on")
       startAdvertisingIfReady()
@@ -141,6 +191,25 @@ class EncounterBlePlugin: Plugin, CBCentralManagerDelegate, CBPeripheralManagerD
       if active {
         lastError = "peripheral state: \(peripheral.state.rawValue)"
         bleLog("peripheral unavailable state=\(peripheral.state.rawValue)")
+      }
+    }
+  }
+
+  func peripheralManager(_ peripheral: CBPeripheralManager, willRestoreState dict: [String: Any]) {
+    restoreStoredSessionIfNeeded()
+    let restoredServices = (dict[CBPeripheralManagerRestoredStateServicesKey] as? [CBMutableService])?.count ?? 0
+    bleLog("peripheral restored services=\(restoredServices)")
+    startAdvertisingIfReady()
+  }
+
+  private func requestNotificationPermission() {
+    guard !UserDefaults.standard.bool(forKey: defaultsNotificationRequestedKey) else { return }
+    UserDefaults.standard.set(true, forKey: defaultsNotificationRequestedKey)
+    UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+      if let error {
+        bleLog("notification permission request failed error=\(error.localizedDescription)")
+      } else {
+        bleLog("notification permission granted=\(granted)")
       }
     }
   }
@@ -301,9 +370,28 @@ class EncounterBlePlugin: Plugin, CBCentralManagerDelegate, CBPeripheralManagerD
     discoveredUserIds[userId] = now
     let seenAt = Int64(now.timeIntervalSince1970)
     enqueuePending(userId: userId, seenAt: seenAt)
+    postEncounterNotification(userId: userId)
     try? trigger(encounterEvent, data: EncounterPayload(user_id: userId, seen_at: seenAt))
     bleLog("encounter emitted user=\(userId)")
     return true
+  }
+
+  private func postEncounterNotification(userId: String) {
+    let content = UNMutableNotificationContent()
+    content.title = "すれ違いました"
+    content.body = "Project Encounterで新しいすれ違いを検出しました"
+    content.sound = .default
+    content.threadIdentifier = notificationThreadIdentifier
+
+    let request = UNNotificationRequest(
+      identifier: "encounter-\(userId)-\(Int(Date().timeIntervalSince1970))",
+      content: content,
+      trigger: nil)
+    UNUserNotificationCenter.current().add(request) { error in
+      if let error {
+        bleLog("notification post failed error=\(error.localizedDescription)")
+      }
+    }
   }
 
   private func enqueuePending(userId: String, seenAt: Int64) {
@@ -326,6 +414,7 @@ class EncounterBlePlugin: Plugin, CBCentralManagerDelegate, CBPeripheralManagerD
     pendingPeripherals.removeAll()
     peripheralManager?.stopAdvertising()
     peripheralManager?.removeAllServices()
+    UserDefaults.standard.set(false, forKey: defaultsActiveKey)
     if resetError {
       lastError = nil
     }

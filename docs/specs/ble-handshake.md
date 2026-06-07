@@ -73,7 +73,9 @@ on_advertisement_received(service_data):
 `encounter_record_received_user_id` を正規入口にする。native plugin は検出イベントを
 短期キューにも積み、foreground 復帰時に `ble_drain_pending_encounters` で同じ
 Rust 保存経路へ流す。これにより WebView が寝ている間のイベント取りこぼしを減らす。
-短期キューはメモリ内最大 256 件で、OS にプロセスを終了された場合の永続保証はしない。
+短期キューは最大 256 件。Android は `PendingIntent` scan / `BroadcastReceiver` で
+プロセス復帰した検出を SharedPreferences に短期保存し、次回 `ble_drain_pending_encounters`
+で Rust 保存経路へ流す。iOS は CoreBluetooth 復元時の plugin メモリキューを使う。
 
 ### 4.5 クールダウン
 - 同一 `user_id` との 2 回目以降の受信は、前回 `encounter_logs.encountered_at` から `COOLDOWN_SEC` 経過後にのみ新規ログとして記録する。
