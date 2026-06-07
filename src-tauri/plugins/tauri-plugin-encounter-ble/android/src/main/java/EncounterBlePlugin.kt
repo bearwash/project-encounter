@@ -252,11 +252,15 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
 
         gattServer?.close()
         gattServer = bluetoothManager.openGattServer(activity, gattServerCallback)
-        if (gattServer == null) {
+        val server = gattServer
+        if (server == null) {
+            // GATT サーバを開けないのに connectable で advertise すると、接続が来ても
+            // user_id を返せない。サーバが無い場合はここで打ち切る。
             lastError = "GATT server is unavailable"
             Log.w(TAG, "GATT server unavailable")
+            return
         }
-        gattServer?.addService(service)
+        server.addService(service)
         Log.i(TAG, "GATT service published")
     }
 
@@ -452,10 +456,15 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
         }
     }
 
+    /**
+     * 戻り値: この data で処理が完結したか (true なら GATT fallback 不要)。
+     * payload が無効 (サイズ不正) のときは false を返し、呼び出し側が
+     * GATT read による再取得へ進めるようにする。
+     */
     private fun emitIfValid(data: ByteArray): Boolean {
         if (data.size != 16) {
             lastError = "invalid BLE payload size: ${data.size}"
-            return true
+            return false
         }
         if (userIdBytes?.contentEquals(data) == true) return true
         val userId = bytesToUuid(data).toString().lowercase()

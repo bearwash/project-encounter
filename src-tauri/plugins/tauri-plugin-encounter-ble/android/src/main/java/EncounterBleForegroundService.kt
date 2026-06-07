@@ -12,15 +12,21 @@ import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
+import java.util.concurrent.atomic.AtomicInteger
 
+private const val TAG = "EncounterBle"
 private const val SERVICE_CHANNEL_ID = "encounter_ble_service"
 private const val SERVICE_CHANNEL_NAME = "Project Encounter BLE"
 private const val ENCOUNTER_CHANNEL_ID = "encounter_ble_events"
 private const val ENCOUNTER_CHANNEL_NAME = "すれ違い通知"
 private const val NOTIFICATION_ID = 48195
 private const val ENCOUNTER_NOTIFICATION_BASE_ID = 48200
+// 通知 ID は単調増加で割り当てる。userId.hashCode() ベースだと衝突して
+// バースト時に通知が上書きされ取りこぼす。
+private val encounterNotificationCounter = AtomicInteger(0)
 
 class EncounterBleForegroundService : Service() {
     override fun onCreate() {
@@ -34,7 +40,16 @@ class EncounterBleForegroundService : Service() {
         } else {
             0
         }
-        ServiceCompat.startForeground(this, NOTIFICATION_ID, buildNotification(), foregroundServiceType)
+        // Android 14+ では connectedDevice 型 FGS の起動に BLUETOOTH 権限が必須。
+        // START_STICKY による OS 再起動時に権限が剥奪されていると startForeground が
+        // 例外を投げてプロセスが落ちるため、catch して安全に自停止する。
+        try {
+            ServiceCompat.startForeground(this, NOTIFICATION_ID, buildNotification(), foregroundServiceType)
+        } catch (ex: Exception) {
+            Log.w(TAG, "startForeground failed; stopping service", ex)
+            stopSelf()
+            return START_NOT_STICKY
+        }
         return START_STICKY
     }
 
@@ -121,7 +136,9 @@ class EncounterBleForegroundService : Service() {
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setContentIntent(pendingIntent)
                 .build()
-            manager.notify(ENCOUNTER_NOTIFICATION_BASE_ID + userId.hashCode().mod(1000), notification)
+            val notificationId =
+                ENCOUNTER_NOTIFICATION_BASE_ID + encounterNotificationCounter.getAndIncrement().mod(1000)
+            manager.notify(notificationId, notification)
         }
     }
 }
