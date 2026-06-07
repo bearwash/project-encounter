@@ -29,6 +29,11 @@ export function pickDurationMs(rng: () => number, state: PlazaBehaviorState): nu
       return 2000 + rng() * 3000; // 2-5 秒
     case 'looking':
       return 1000 + rng() * 2000; // 1-3 秒
+    default: {
+      // 将来 state を追加したらコンパイルエラーで気付けるように網羅性チェック
+      const _exhaustive: never = state;
+      return _exhaustive;
+    }
   }
 }
 

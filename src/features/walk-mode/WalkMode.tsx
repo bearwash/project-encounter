@@ -66,7 +66,6 @@ export function WalkMode() {
   const [pressing, setPressing] = useState(false);
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
   const pressTimer = useRef<number | null>(null);
-  const bleModeSwitching = useRef(false);
 
   const battery = useBatteryLevel();
   const lowBattery = battery !== null && battery <= LOW_BATTERY_PCT;
@@ -122,23 +121,25 @@ export function WalkMode() {
     };
   }, []);
 
-  // ウォークモード中は BLE を高頻度モードに切り替える (spec §4.4)
+  // ウォークモード中は BLE を高頻度モードに切り替える (spec §4.4)。
+  // walkStart → (cleanup) start を直列化し、walkStart の完了前に通常モードへ
+  // 戻して walk モードが取り消されるのを防ぐ (到達順を保証)。
   useEffect(() => {
-    if (!bleModeSwitching.current) {
-      bleModeSwitching.current = true;
-      ble.walkStart()
-        .catch((e) => console.warn('[walk-mode] walkStart:', e))
-        .finally(() => {
-          bleModeSwitching.current = false;
-        });
-    }
+    const started = ble
+      .walkStart()
+      .catch((e) => console.warn('[walk-mode] walkStart:', e));
     return () => {
-      ble.start().catch((e) => console.warn('[walk-mode] back to normal:', e));
+      started.finally(() => {
+        ble.start().catch((e) => console.warn('[walk-mode] back to normal:', e));
+      });
     };
   }, []);
 
-  // spec §4.3: 終了は長押し 2 秒 → 確認ダイアログ
-  const startPress = useCallback(() => {
+  // spec §4.3: 終了は長押し 2 秒 → 確認ダイアログ。
+  // pointer capture して、押下中に指が少しずれても (onPointerLeave で) 誤キャンセル
+  // しないようにする。
+  const startPress = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+    e.currentTarget.setPointerCapture?.(e.pointerId);
     setPressing(true);
     pressTimer.current = window.setTimeout(() => {
       setConfirming(true);
@@ -170,7 +171,6 @@ export function WalkMode() {
         onPointerDown={startPress}
         onPointerUp={cancelPress}
         onPointerCancel={cancelPress}
-        onPointerLeave={cancelPress}
         className="game-hud-dark absolute right-4 top-4 select-none rounded-full px-4 py-2 text-[10px] font-black tracking-widest text-white/75 transition active:translate-y-[2px]"
       >
         終了（長押し）

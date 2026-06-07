@@ -24,7 +24,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#000000',
+  // ノスタルジック・ポップ路線 (要件 §3.3) に合わせ、アプリ基調の cream に合わせる。
+  // (旧 #000000 はダーク基調を想起させトーンと不整合だった)
+  themeColor: '#FAF1E0',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
