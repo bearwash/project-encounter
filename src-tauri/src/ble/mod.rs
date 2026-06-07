@@ -121,7 +121,7 @@ impl BleService {
     }
 
     pub fn status(&self, app: AppHandle) -> BleStatus {
-        let inner = self.inner.lock().expect("ble lock poisoned");
+        let inner = self.inner.lock().unwrap_or_else(|e| e.into_inner());
         let active = inner.mode != BleMode::Idle;
         #[cfg(not(mobile))]
         let _ = &app;
@@ -175,7 +175,7 @@ impl BleService {
     ) -> Result<(), String> {
         let backend = self.backend;
         {
-            let mut inner = self.inner.lock().expect("ble lock poisoned");
+            let mut inner = self.inner.lock().unwrap_or_else(|e| e.into_inner());
             if inner.mode == mode && !matches!(backend, BleBackend::TauriPlugin) {
                 push_debug(
                     &mut inner,
@@ -202,14 +202,14 @@ impl BleService {
                 let Some(user_id) = user_id else {
                     let message =
                         "profile is required before starting mobile BLE advertise".to_string();
-                    let mut inner = self.inner.lock().expect("ble lock poisoned");
+                    let mut inner = self.inner.lock().unwrap_or_else(|e| e.into_inner());
                     inner.mode = BleMode::Idle;
                     inner.last_error = Some(message.clone());
                     push_debug(&mut inner, "start-error", message.clone());
                     return Err(message);
                 };
                 if let Err(e) = app.encounter_ble().start(&user_id, mode.into()) {
-                    let mut inner = self.inner.lock().expect("ble lock poisoned");
+                    let mut inner = self.inner.lock().unwrap_or_else(|e| e.into_inner());
                     inner.mode = BleMode::Idle;
                     inner.last_error = Some(e.clone());
                     push_debug(&mut inner, "start-error", e.clone());
@@ -220,7 +220,7 @@ impl BleService {
             #[cfg(not(mobile))]
             {
                 let _ = user_id;
-                let mut inner = self.inner.lock().expect("ble lock poisoned");
+                let mut inner = self.inner.lock().unwrap_or_else(|e| e.into_inner());
                 inner.mode = BleMode::Idle;
                 inner.last_error = Some("native plugin unavailable".to_string());
                 push_debug(&mut inner, "start-error", "native plugin unavailable");
@@ -260,7 +260,7 @@ impl BleService {
                 }
             }
         });
-        let mut inner = self.inner.lock().expect("ble lock poisoned");
+        let mut inner = self.inner.lock().unwrap_or_else(|e| e.into_inner());
         inner.task = Some(handle);
         Ok(())
     }
@@ -269,7 +269,7 @@ impl BleService {
         #[cfg(not(mobile))]
         let _ = &app;
         {
-            let mut inner = self.inner.lock().expect("ble lock poisoned");
+            let mut inner = self.inner.lock().unwrap_or_else(|e| e.into_inner());
             if let Some(h) = inner.task.take() {
                 h.abort();
             }
@@ -305,7 +305,7 @@ impl BleService {
             Vec::new()
         };
 
-        let mut inner = self.inner.lock().expect("ble lock poisoned");
+        let mut inner = self.inner.lock().unwrap_or_else(|e| e.into_inner());
         inner.last_drained_count = drained.len() as u32;
         let drained_at = unix_now();
         inner.last_drained_at = Some(drained_at);
@@ -318,7 +318,7 @@ impl BleService {
     }
 
     pub fn debug_snapshot(&self) -> BleDebugSnapshot {
-        let inner = self.inner.lock().expect("ble lock poisoned");
+        let inner = self.inner.lock().unwrap_or_else(|e| e.into_inner());
         BleDebugSnapshot {
             backend: self.backend,
             mode: inner.mode,
@@ -327,7 +327,7 @@ impl BleService {
     }
 
     pub fn debug_event(&self, label: impl Into<String>, detail: impl Into<String>) {
-        let mut inner = self.inner.lock().expect("ble lock poisoned");
+        let mut inner = self.inner.lock().unwrap_or_else(|e| e.into_inner());
         let label = label.into();
         let detail = detail.into();
         if label.ends_with("error") || label == "start-error" {
@@ -337,12 +337,7 @@ impl BleService {
     }
 }
 
-fn unix_now() -> i64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs() as i64)
-        .unwrap_or(0)
-}
+use crate::db::unix_now;
 
 fn push_debug(inner: &mut Inner, label: impl Into<String>, detail: impl Into<String>) {
     if inner.debug_events.len() >= DEBUG_EVENTS_MAX {
@@ -494,6 +489,9 @@ async fn btleplug_scan_loop(app: AppHandle, _mode: BleMode) {
                 continue;
             }
         }
+        // dedup window を過ぎた古いエントリを掃除して無制限な増加を防ぐ
+        // (人混みで多数の MAC をローテーションする端末対策。長時間 scan のメモリリーク回避)。
+        last_seen.retain(|_, t| now.duration_since(*t) < dedup_window);
         last_seen.insert(id_key, now);
 
         let mut bytes = [0u8; 16];

@@ -21,3 +21,25 @@ impl BlePayload {
         }
     }
 }
+
+/// BLE 上で交換する 16 byte は UUID の **ネットワークバイト順 (RFC 4122 / big-endian)**。
+/// これは `Uuid::as_bytes` / `Uuid::from_bytes` が用いる順序であり、
+/// iOS の `uuid_t` (タプルそのまま) と Android の `ByteBuffer`
+/// (`putLong(msb).putLong(lsb)` = big-endian) のいずれとも一致する。
+/// 受信側 (btleplug scan) は `Uuid::from_bytes` でこの順序として解釈する。
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn uuid_bytes_round_trip_is_network_order() {
+        let u = Uuid::parse_str("4a985948-3bc6-450b-80d2-04a8f98f83cb").unwrap();
+        let bytes = *u.as_bytes();
+        // 先頭バイトが UUID 文字列の先頭 (MSB) と一致する = ネットワークバイト順
+        assert_eq!(bytes[0], 0x4a);
+        assert_eq!(bytes[15], 0xcb);
+        // from_bytes で元の UUID / 文字列に戻る (送受信の往復契約)
+        assert_eq!(Uuid::from_bytes(bytes), u);
+        assert_eq!(BlePayload::from_uuid(Uuid::from_bytes(bytes)).user_id, u.to_string());
+    }
+}
