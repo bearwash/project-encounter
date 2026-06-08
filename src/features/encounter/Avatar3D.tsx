@@ -23,7 +23,7 @@
  */
 
 import { useFrame, type ThreeElements } from '@react-three/fiber';
-import { useMemo, useRef } from 'react';
+import { memo, useMemo, useRef } from 'react';
 import type { Group } from 'three';
 import { makeRng } from '@/lib/avatar/random';
 import { parseAvatarCode } from '@/lib/avatar/parse';
@@ -43,15 +43,16 @@ type Props = GroupProps & {
   mode?: Avatar3DMode;
 };
 
-export function Avatar3D({
+function Avatar3DImpl({
   avatarCode,
   userId,
   mode = 'idle',
   ...groupProps
 }: Props) {
-  const parts = parseAvatarCode(avatarCode);
-  const skin = skinColor(parts.base);
-  const outfit = outfitColors(parts.outfit);
+  // 広場では住人の state 変化で頻繁に再レンダーされるため、パース/色計算は memo 化。
+  const parts = useMemo(() => parseAvatarCode(avatarCode), [avatarCode]);
+  const skin = useMemo(() => skinColor(parts.base), [parts.base]);
+  const outfit = useMemo(() => outfitColors(parts.outfit), [parts.outfit]);
 
   // 個体差ジッタ (userId シードで決定論的)
   const ind = useMemo(() => {
@@ -133,3 +134,6 @@ export function Avatar3D({
     </group>
   );
 }
+
+// 広場の住人状態機械 (PlazaResident3D) の再レンダーで subtree を作り直さないよう memo 化。
+export const Avatar3D = memo(Avatar3DImpl);

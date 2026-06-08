@@ -5,7 +5,8 @@ use tauri::AppHandle;
 
 use crate::db;
 
-const DEFAULT_COOLDOWN_SEC: i64 = 28_800;
+/// 既定クールダウン秒数 (8 時間)。encounter 記録側からも参照する単一の定義。
+pub const DEFAULT_COOLDOWN_SEC: i64 = 28_800;
 
 #[tauri::command]
 pub async fn settings_get_cooldown_sec(app: AppHandle) -> Result<i64, String> {

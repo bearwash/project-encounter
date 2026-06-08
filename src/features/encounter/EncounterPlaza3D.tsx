@@ -34,6 +34,13 @@ const PX_PER_UNIT = 80;
 const MIN_STAGE_UNITS = 12; // 画面 1 枚に収まる最小幅
 const PER_RESIDENT_UNIT = 0.7;
 const JOIN_STAGGER_MS = 200;
+/**
+ * 同時に 3D 描画する住人の上限 (spec: encounter-plaza.md「最大 30 人同時表示」)。
+ * users_cache のデータ自体は全件保持される (コレクション体験) が、1 体あたり
+ * 数十メッシュ + useFrame アニメを持つため、描画は最新すれ違い順の上位 N に絞って
+ * バッテリー/FPS を守る。residents は last_seen 降順で渡される前提。
+ */
+const MAX_VISIBLE_RESIDENTS = 30;
 
 export function EncounterPlaza3D({ residents, joiningIds }: Props) {
   const [selected, setSelected] = useState<HistoryItem | null>(null);
@@ -44,22 +51,29 @@ export function EncounterPlaza3D({ residents, joiningIds }: Props) {
     return m;
   }, [joiningIds]);
 
-  // ステージ幅 (3D unit): 住人数に応じて広がる。30 人ごとに +1 画面ぶん。
+  // 描画対象は最新 N 人に制限 (それ以上はデータとしては残るが同時描画しない)
+  const visibleResidents = useMemo(
+    () => residents.slice(0, MAX_VISIBLE_RESIDENTS),
+    [residents],
+  );
+  const hiddenCount = residents.length - visibleResidents.length;
+
+  // ステージ幅 (3D unit): 描画住人数に応じて広がる。
   const stageWidth = useMemo(
     () =>
       Math.max(
         MIN_STAGE_UNITS,
-        residents.length * PER_RESIDENT_UNIT + 4,
+        visibleResidents.length * PER_RESIDENT_UNIT + 4,
       ),
-    [residents.length],
+    [visibleResidents.length],
   );
 
   // 住人配置: userId ハッシュで x / z をジッタ
   const placed = useMemo(() => {
     const margin = 1.0;
     const usable = stageWidth - margin * 2;
-    const step = usable / Math.max(1, residents.length);
-    return residents.map((r, i) => {
+    const step = usable / Math.max(1, visibleResidents.length);
+    return visibleResidents.map((r, i) => {
       let acc = 0;
       for (const c of r.user_id) acc = (acc * 31 + c.charCodeAt(0)) >>> 0;
       const jitterX = ((acc % 60) - 30) / 100; // ±0.3 unit
@@ -72,7 +86,7 @@ export function EncounterPlaza3D({ residents, joiningIds }: Props) {
         joinIndex: joinOrder.get(r.user_id),
       };
     });
-  }, [residents, stageWidth, joinOrder]);
+  }, [visibleResidents, stageWidth, joinOrder]);
 
   return (
     <div
@@ -116,6 +130,13 @@ export function EncounterPlaza3D({ residents, joiningIds }: Props) {
 
       {/* 桜の花びら (2D overlay)。3D particle 化は spec §7 オープン課題 */}
       <SakuraPetals count={18} durationRange={[12, 22]} className="z-[5]" />
+
+      {/* 描画上限を超えた住人がいることの控えめな表示 (コレクションは履歴で全件閲覧可) */}
+      {hiddenCount > 0 && (
+        <div className="pointer-events-none absolute bottom-3 right-3 z-10 rounded-full border-2 border-cream-deep bg-cream-soft/90 px-3 py-1 text-[11px] font-black tracking-wider text-ink-soft shadow-toy">
+          ほかに +{hiddenCount} 人
+        </div>
+      )}
 
       {/* 空状態 — 住人 0 のとき HTML overlay で表示 */}
       {residents.length === 0 && <EmptyOverlay />}

@@ -14,6 +14,7 @@ import { AvatarEditor } from './AvatarEditor';
 import { PrefectureSelect } from './PrefectureSelect';
 import { useProfile, useSaveProfile } from './queries';
 import {
+  countChars,
   validateProfile,
   type ProfileInput,
   type ValidationError,
@@ -251,7 +252,7 @@ function Field({
           {label}
         </span>
         <span className="text-xs text-ink-muted">
-          {value.length} / {max}
+          {countChars(value)} / {max}
         </span>
       </div>
       {children}

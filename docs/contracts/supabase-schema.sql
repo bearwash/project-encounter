@@ -25,69 +25,64 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS home_prefecture TEXT;
 
 -- クライアント validation と同じ公開プロフィール制約。
--- Postgres には ADD CONSTRAINT IF NOT EXISTS がないため、DO block で冪等化する。
--- NOT VALID で追加して既存の汚れた行によるデプロイ失敗を避ける。
--- 新規 INSERT / UPDATE には追加直後から適用される。
+-- 毎回 DROP → 再追加することで定義ドリフト (例: avatar_code の形式変更) を確実に反映する。
+-- NOT VALID で追加して既存の汚れた行によるデプロイ失敗を避けつつ、
+-- 直後に VALIDATE を試行する (綺麗なら有効化、汚れた行があれば WARNING を出して継続)。
+-- avatar_code は b{NN}_h{NN}_o{NN}_f{NN} 構造 (軸文字+2桁を _ 連結。将来の軸も許容)。
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_display_name_valid;
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_avatar_code_valid;
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_message_valid;
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_home_prefecture_valid;
+
+ALTER TABLE public.profiles
+    ADD CONSTRAINT profiles_display_name_valid
+    CHECK (
+        char_length(btrim(display_name)) BETWEEN 1 AND 16
+        AND display_name !~ '[[:cntrl:]]'
+    ) NOT VALID;
+
+ALTER TABLE public.profiles
+    ADD CONSTRAINT profiles_avatar_code_valid
+    CHECK (
+        char_length(avatar_code) BETWEEN 1 AND 64
+        AND avatar_code ~ '^[a-z][0-9]{2}(_[a-z][0-9]{2})*$'
+    ) NOT VALID;
+
+ALTER TABLE public.profiles
+    ADD CONSTRAINT profiles_message_valid
+    CHECK (
+        message IS NULL
+        OR (
+            char_length(message) <= 30
+            AND message !~ '[[:cntrl:]]'
+        )
+    ) NOT VALID;
+
+ALTER TABLE public.profiles
+    ADD CONSTRAINT profiles_home_prefecture_valid
+    CHECK (
+        home_prefecture IS NULL
+        OR home_prefecture ~ '^(0[1-9]|[1-3][0-9]|4[0-7])$'
+    ) NOT VALID;
+
+-- 既存行を検証して制約を有効化する。汚れた行がある制約は NOT VALID のまま残し
+-- WARNING を出す (デプロイは止めない。クリーンアップ後の再実行で有効化される)。
 DO $$
+DECLARE
+    c text;
 BEGIN
-    IF NOT EXISTS (
-        SELECT 1
-        FROM pg_constraint
-        WHERE conname = 'profiles_display_name_valid'
-          AND conrelid = 'public.profiles'::regclass
-    ) THEN
-        ALTER TABLE public.profiles
-            ADD CONSTRAINT profiles_display_name_valid
-            CHECK (
-                char_length(btrim(display_name)) BETWEEN 1 AND 16
-                AND display_name !~ '[[:cntrl:]]'
-            ) NOT VALID;
-    END IF;
-
-    IF NOT EXISTS (
-        SELECT 1
-        FROM pg_constraint
-        WHERE conname = 'profiles_avatar_code_valid'
-          AND conrelid = 'public.profiles'::regclass
-    ) THEN
-        ALTER TABLE public.profiles
-            ADD CONSTRAINT profiles_avatar_code_valid
-            CHECK (
-                char_length(avatar_code) BETWEEN 1 AND 64
-                AND avatar_code ~ '^[A-Za-z0-9_-]+$'
-            ) NOT VALID;
-    END IF;
-
-    IF NOT EXISTS (
-        SELECT 1
-        FROM pg_constraint
-        WHERE conname = 'profiles_message_valid'
-          AND conrelid = 'public.profiles'::regclass
-    ) THEN
-        ALTER TABLE public.profiles
-            ADD CONSTRAINT profiles_message_valid
-            CHECK (
-                message IS NULL
-                OR (
-                    char_length(message) <= 30
-                    AND message !~ '[[:cntrl:]]'
-                )
-            ) NOT VALID;
-    END IF;
-
-    IF NOT EXISTS (
-        SELECT 1
-        FROM pg_constraint
-        WHERE conname = 'profiles_home_prefecture_valid'
-          AND conrelid = 'public.profiles'::regclass
-    ) THEN
-        ALTER TABLE public.profiles
-            ADD CONSTRAINT profiles_home_prefecture_valid
-            CHECK (
-                home_prefecture IS NULL
-                OR home_prefecture ~ '^(0[1-9]|[1-3][0-9]|4[0-7])$'
-            ) NOT VALID;
-    END IF;
+    FOREACH c IN ARRAY ARRAY[
+        'profiles_display_name_valid',
+        'profiles_avatar_code_valid',
+        'profiles_message_valid',
+        'profiles_home_prefecture_valid'
+    ] LOOP
+        BEGIN
+            EXECUTE format('ALTER TABLE public.profiles VALIDATE CONSTRAINT %I', c);
+        EXCEPTION WHEN check_violation THEN
+            RAISE WARNING 'constraint % は不正な既存行があるため NOT VALID のまま。クリーンアップ後に再実行してください。', c;
+        END;
+    END LOOP;
 END
 $$;
 

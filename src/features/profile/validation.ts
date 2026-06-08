@@ -14,17 +14,25 @@ export type ValidationError = {
   message: string;
 };
 
-const AVATAR_CODE_PATTERN = /^[A-Za-z0-9_-]+$/;
+// avatar_code は b{NN}_h{NN}_o{NN}_f{NN} の「軸文字+2桁」を _ で連結した構造。
+// 将来の軸 (a{NN} 等) を後方互換で許すため末尾の追加セグメントも許容する。
+// (spec: avatar.md §3.2 / 要件 §4.3「未知の軸はパーサが無視」)
+const AVATAR_CODE_PATTERN = /^[a-z][0-9]{2}(_[a-z][0-9]{2})*$/;
 const CONTROL_CHAR_PATTERN = /[\x00-\x1f\x7f]/;
+
+/** コードポイント単位の文字数 (絵文字・サロゲートペアを 1 文字として数える)。 */
+export function countChars(s: string): number {
+  return [...s].length;
+}
 
 export function validateProfile(input: ProfileInput): ValidationError[] {
   const errors: ValidationError[] = [];
 
-  // display_name
-  const trimmed = input.display_name.trim();
-  if (trimmed.length === 0) {
+  // display_name (前後空白はトリムして数える)
+  const trimmedName = input.display_name.trim();
+  if (trimmedName.length === 0) {
     errors.push({ field: 'display_name', message: '名前を入力してください' });
-  } else if (input.display_name.length > PROFILE_LIMITS.DISPLAY_NAME_MAX) {
+  } else if (countChars(trimmedName) > PROFILE_LIMITS.DISPLAY_NAME_MAX) {
     errors.push({
       field: 'display_name',
       message: `${PROFILE_LIMITS.DISPLAY_NAME_MAX} 文字以内で入力してください`,
@@ -50,12 +58,12 @@ export function validateProfile(input: ProfileInput): ValidationError[] {
   } else if (!AVATAR_CODE_PATTERN.test(input.avatar_code)) {
     errors.push({
       field: 'avatar_code',
-      message: '英数字 / _ / - のみ使えます',
+      message: 'アバターコードの形式が正しくありません',
     });
   }
 
-  // message (optional)
-  if (input.message.length > PROFILE_LIMITS.MESSAGE_MAX) {
+  // message (optional、前後空白はトリムして数える)
+  if (countChars(input.message.trim()) > PROFILE_LIMITS.MESSAGE_MAX) {
     errors.push({
       field: 'message',
       message: `${PROFILE_LIMITS.MESSAGE_MAX} 文字以内で入力してください`,

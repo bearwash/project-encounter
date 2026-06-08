@@ -4,7 +4,11 @@
 
 ## 1. ゴール (What & Why)
 GPS を使わず、純粋な BLE 電波の物理的到達のみで「すれ違い」を検出する。
-Android / desktop では **Advertise Service Data / Scan** で `user_id` を交換し、iOS では通常アプリの CoreBluetooth 制約に合わせて **Service UUID 検出 + GATT read fallback** で同じ `user_id` を取得する。プロフィール本体の取得は [profile-sync.md](profile-sync.md) のクラウド同期に委譲する。
+経路は 2 種類:
+- **desktop (btleplug)**: **Advertise Service Data / Scan** で `user_id` を交換する。
+- **mobile (iOS / Android native plugin)**: **Service UUID advertise + GATT read** を標準経路にする。128-bit Service UUID + 16 byte `user_id` の Service Data は BLE Legacy Advertise (31 byte) を超えるため、Android でも Service Data には載せず GATT characteristic で公開する。iOS も CoreBluetooth の通常アプリ制約から同様。
+
+いずれも交換する値は `user_id`（Supabase Auth UUID）のみ。プロフィール本体の取得は [profile-sync.md](profile-sync.md) のクラウド同期に委譲する。
 
 ## 2. ユーザーストーリー
 - ユーザーとして、アプリをポケットに入れたまま街を歩くだけで、近くを通った他ユーザーの `user_id` がローカルに記録されてほしい。
@@ -13,7 +17,7 @@ Android / desktop では **Advertise Service Data / Scan** で `user_id` を交�
 
 ## 3. スコープ
 ### In Scope
-- BLE Advertise の起動・停止（自端末の `user_id` を Android では Service Data、iOS では GATT read characteristic に乗せる）
+- BLE Advertise の起動・停止（自端末の `user_id` を desktop では Service Data、mobile (iOS/Android) では GATT read characteristic に乗せる）
 - BLE Scan の起動・停止（他端末の Service UUID をフィルタにして `user_id` を抽出）
 - Service UUID によるアプリ識別
 - 受信した `user_id` と受信時刻を **`encounter_logs`** に保存（`users_cache` への書き込みは行わない — それは [profile-sync.md](profile-sync.md) の責務）
@@ -29,19 +33,21 @@ Android / desktop では **Advertise Service Data / Scan** で `user_id` を交�
 ## 4. 仕様詳細
 
 ### 4.1 Service UUID
-アプリ専用の Service UUID は以下で固定する。Advertise の Service Data
-Service UUID 兼 Scan のフィルタとして使う。
+アプリ専用の Service UUID は以下で固定する。Advertise の Service UUID 兼 Scan のフィルタとして使う。
 
 - `SERVICE_UUID`: `4a985948-3bc6-450b-80d2-04a8f98f83cb`
 - `USER_ID_CHARACTERISTIC_UUID`: `4a985948-3bc6-450b-80d2-04a8f98f83cc`
 
 Rust 側の正本は `src-tauri/src/ble/mod.rs` の `SERVICE_UUID` 定数。native plugin 側も同じ UUID を使う。
 
-### 4.2 Advertise ペイロード
-- **Service Data フィールドに 16 byte (バイナリ)** で `user_id`（Supabase Auth で発行された UUID）を乗せる。
-- スキーマは [contracts/ble-payload.schema.json](../contracts/ble-payload.schema.json)。
-- 文字列形式（標準 UUID、ハイフン区切り 36 文字）はログ・ローカル DB・Supabase で使用するが、BLE 上はバイナリ 16 byte で送る。
-- BLE 4 Legacy Advertise の Service Data 上限（〜26 byte）に余裕で収まる。
+### 4.2 ペイロード（user_id 16 byte）
+交換する値はいずれの経路でも `user_id`（Supabase Auth で発行された UUID）を **バイナリ 16 byte** で表したもののみ。経路ごとの載せ方:
+- **desktop (btleplug)**: Advertise の **Service Data フィールド**に 16 byte を乗せる。BLE 4 Legacy Advertise の Service Data 上限（〜26 byte）に収まる。
+- **mobile (iOS / Android)**: Service Data には乗せず（§4.2.1 参照）、**GATT characteristic** (`USER_ID_CHARACTERISTIC_UUID`) の read で 16 byte を返す。
+
+バイト順はネットワークバイト順（RFC 4122 / big-endian。`Uuid::from_bytes` 互換）。
+スキーマは [contracts/ble-payload.schema.json](../contracts/ble-payload.schema.json)。
+文字列形式（標準 UUID、ハイフン区切り 36 文字）はログ・ローカル DB・Supabase で使用するが、BLE 上はバイナリ 16 byte で送る。
 
 ### 4.2.1 iOS / Android native 実装
 - 実装は `src-tauri/plugins/tauri-plugin-encounter-ble`。

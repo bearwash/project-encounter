@@ -2,42 +2,20 @@ mod ble;
 mod commands;
 mod db;
 
-use tauri_plugin_sql::{Migration, MigrationKind};
+use tauri::Manager;
 
 use crate::ble::BleService;
 
-const DB_URL: &str = "sqlite:project_encounter.db";
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let migrations = vec![
-        Migration {
-            version: 1,
-            description: "create initial schema",
-            sql: include_str!("../migrations/0001_init.sql"),
-            kind: MigrationKind::Up,
-        },
-        Migration {
-            version: 2,
-            description: "profile sync: add queue, drop FK on encounter_logs",
-            sql: include_str!("../migrations/0002_profile_sync.sql"),
-            kind: MigrationKind::Up,
-        },
-        Migration {
-            version: 3,
-            description: "add home_prefecture to my_profile / users_cache",
-            sql: include_str!("../migrations/0003_home_prefecture.sql"),
-            kind: MigrationKind::Up,
-        },
-    ];
-
+    // スキーマの唯一の所有者は db::ensure_schema (docs/contracts/db-schema.sql)。
+    // 以前は tauri-plugin-sql の migration と二重管理しており、Rust が先に
+    // フルスキーマを作ると plugin migration 0003 の ADD COLUMN が
+    // "duplicate column" で衝突しうる問題があった。plugin-sql は TS からの
+    // 接続用にのみ使い、migration は登録しない。
     tauri::Builder::default()
         .plugin(tauri_plugin_encounter_ble::init())
-        .plugin(
-            tauri_plugin_sql::Builder::default()
-                .add_migrations(DB_URL, migrations)
-                .build(),
-        )
+        .plugin(tauri_plugin_sql::Builder::default().build())
         .manage(BleService::new())
         .invoke_handler(tauri::generate_handler![
             commands::ble::ble_start,
@@ -59,6 +37,11 @@ pub fn run() {
             commands::settings::settings_set_cooldown_sec,
         ])
         .setup(|app| {
+            // 共有 DB プールを起動時に一度だけ生成し manage する。
+            let pool = tauri::async_runtime::block_on(db::init_pool(app.handle()))
+                .map_err(|e| Box::<dyn std::error::Error>::from(e))?;
+            app.manage(pool);
+
             if cfg!(debug_assertions) {
                 app.handle().plugin(
                     tauri_plugin_log::Builder::default()

@@ -68,7 +68,7 @@ pub async fn profile_save(
     let user_id = existing
         .map(|(id,)| id)
         .unwrap_or_else(|| Uuid::new_v4().to_string());
-    let now = unix_now();
+    let now = db::unix_now();
     let message = message.unwrap_or_default();
 
     sqlx::query(
@@ -104,6 +104,7 @@ pub async fn profile_save(
 
 #[tauri::command]
 pub fn profile_fetch_remote(user_id: String) -> Result<Option<MockProfile>, String> {
+    // 注意: これはデバッグ用 mock resolver。Supabase 連携時は本物の fetch に置換する。
     let uuid = match Uuid::parse_str(&user_id) {
         Ok(u) => u,
         Err(e) => return Err(format!("invalid user_id: {e}")),
@@ -142,11 +143,4 @@ fn validate_profile(
         }
     }
     Ok(())
-}
-
-fn unix_now() -> i64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs() as i64)
-        .unwrap_or_default()
 }

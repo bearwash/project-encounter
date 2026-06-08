@@ -3,6 +3,7 @@ import Foundation
 import SwiftRs
 import Tauri
 import UserNotifications
+import WebKit
 
 private let encounterServiceUuid = CBUUID(string: "4A985948-3BC6-450B-80D2-04A8F98F83CB")
 private let encounterUserIdCharacteristicUuid = CBUUID(string: "4A985948-3BC6-450B-80D2-04A8F98F83CC")
@@ -50,6 +51,24 @@ class EncounterBlePlugin: Plugin, CBCentralManagerDelegate, CBPeripheralManagerD
   private var discoveredUserIds = [String: Date]()
   private var pendingPeripherals = [UUID: CBPeripheral]()
   private var pendingEvents = [PendingEncounter]()
+
+  /// Plugin ロード時。OS が BLE イベントでアプリをバックグラウンド起動した場合、
+  /// JS から start が呼ばれる保証はない。永続フラグが立っていれば即座に
+  /// CBManager を生成し、State Restoration の willRestoreState コールバックを
+  /// OS に発火させる (生成しないと復元コールバック自体が来ない)。
+  public override func load(webview: WKWebView) {
+    super.load(webview: webview)
+    restoreStoredSessionIfNeeded()
+    guard active else { return }
+    DispatchQueue.main.async {
+      if self.central == nil {
+        self.central = self.makeCentralManager()
+      }
+      if self.peripheralManager == nil {
+        self.peripheralManager = self.makePeripheralManager()
+      }
+    }
+  }
 
   @objc public func start(_ invoke: Invoke) throws {
     let args = try invoke.parseArgs(StartArgs.self)
@@ -121,26 +140,30 @@ class EncounterBlePlugin: Plugin, CBCentralManagerDelegate, CBPeripheralManagerD
   }
 
   @objc public func status(_ invoke: Invoke) throws {
-    let centralOn = central?.state == .poweredOn
-    let peripheralOn = peripheralManager?.state == .poweredOn
-    let permissionGranted: Bool
-    if #available(iOS 13.1, *) {
-      permissionGranted = CBManager.authorization == .allowedAlways
-    } else {
-      permissionGranted = true
+    // CB delegate と同じ main queue 上で共有状態を読む (start/stop/drainPending と統一)。
+    // 以前は呼び出しスレッドから直接 discoveredUserIds などを読んでおり data race だった。
+    DispatchQueue.main.async {
+      let centralOn = self.central?.state == .poweredOn
+      let peripheralOn = self.peripheralManager?.state == .poweredOn
+      let permissionGranted: Bool
+      if #available(iOS 13.1, *) {
+        permissionGranted = CBManager.authorization == .allowedAlways
+      } else {
+        permissionGranted = true
+      }
+      invoke.resolve([
+        "bluetoothOn": centralOn || peripheralOn,
+        "permissionGranted": permissionGranted,
+        "advertiseActive": self.advertiseActive,
+        "scanActive": self.scanActive,
+        "seenCount": self.discoveredUserIds.count,
+        "pendingCount": self.pendingEvents.count,
+        "pendingGattCount": self.pendingPeripherals.count,
+        "lastSeenAt": self.lastSeenAt.map { $0 as Any } ?? NSNull(),
+        "lastSeenUserId": self.lastSeenUserId.map { $0 as Any } ?? NSNull(),
+        "lastError": self.lastError.map { $0 as Any } ?? NSNull(),
+      ])
     }
-    invoke.resolve([
-      "bluetoothOn": centralOn || peripheralOn,
-      "permissionGranted": permissionGranted,
-      "advertiseActive": advertiseActive,
-      "scanActive": scanActive,
-      "seenCount": discoveredUserIds.count,
-      "pendingCount": pendingEvents.count,
-      "pendingGattCount": pendingPeripherals.count,
-      "lastSeenAt": lastSeenAt.map { $0 as Any } ?? NSNull(),
-      "lastSeenUserId": lastSeenUserId.map { $0 as Any } ?? NSNull(),
-      "lastError": lastError.map { $0 as Any } ?? NSNull(),
-    ])
   }
 
   @objc public func drainPending(_ invoke: Invoke) throws {
@@ -356,10 +379,13 @@ class EncounterBlePlugin: Plugin, CBCentralManagerDelegate, CBPeripheralManagerD
     pendingPeripherals.removeValue(forKey: peripheral.identifier)
   }
 
+  /// 戻り値: この data で処理が完結したか (true なら GATT fallback 不要)。
+  /// payload が無効 (サイズ不正 / parse 失敗) のときは false を返し、
+  /// 呼び出し側 (didDiscover) が GATT read による再取得へ進めるようにする。
   private func emitIfValid(_ data: Data) -> Bool {
     guard data.count == 16, let userId = dataToUuidString(data) else {
       lastError = "invalid BLE payload size: \(data.count)"
-      return true
+      return false
     }
     guard data != userIdData else { return true }
     let now = Date()

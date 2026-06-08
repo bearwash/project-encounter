@@ -24,6 +24,11 @@ export type FlatBoxProps = {
   outline?: number;
   /** 影を落とすか。Hair / Outfit は true、Face の点目は false が無難。 */
   castShadow?: boolean;
+  /**
+   * 影を受けるか。meshBasicMaterial は無光源なので影を受けず、このフラグは
+   * 実質無視される。既定 false にして無駄な shadow-receive 計上を避ける
+   * (地面など影を受けたい面は meshStandardMaterial を使う)。
+   */
   receiveShadow?: boolean;
 };
 
@@ -35,7 +40,7 @@ export function FlatBox({
   scale,
   outline = OUTLINE_DEFAULT,
   castShadow = true,
-  receiveShadow = true,
+  receiveShadow = false,
 }: FlatBoxProps) {
   return (
     <mesh

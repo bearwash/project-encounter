@@ -6,9 +6,8 @@ use sqlx::{Sqlite, Transaction};
 use tauri::AppHandle;
 use uuid::Uuid;
 
+use crate::commands::settings::DEFAULT_COOLDOWN_SEC;
 use crate::db;
-
-const DEFAULT_COOLDOWN_SEC: i64 = 28_800;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct EncounterUser {
@@ -50,7 +49,7 @@ pub async fn record_received_user_id_internal(
     let user_id = Uuid::parse_str(user_id.trim())
         .map_err(|_| "invalid encountered user_id".to_string())?
         .to_string();
-    let now = encountered_at.unwrap_or_else(unix_now);
+    let now = encountered_at.unwrap_or_else(db::unix_now);
     if now <= 0 {
         return Err("encountered_at must be a unix timestamp".to_string());
     }
@@ -216,17 +215,9 @@ pub async fn encounter_list_unread(app: AppHandle) -> Result<Vec<UnreadEncounter
         .collect())
 }
 
-fn unix_now() -> i64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs() as i64)
-        .unwrap_or(0)
-}
-
 async fn finish_without_insert(tx: Transaction<'_, Sqlite>) -> Result<bool, String> {
-    tx.commit()
-        .await
-        .map_err(|e| format!("failed to finish encounter transaction: {e}"))?;
+    // 読み取りのみで挿入しないので commit は不要。drop で rollback して接続を解放する。
+    drop(tx);
     Ok(false)
 }
 

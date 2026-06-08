@@ -45,7 +45,7 @@ export function GreetingStrip({ totalToday, doneCount, daysSince }: Props) {
         className="font-mono text-[11px] font-bold tracking-widest text-ink-muted"
         data-testid="greeting-strip-progress"
       >
-        {Math.min(doneCount + 1, totalToday)} / {totalToday}
+        {Math.max(0, Math.min(doneCount + 1, totalToday))} / {totalToday}
       </span>
     </div>
   );
