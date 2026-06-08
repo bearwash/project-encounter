@@ -100,6 +100,7 @@ export function EncounterPlaza3D({ residents, joiningIds }: Props) {
     >
       <Canvas
         shadows
+        fallback={<CanvasFallback />}
         // 3DS Mii 広場の固定カメラ感 (横視点、地面少し下)
         // 人型化で身長 ~2.2 unit。広場全体を見渡せるよう後退 + fov 拡大
         camera={{ position: [0, 2.0, 10], fov: 38 }}
@@ -269,6 +270,21 @@ function EmptyOverlay() {
         >
           ウォークモードへ
         </Link>
+      </div>
+    </div>
+  );
+}
+
+function CanvasFallback() {
+  return (
+    <div className="absolute inset-0 grid place-items-center bg-cream px-6 text-center text-ink">
+      <div>
+        <p className="text-sm font-black tracking-wider">
+          3D表示を準備できませんでした
+        </p>
+        <p className="mt-2 text-xs font-bold leading-relaxed text-ink-soft">
+          端末の描画設定を確認しています。アプリを開き直してください。
+        </p>
       </div>
     </div>
   );

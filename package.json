@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev -p 1420",
     "build": "next build",
+    "ios:sync-assets": "node scripts/sync-ios-assets.mjs",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",

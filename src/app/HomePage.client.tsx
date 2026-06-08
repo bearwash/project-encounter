@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { ClientErrorBoundary } from '@/components/ClientErrorBoundary';
 import { Toaster } from '@/components/Toaster';
 import { BlePanel } from '@/features/ble/BlePanel';
 import { useBleStatus } from '@/features/ble/use-ble-status';
@@ -191,7 +192,25 @@ export default function HomePage() {
   const [devOpen, setDevOpen] = useState(false);
 
   // 同意ダイアログを先に出すケース
-  if (consent.isLoading) return null;
+  if (consent.isError) {
+    return (
+      <BootState
+        title="起動エラー"
+        message={`同意状態を読み込めません: ${formatQueryError(consent.error)}`}
+      />
+    );
+  }
+  if (profile.isError) {
+    return (
+      <BootState
+        title="起動エラー"
+        message={`プロフィールDBを読み込めません: ${formatQueryError(profile.error)}`}
+      />
+    );
+  }
+  if (consent.isLoading) {
+    return <BootState title="起動中" message="設定を読み込んでいます" />;
+  }
   if (consent.data?.status === 'pending') {
     return (
       <main className="fixed inset-0 overflow-hidden bg-cream">
@@ -200,14 +219,34 @@ export default function HomePage() {
     );
   }
 
-  if (profile.isLoading || !profile.data) {
-    return null;
+  if (profile.isLoading) {
+    return <BootState title="起動中" message="プロフィールを読み込んでいます" />;
+  }
+
+  if (!profile.data) {
+    return (
+      <BootState
+        title="プロフィール設定へ移動中"
+        message="初回設定画面を開いています。画面が変わらない場合は下のボタンを押してください。"
+        actionHref="/profile"
+        actionLabel="プロフィール設定を開く"
+      />
+    );
   }
 
   return (
     <main className="game-screen fixed inset-0 overflow-hidden">
       {/* メインの広場ビュー (全画面) */}
-      <EncounterPlaza residents={residents} joiningIds={joiningIds} />
+      <ClientErrorBoundary
+        fallback={(error) => (
+          <BootState
+            title="広場の表示エラー"
+            message={formatQueryError(error)}
+          />
+        )}
+      >
+        <EncounterPlaza residents={residents} joiningIds={joiningIds} />
+      </ClientErrorBoundary>
 
       {/* 上部スコアバー */}
       <PlazaTopBar today={stats.today} total={stats.total} />
@@ -265,6 +304,50 @@ export default function HomePage() {
       <Toaster />
     </main>
   );
+}
+
+function BootState({
+  title,
+  message,
+  actionHref,
+  actionLabel,
+}: {
+  title: string;
+  message: string;
+  actionHref?: string;
+  actionLabel?: string;
+}) {
+  return (
+    <main className="fixed inset-0 grid place-items-center bg-cream px-6 text-ink">
+      <section className="w-full max-w-sm text-center">
+        <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-full bg-pop-blue text-xl font-black text-cream-soft shadow-[0_6px_0_rgba(59,48,36,0.14)]">
+          PE
+        </div>
+        <h1 className="text-lg font-black tracking-wider">{title}</h1>
+        <p className="mt-3 text-sm font-bold leading-relaxed text-ink-soft">
+          {message}
+        </p>
+        {actionHref && actionLabel && (
+          <Link
+            href={actionHref}
+            className="game-button mt-6 inline-flex min-h-12 items-center rounded-full px-5 py-3 text-sm font-black"
+          >
+            {actionLabel}
+          </Link>
+        )}
+      </section>
+    </main>
+  );
+}
+
+function formatQueryError(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
 }
 
 // =============================================================
