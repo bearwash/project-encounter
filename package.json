@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "e2e:web": "node tests/e2e/web-flow.mjs",
     "server:check": "node scripts/supabase-contract-check.mjs",
     "server:test": "node --test tests/server/*.test.mjs",
     "server:preflight": "pnpm server:check && pnpm server:test && pnpm typecheck && pnpm lint",

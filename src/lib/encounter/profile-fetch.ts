@@ -24,6 +24,7 @@ import { isTauri } from '@/lib/tauri/env';
 import { fetchRemoteProfile, type RemoteProfile } from '@/lib/tauri/profile';
 
 const DEBOUNCE_MS = 30_000;
+const FETCH_BATCH_SIZE = 100;
 const RETRY_MS = [5_000, 30_000, 5 * 60_000, 30 * 60_000] as const;
 const RETRY_ATTEMPT_KEY = 'profile_fetch_retry_attempt';
 const RETRY_AFTER_KEY = 'profile_fetch_retry_after';
@@ -57,6 +58,7 @@ async function runFlush(): Promise<FetchResult> {
   if (!isTauri()) return { fetchedCount: 0, failedIds: [] };
 
   const db = await getDb();
+  const nowSec = Math.floor(Date.now() / 1000);
 
   // 未取得 user_id 一覧 = encounter_logs にあるが users_cache に無いもの
   const pendingRows = await db.select<{ user_id: string }[]>(
@@ -66,6 +68,8 @@ async function runFlush(): Promise<FetchResult> {
   );
   const pendingIds = pendingRows.map((r) => r.user_id);
   if (pendingIds.length === 0) return { fetchedCount: 0, failedIds: [] };
+
+  const aggregates = await loadEncounterAggregates(db, pendingIds);
 
   // Supabase 設定済みなら一括 .in、それ以外は mock を 1 件ずつ
   let profiles: RemoteProfile[] = [];
@@ -100,45 +104,51 @@ async function runFlush(): Promise<FetchResult> {
     return { fetchedCount: 0, failedIds };
   }
 
-  // UPSERT + encounter_count 集計
-  for (const p of profiles) {
-    const agg = await db.select<{ cnt: number; min_at: number; max_at: number }[]>(
-      `SELECT
-         COUNT(*) AS cnt,
-         MIN(encountered_at) AS min_at,
-         MAX(encountered_at) AS max_at
-       FROM encounter_logs WHERE encountered_user_id = $1`,
-      [p.user_id],
-    );
-    const a = agg[0];
-    const cnt = a?.cnt ?? 1;
-    const minAt = a?.min_at ?? Math.floor(Date.now() / 1000);
-    const maxAt = a?.max_at ?? Math.floor(Date.now() / 1000);
+  // UPSERT は 1 件ずつでも、集計済みの encounter_count を再読込しない。
+  // これで受信件数に比例した N+1 集計を避ける。
+  let txStarted = false;
+  try {
+    await db.execute('BEGIN');
+    txStarted = true;
 
-    await db.execute(
-      `INSERT INTO users_cache
-         (user_id, display_name, avatar_code, message, home_prefecture,
-          encounter_count, first_seen_at, last_seen_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-       ON CONFLICT(user_id) DO UPDATE SET
-         display_name     = excluded.display_name,
-         avatar_code      = excluded.avatar_code,
-         message          = excluded.message,
-         home_prefecture  = excluded.home_prefecture,
-         encounter_count  = excluded.encounter_count,
-         first_seen_at    = MIN(users_cache.first_seen_at, excluded.first_seen_at),
-         last_seen_at     = MAX(users_cache.last_seen_at, excluded.last_seen_at)`,
-      [
-        p.user_id,
-        p.display_name,
-        p.avatar_code,
-        p.message,
-        p.home_prefecture,
-        cnt,
-        minAt,
-        maxAt,
-      ],
-    );
+    for (const p of profiles) {
+      const agg = aggregates.get(p.user_id);
+      const cnt = agg?.cnt ?? 1;
+      const minAt = agg?.min_at ?? nowSec;
+      const maxAt = agg?.max_at ?? nowSec;
+
+      await db.execute(
+        `INSERT INTO users_cache
+           (user_id, display_name, avatar_code, message, home_prefecture,
+            encounter_count, first_seen_at, last_seen_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         ON CONFLICT(user_id) DO UPDATE SET
+           display_name     = excluded.display_name,
+           avatar_code      = excluded.avatar_code,
+           message          = excluded.message,
+           home_prefecture  = excluded.home_prefecture,
+           encounter_count  = excluded.encounter_count,
+           first_seen_at    = MIN(users_cache.first_seen_at, excluded.first_seen_at),
+           last_seen_at     = MAX(users_cache.last_seen_at, excluded.last_seen_at)`,
+        [
+          p.user_id,
+          p.display_name,
+          p.avatar_code,
+          p.message,
+          p.home_prefecture,
+          cnt,
+          minAt,
+          maxAt,
+        ],
+      );
+    }
+
+    await db.execute('COMMIT');
+  } catch (e) {
+    if (txStarted) {
+      await db.execute('ROLLBACK').catch(() => {});
+    }
+    throw e;
   }
 
   return { fetchedCount: profiles.length, failedIds };
@@ -261,4 +271,45 @@ async function resetRetry(): Promise<void> {
     retryTimer = null;
   }
   await clearRetryState();
+}
+
+async function loadEncounterAggregates(
+  db: Awaited<ReturnType<typeof getDb>>,
+  userIds: string[],
+): Promise<Map<string, { cnt: number; min_at: number; max_at: number }>> {
+  const aggregates = new Map<string, { cnt: number; min_at: number; max_at: number }>();
+  for (const batch of chunk(userIds, FETCH_BATCH_SIZE)) {
+    if (batch.length === 0) continue;
+    const placeholders = batch.map((_, index) => `$${index + 1}`).join(', ');
+    const rows = await db.select<
+      { user_id: string; cnt: number; min_at: number; max_at: number }[]
+    >(
+      `SELECT
+         encountered_user_id AS user_id,
+         COUNT(*) AS cnt,
+         MIN(encountered_at) AS min_at,
+         MAX(encountered_at) AS max_at
+       FROM encounter_logs
+       WHERE encountered_user_id IN (${placeholders})
+       GROUP BY encountered_user_id`,
+      batch,
+    );
+    for (const row of rows) {
+      aggregates.set(row.user_id, {
+        cnt: row.cnt,
+        min_at: row.min_at,
+        max_at: row.max_at,
+      });
+    }
+  }
+  return aggregates;
+}
+
+function chunk<T>(values: T[], size: number): T[][] {
+  if (size <= 0) return [values];
+  const out: T[][] = [];
+  for (let i = 0; i < values.length; i += size) {
+    out.push(values.slice(i, i + size));
+  }
+  return out;
 }

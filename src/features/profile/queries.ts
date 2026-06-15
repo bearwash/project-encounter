@@ -6,10 +6,10 @@ import {
   deleteMyProfile as supabaseDelete,
   upsertMyProfile as supabaseUpsert,
 } from '@/lib/supabase/profiles';
-import { isTauri, TauriUnavailableError } from '@/lib/tauri/env';
+import { isTauri } from '@/lib/tauri/env';
 import { showToast } from '@/lib/ui/toast';
 import type { MyProfile } from '@/types/profile';
-import { getCloudConsentStatus } from './consent';
+import { getCloudConsentStatus, resetCloudConsent } from './consent';
 import { validateProfile, type ProfileInput } from './validation';
 
 /**
@@ -22,9 +22,10 @@ async function canSyncToCloud(): Promise<boolean> {
 }
 
 const QUERY_KEY = ['profile'] as const;
+const WEB_PROFILE_KEY = 'project_encounter.my_profile';
 
 async function fetchProfile(): Promise<MyProfile | null> {
-  if (!isTauri()) return null;
+  if (!isTauri()) return fetchWebProfile();
   try {
     const db = await getDb();
     const rows = await db.select<MyProfile[]>(
@@ -47,6 +48,81 @@ function asError(e: unknown): Error {
   }
 }
 
+function fetchWebProfile(): MyProfile | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(WEB_PROFILE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<MyProfile>;
+    if (
+      typeof parsed.user_id !== 'string' ||
+      typeof parsed.display_name !== 'string' ||
+      typeof parsed.avatar_code !== 'string' ||
+      typeof parsed.message !== 'string' ||
+      typeof parsed.updated_at !== 'number'
+    ) {
+      window.localStorage.removeItem(WEB_PROFILE_KEY);
+      return null;
+    }
+    return {
+      user_id: parsed.user_id,
+      display_name: parsed.display_name,
+      avatar_code: parsed.avatar_code,
+      message: parsed.message,
+      home_prefecture:
+        typeof parsed.home_prefecture === 'string' ? parsed.home_prefecture : null,
+      updated_at: parsed.updated_at,
+    };
+  } catch (e) {
+    console.error('[profile.fetch.browser] failed:', e);
+    window.localStorage.removeItem(WEB_PROFILE_KEY);
+    return null;
+  }
+}
+
+async function saveWebProfile(input: ProfileInput): Promise<MyProfile> {
+  const existing = fetchWebProfile();
+  const syncToCloud = await canSyncToCloud();
+  let userId = existing?.user_id;
+  if (!userId) {
+    userId = syncToCloud
+      ? (await ensureAuthUserId().catch(() => null)) ?? createWebUserId()
+      : createWebUserId();
+  }
+
+  const saved: MyProfile = {
+    user_id: userId,
+    display_name: input.display_name,
+    avatar_code: input.avatar_code,
+    message: input.message,
+    home_prefecture: input.home_prefecture,
+    updated_at: Math.floor(Date.now() / 1000),
+  };
+
+  window.localStorage.setItem(WEB_PROFILE_KEY, JSON.stringify(saved));
+
+  if (syncToCloud) {
+    try {
+      await supabaseUpsert({
+        user_id: userId,
+        display_name: input.display_name,
+        avatar_code: input.avatar_code,
+        message: input.message,
+        home_prefecture: input.home_prefecture,
+      });
+    } catch (e) {
+      console.warn('[profile.save.browser] supabase upsert failed:', e);
+      showToast('オフラインのため、プロフィールを送信できません', 'warn');
+    }
+  }
+
+  return saved;
+}
+
+function createWebUserId(): string {
+  return globalThis.crypto?.randomUUID?.() ?? `web-${Date.now()}-${Math.random()}`;
+}
+
 async function saveProfile(rawInput: ProfileInput): Promise<MyProfile> {
   // 保存前に前後空白を除去 (検証も保存もトリム後の値で行う)
   const input: ProfileInput = {
@@ -58,7 +134,7 @@ async function saveProfile(rawInput: ProfileInput): Promise<MyProfile> {
   if (errors.length > 0) {
     throw new Error(errors.map((e) => `${e.field}: ${e.message}`).join('\n'));
   }
-  if (!isTauri()) throw new TauriUnavailableError();
+  if (!isTauri()) return saveWebProfile(input);
 
   try {
     const db = await getDb();
@@ -253,7 +329,18 @@ export function useSaveProfile() {
 // =============================================================
 
 async function resetProfile(): Promise<void> {
-  if (!isTauri()) return;
+  if (!isTauri()) {
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(WEB_PROFILE_KEY);
+    }
+    await resetCloudConsent();
+    if (isSupabaseEnabled()) {
+      await signOut().catch((e) =>
+        console.warn('[profile.reset.browser] sign-out failed:', asError(e).message),
+      );
+    }
+    return;
+  }
   try {
     const db = await getDb();
     const existing = await fetchProfile();
