@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { M_PLUS_Rounded_1c } from 'next/font/google';
 import { QueryProvider } from '@/lib/query/QueryProvider';
+import { DesignSwitcher } from '@/components/DesignSwitcher';
 import './globals.css';
 
 // 全体に丸みのあるポップなフォントを適用する。
@@ -42,6 +43,7 @@ export default function RootLayout({
     <html lang="ja" className={rounded.variable}>
       <body className="min-h-screen bg-cream font-sans text-ink">
         <QueryProvider>{children}</QueryProvider>
+        {process.env.NODE_ENV === 'development' && <DesignSwitcher />}
       </body>
     </html>
   );
