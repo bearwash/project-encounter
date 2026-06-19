@@ -104,6 +104,16 @@ iOS 環境:
 - [`docs/contracts/ios/Info.plist.snippet`](docs/contracts/ios/Info.plist.snippet) — Bluetooth 権限文 + 縦固定 + UIBackgroundModes
 - [`docs/contracts/ios/project.yml.snippet`](docs/contracts/ios/project.yml.snippet) — CoreBluetooth.framework 依存追加
 
+手動で書き込む場所:
+
+1. `src-tauri/gen/apple/project_encounter_iOS/Info.plist` を開く
+2. `<dict>` の中に [`docs/contracts/ios/Info.plist.snippet`](docs/contracts/ios/Info.plist.snippet) の `<key>...` 一式を追加する
+3. `src-tauri/gen/apple/project.yml` を開く
+4. `targets > project_encounter_iOS > info > properties` に [`docs/contracts/ios/project.yml.snippet`](docs/contracts/ios/project.yml.snippet) の `UISupportedInterfaceOrientations` / `NSBluetoothAlwaysUsageDescription` / `UIBackgroundModes` を追加する
+5. 同じ `targets > project_encounter_iOS > dependencies` に `CoreBluetooth.framework` を追加する
+
+`pnpm tauri ios init` をやり直すと `src-tauri/gen/apple` が再生成されるため、この書き込みもやり直してください。
+
 ### 4. Android ビルド
 
 Android Studio + SDK + NDK が要る。手順:
@@ -129,6 +139,42 @@ pnpm tauri android init
 
 pnpm tauri android dev                       # エミュレータ / 実機で起動
 ```
+
+`src-tauri/gen/` は gitignore されるため、`tauri android init` のたびに Android 権限も **手動マージ** してください。
+
+手動で書き込む場所:
+
+1. `src-tauri/gen/android/app/src/main/AndroidManifest.xml` を開く
+2. `<manifest>` の直下に [`docs/contracts/android/AndroidManifest.snippet.xml`](docs/contracts/android/AndroidManifest.snippet.xml) の `<uses-permission>` と `<uses-feature>` を追加する
+3. 既存の `<application>` の中に、同じ snippet の `<service>` と `<receiver>` を追加する
+4. `<application>` を二重に作らないこと。snippet 内の `<application>` は「この中身を既存 application へ移す」ための目印として扱う
+
+追加される主な権限は Bluetooth scan / advertise / connect、Foreground Service、通知権限です。位置情報は使わない方針なので、`BLUETOOTH_SCAN` には `android:usesPermissionFlags="neverForLocation"` を付けたままにしてください。
+
+### 5. サーバーなしですれ違い ID 取得を確認する
+
+Supabase なしでも、BLE で相手の `user_id` を受信してローカル SQLite の `encounter_logs` に保存できるかは確認できます。相手の名前・アバター・メッセージ解決はサーバー側の役割なので、この手順では確認対象外です。
+
+手順:
+
+1. 2台の端末にアプリを入れる
+2. 初回の公開同意ダイアログは、サーバーなし確認だけなら `いまは始めない` でもよい
+3. それぞれプロフィールを1回保存して、端末内の `my_profile.user_id` を作る
+4. ホーム右下の `?` を押して Dev パネルを開く
+5. BLE パネルで `開始` を押す
+6. 両端末の Bluetooth 権限を許可する
+7. `SEEN` が増えるか、`ID 取得` に相手の UUID が出るか確認する
+8. `SERVERLESS CHECK` の `ローカルDB記録済み` に UUID が出れば、サーバーなしのすれ違い ID 保存は成功
+
+見方:
+
+- `ID 取得`: native BLE plugin が直近で受信した相手 UUID
+- `SERVERLESS CHECK`: SQLite の `encounter_logs` に保存済みの UUID
+- `PEND`: native plugin 側に溜まっていて、まだ Rust/SQLite 側へ drain されていない件数
+- `GATT`: GATT read 待ちの件数
+- `DRAIN`: pending から SQLite へ取り込んだ直近件数
+
+同じ相手はクールダウン中だと `SEEN` は増えても `encounter_logs` には追加されません。連続テストしたい場合は Dev パネルの `クリア` で履歴を消すか、時間を空けてください。
 
 ---
 

@@ -37,11 +37,6 @@ pub fn run() {
             commands::settings::settings_set_cooldown_sec,
         ])
         .setup(|app| {
-            // 共有 DB プールを起動時に一度だけ生成し manage する。
-            let pool = tauri::async_runtime::block_on(db::init_pool(app.handle()))
-                .map_err(|e| Box::<dyn std::error::Error>::from(e))?;
-            app.manage(pool);
-
             if cfg!(debug_assertions) {
                 app.handle().plugin(
                     tauri_plugin_log::Builder::default()

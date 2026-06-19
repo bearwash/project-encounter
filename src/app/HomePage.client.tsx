@@ -14,7 +14,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { ClientErrorBoundary } from '@/components/ClientErrorBoundary';
 import { Toaster } from '@/components/Toaster';
 import { BlePanel } from '@/features/ble/BlePanel';
@@ -44,6 +44,10 @@ import {
 import type { HistoryItem, UnreadEncounter } from '@/types/encounter';
 
 export default function HomePage() {
+  return <IosBleCheck />;
+}
+
+function HomePageFull() {
   const router = useRouter();
   const qc = useQueryClient();
   const profile = useProfile();
@@ -59,6 +63,10 @@ export default function HomePage() {
   // 起動時 1 回だけ。前回開いた時刻を取得して、即座に「いま」で上書きする。
   // 返り値 = 前回値 (= 「N 日ぶり」表示の基準)。初回起動は null。
   const lastOpened = useLastSessionOpened();
+
+  useEffect(() => {
+    window.dispatchEvent(new Event('project-encounter-ready'));
+  }, []);
 
   useEffect(() => {
     router.prefetch('/walk');
@@ -190,6 +198,7 @@ export default function HomePage() {
 
   // Dev panel の折り畳み
   const [devOpen, setDevOpen] = useState(false);
+  const useSafePlaza = isIosWebView();
 
   // 同意ダイアログを先に出すケース
   if (consent.isError) {
@@ -213,7 +222,7 @@ export default function HomePage() {
   }
   if (consent.data?.status === 'pending') {
     return (
-      <main className="fixed inset-0 overflow-hidden bg-cream">
+      <main className="fixed inset-0 overflow-hidden bg-cream" data-app-ready="true">
         <CloudConsentDialog onDecided={() => consent.refetch()} />
       </main>
     );
@@ -235,7 +244,7 @@ export default function HomePage() {
   }
 
   return (
-    <main className="game-screen fixed inset-0 overflow-hidden">
+    <main className="game-screen fixed inset-0 overflow-hidden" data-app-ready="true">
       {/* メインの広場ビュー (全画面) */}
       <ClientErrorBoundary
         fallback={(error) => (
@@ -245,7 +254,11 @@ export default function HomePage() {
           />
         )}
       >
-        <EncounterPlaza residents={residents} joiningIds={joiningIds} />
+        {useSafePlaza ? (
+          <SafePlaza residents={residents} />
+        ) : (
+          <EncounterPlaza residents={residents} joiningIds={joiningIds} />
+        )}
       </ClientErrorBoundary>
 
       {/* 上部スコアバー */}
@@ -318,7 +331,10 @@ function BootState({
   actionLabel?: string;
 }) {
   return (
-    <main className="fixed inset-0 grid place-items-center bg-cream px-6 text-ink">
+    <main
+      className="fixed inset-0 grid place-items-center bg-cream px-6 text-ink"
+      data-app-ready="true"
+    >
       <section className="w-full max-w-sm text-center">
         <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-full bg-pop-blue text-xl font-black text-cream-soft shadow-[0_6px_0_rgba(59,48,36,0.14)]">
           PE
@@ -338,6 +354,158 @@ function BootState({
       </section>
     </main>
   );
+}
+
+function SafePlaza({ residents }: { residents: HistoryItem[] }) {
+  return (
+    <section className="absolute inset-0 overflow-hidden bg-cream px-5 pb-24 pt-20">
+      <div className="mx-auto flex h-full max-w-md flex-col justify-between">
+        <div>
+          <div className="mb-4 inline-flex rounded-full bg-pop-blue px-3 py-1 text-[10px] font-black tracking-widest text-cream-soft shadow-toy">
+            iOS SAFE VIEW
+          </div>
+          <h1 className="text-2xl font-black tracking-wider text-ink">
+            Project Encounter
+          </h1>
+          <p className="mt-3 text-sm font-bold leading-relaxed text-ink-soft">
+            3D 広場を一時停止中。下の「?」から BLE パネルを開いて、サーバーなしのすれ違い確認ができます。
+          </p>
+        </div>
+
+        <div className="game-panel rounded-[22px] p-4">
+          <div className="text-[10px] font-black tracking-widest text-ink-muted">
+            ENCOUNTERS
+          </div>
+          <div className="mt-2 text-4xl font-black text-pop-blue">
+            {residents.length}
+          </div>
+          <p className="mt-2 text-xs font-bold leading-relaxed text-ink-soft">
+            取得したすれ違い ID は Dev パネル内の BLE 欄で確認できます。
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function IosBleCheck() {
+  const [statusText, setStatusText] = useState('未確認');
+  const [busy, setBusy] = useState(false);
+
+  const refresh = async () => {
+    try {
+      const status = await ble.status();
+      setStatusText(JSON.stringify(status, null, 2));
+    } catch (error) {
+      setStatusText(formatQueryError(error));
+    }
+  };
+
+  useEffect(() => {
+    document.getElementById('server-startup-screen')?.remove();
+    window.dispatchEvent(new Event('project-encounter-ready'));
+    refresh();
+    const timer = window.setInterval(refresh, 3000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const run = async (action: 'start' | 'stop') => {
+    setBusy(true);
+    try {
+      if (action === 'start') await ble.start();
+      else await ble.stop();
+      await refresh();
+    } catch (error) {
+      setStatusText(formatQueryError(error));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <main
+      data-app-ready="true"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        overflow: 'auto',
+        background: '#FAF1E0',
+        color: '#3B3024',
+        padding: '72px 20px 28px',
+        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+      }}
+    >
+      <section style={{ maxWidth: 420, margin: '0 auto' }}>
+        <div
+          style={{
+            display: 'inline-block',
+            borderRadius: 999,
+            background: '#5DA9E9',
+            color: '#FFFAF0',
+            padding: '6px 10px',
+            fontSize: 11,
+            fontWeight: 900,
+            letterSpacing: '.08em',
+          }}
+        >
+          iOS BLE CHECK
+        </div>
+        <h1 style={{ margin: '18px 0 8px', fontSize: 26, fontWeight: 900 }}>
+          Project Encounter
+        </h1>
+        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.7, fontWeight: 700 }}>
+          サーバーなしで BLE の開始状態と、すれ違った ID を確認する画面です。
+        </p>
+
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          <button type="button" disabled={busy} onClick={() => run('start')} style={iosButtonStyle}>
+            BLE開始
+          </button>
+          <button type="button" disabled={busy} onClick={() => run('stop')} style={iosButtonStyle}>
+            停止
+          </button>
+          <button type="button" disabled={busy} onClick={refresh} style={iosButtonStyle}>
+            更新
+          </button>
+        </div>
+
+        <pre
+          style={{
+            marginTop: 18,
+            minHeight: 260,
+            whiteSpace: 'pre-wrap',
+            overflowWrap: 'anywhere',
+            borderRadius: 14,
+            border: '1px solid rgba(59,48,36,.16)',
+            background: '#FFFAF0',
+            padding: 14,
+            fontSize: 12,
+            lineHeight: 1.55,
+            fontWeight: 700,
+            userSelect: 'text',
+          }}
+        >
+          {statusText}
+        </pre>
+      </section>
+    </main>
+  );
+}
+
+const iosButtonStyle: CSSProperties = {
+  minHeight: 44,
+  flex: 1,
+  border: 0,
+  borderRadius: 999,
+  background: '#3B3024',
+  color: '#FFFAF0',
+  fontSize: 13,
+  fontWeight: 900,
+};
+
+function isIosWebView() {
+  if (typeof navigator === 'undefined') return false;
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || navigator.platform === 'MacIntel';
 }
 
 function formatQueryError(error: unknown): string {

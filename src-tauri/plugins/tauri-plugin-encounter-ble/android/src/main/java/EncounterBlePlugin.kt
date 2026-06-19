@@ -53,7 +53,8 @@ private const val TAG = "EncounterBle"
 
 @InvokeArg
 class StartArgs {
-    lateinit var user_id: String
+    var user_id: String? = null
+    var userId: String? = null
     var mode: String? = null
 }
 
@@ -94,8 +95,9 @@ class EncounterBlePlugin(private val activity: Activity) : Plugin(activity) {
     @Command
     fun start(invoke: Invoke) {
         val args = invoke.parseArgs(StartArgs::class.java)
+        val rawUserId = args.user_id ?: args.userId
         val uuid = try {
-            UUID.fromString(args.user_id)
+            UUID.fromString(rawUserId)
         } catch (ex: Exception) {
             Log.w(TAG, "start rejected: invalid user_id")
             invoke.reject("invalid user_id")
