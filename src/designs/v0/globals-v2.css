@@ -1,0 +1,180 @@
+/* ================================================================
+   Design V2 — 縁日スタンプラリー × ゲームボーイポケット
+   既存 globals.css の末尾に追記して適用する。
+   既存 .game-* クラスは上書きせず新クラスを追加。
+   ================================================================ */
+
+/* ---- 背景テクスチャ ---- */
+
+.cream-dot {
+  background-color: #FAF1E0;
+  background-image: radial-gradient(circle, rgba(59, 48, 36, 0.09) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+/* ---- フィジカルボタン ---- */
+
+/* 主アクション — 深朱色 */
+.neo-button {
+  position: relative;
+  background: #D4402C;
+  color: #FFFAF0;
+  border: 2.5px solid #3B3024;
+  box-shadow: 4px 4px 0 0 #3B3024;
+  border-radius: 12px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  transition: transform 80ms ease, box-shadow 80ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.neo-button:active {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0 0 #3B3024;
+}
+.neo-button:disabled {
+  opacity: 0.45;
+}
+
+/* ゴーストボタン — 枠線のみ */
+.neo-button-ghost {
+  position: relative;
+  background: transparent;
+  color: #3B3024;
+  border: 2.5px solid rgba(59, 48, 36, 0.22);
+  box-shadow: 3px 3px 0 0 rgba(59, 48, 36, 0.12);
+  border-radius: 12px;
+  font-weight: 900;
+  transition: transform 80ms ease, box-shadow 80ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.neo-button-ghost:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 0 rgba(59, 48, 36, 0.12);
+}
+
+/* ---- ソリッドパネル ---- */
+
+.neo-panel {
+  background: #FFFAF0;
+  border: 2px solid rgba(59, 48, 36, 0.13);
+  box-shadow: 4px 4px 0 0 rgba(59, 48, 36, 0.09);
+  border-radius: 14px;
+}
+
+.neo-panel-dark {
+  background: rgba(10, 14, 22, 0.95);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 0.6);
+  border-radius: 14px;
+}
+
+/* ---- フィジカル HUD ---- */
+
+.neo-hud {
+  background: #FFFAF0;
+  border: 2px solid rgba(59, 48, 36, 0.16);
+  box-shadow: 3px 3px 0 0 rgba(59, 48, 36, 0.11);
+}
+
+.neo-hud-dark {
+  background: rgba(8, 12, 18, 0.9);
+  border: 1.5px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.55);
+}
+
+/* ---- セクションラベル (左アクセントボーダー) ---- */
+
+.section-label {
+  font-size: 0.625rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  color: #9C8D7A;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.section-label::before {
+  content: '';
+  flex-shrink: 0;
+  width: 3px;
+  height: 13px;
+  background: #D4402C;
+  border-radius: 2px;
+}
+
+/* ---- LCD スクリーン (WalkMode) ---- */
+
+.lcd-screen {
+  background-color: #090C11;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 2px,
+    rgba(0, 0, 0, 0.1) 2px,
+    rgba(0, 0, 0, 0.1) 3px
+  );
+}
+
+/* LCD カウンター — ソフトグリーン発光 */
+.lcd-counter {
+  color: #9DFFAA;
+  text-shadow:
+    0 0 8px rgba(100, 255, 120, 0.55),
+    0 0 28px rgba(100, 255, 120, 0.2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* LCD ディム表示 */
+.lcd-dim {
+  color: rgba(155, 220, 165, 0.28);
+}
+
+/* ---- ソナー波アニメーション ---- */
+
+@keyframes sonar-pulse {
+  0%   { transform: scale(0.25); opacity: 0.65; }
+  100% { transform: scale(1.3);  opacity: 0; }
+}
+
+.sonar-r1 { animation: sonar-pulse 2.8s cubic-bezier(0.2, 0.6, 0.4, 1) 0.00s infinite; }
+.sonar-r2 { animation: sonar-pulse 2.8s cubic-bezier(0.2, 0.6, 0.4, 1) 0.93s infinite; }
+.sonar-r3 { animation: sonar-pulse 2.8s cubic-bezier(0.2, 0.6, 0.4, 1) 1.86s infinite; }
+
+/* ---- 入力フィールド (profile) ---- */
+
+.neo-input {
+  background: #FFFAF0;
+  border: 2px solid rgba(59, 48, 36, 0.15);
+  border-radius: 10px;
+  box-shadow: inset 0 2px 6px rgba(59, 48, 36, 0.06);
+  transition: border-color 120ms ease;
+}
+.neo-input:focus {
+  outline: none;
+  border-color: #D4402C;
+}
+
+/* ---- 今日カウンタ バッジ (WalkMode) ---- */
+
+@keyframes count-bump {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+.count-bump {
+  animation: count-bump 220ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* prefers-reduced-motion 配慮 */
+@media (prefers-reduced-motion: reduce) {
+  .neo-button,
+  .neo-button-ghost {
+    transition: none;
+  }
+  .sonar-r1,
+  .sonar-r2,
+  .sonar-r3 {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

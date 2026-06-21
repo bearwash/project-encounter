@@ -49,9 +49,13 @@ pub async fn init_pool(app: &AppHandle) -> Result<SqlitePool, String> {
 /// 旧実装はコマンド毎に新規プールを開き毎回 ensure_schema を走らせていたため、
 /// 複数プールによるロック競合・無駄なスキーマ検証が起きていた。
 pub async fn pool(app: &AppHandle) -> Result<SqlitePool, String> {
-    app.try_state::<SqlitePool>()
-        .map(|state| state.inner().clone())
-        .ok_or_else(|| "db pool is not initialized".to_string())
+    if let Some(state) = app.try_state::<SqlitePool>() {
+        return Ok(state.inner().clone());
+    }
+
+    let pool = init_pool(app).await?;
+    let _ = app.manage(pool.clone());
+    Ok(pool)
 }
 
 /// Unix epoch 秒。複数モジュールで使うためここに集約。

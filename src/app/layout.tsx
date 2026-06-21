@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import { M_PLUS_Rounded_1c } from 'next/font/google';
 import { QueryProvider } from '@/lib/query/QueryProvider';
+import { BootFallback } from '@/components/BootFallback';
+import { DesignSwitcher } from '@/components/DesignSwitcher';
 import './globals.css';
 
 // 全体に丸みのあるポップなフォントを適用する。
@@ -41,7 +43,34 @@ export default function RootLayout({
   return (
     <html lang="ja" className={rounded.variable}>
       <body className="min-h-screen bg-cream font-sans text-ink">
+        <div
+          id="boot-fallback"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 2147483647,
+            display: 'grid',
+            placeItems: 'center',
+            background: '#FAF1E0',
+            color: '#3B3024',
+            fontFamily:
+              'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+            fontWeight: 800,
+            letterSpacing: '0.04em',
+            textAlign: 'center',
+            padding: 24,
+          }}
+        >
+          <div>
+            <div style={{ fontSize: 18 }}>Project Encounter</div>
+            <div style={{ marginTop: 10, fontSize: 13, opacity: 0.72 }}>
+              起動中...
+            </div>
+          </div>
+        </div>
+        <BootFallback />
         <QueryProvider>{children}</QueryProvider>
+        {process.env.NODE_ENV === 'development' && <DesignSwitcher />}
       </body>
     </html>
   );

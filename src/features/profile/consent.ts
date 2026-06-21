@@ -22,7 +22,9 @@ export type ConsentState = {
 };
 
 async function fetchConsent(): Promise<ConsentState> {
-  if (!isTauri()) return { status: 'pending', consentedAt: null };
+  // ブラウザ単体 (pnpm dev) では SQLite がないため常に granted 扱いにして UI を確認できるようにする。
+  // 実際の同意保存は Tauri 上でのみ行われる。
+  if (!isTauri()) return { status: 'granted', consentedAt: null };
   try {
     const db = await getDb();
     const rows = await db.select<{ value: string }[]>(

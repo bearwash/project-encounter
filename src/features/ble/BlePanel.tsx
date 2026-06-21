@@ -1,21 +1,33 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
+import { getDb } from '@/lib/db/client';
 import type { BleStatus } from '@/lib/tauri/ble';
+import { isTauri } from '@/lib/tauri/env';
 import {
   useBleDebugSnapshot,
   useStartBle,
   useStopBle,
 } from './use-ble-status';
 
+type RawEncounterLog = {
+  log_id: number;
+  encountered_user_id: string;
+  encountered_at: number;
+  is_read: number;
+};
+
 export function BlePanel({ status }: { status: BleStatus | undefined }) {
   const start = useStartBle();
   const stop = useStopBle();
   const debug = useBleDebugSnapshot();
+  const rawLogs = useRawEncounterLogs();
 
   const mode = status?.mode ?? 'idle';
   const pending = start.isPending || stop.isPending;
   const readiness = getReadiness(status, start.isPending, stop.isPending);
   const events = debug.data?.events.slice(-6).reverse() ?? [];
+  const latestRawLog = rawLogs.data?.[0] ?? null;
 
   return (
     <section className="game-panel rounded-[18px] px-4 py-3">
@@ -71,10 +83,17 @@ export function BlePanel({ status }: { status: BleStatus | undefined }) {
             </div>
           )}
           {status?.last_seen_user_id && (
-            <span className="max-w-[220px] truncate text-[10px] font-bold text-ink-muted">
-              LAST {shortUserId(status.last_seen_user_id)}{' '}
-              {formatSeenAt(status.last_seen_at)}
-            </span>
+            <div className="grid gap-1 rounded-xl border border-pop-green/20 bg-pop-green/10 px-2 py-1.5">
+              <span className="text-[10px] font-black tracking-widest text-pop-green">
+                ID 取得
+              </span>
+              <code className="break-all text-[10px] font-black leading-snug text-ink">
+                {status.last_seen_user_id}
+              </code>
+              <span className="text-[10px] font-bold text-ink-muted">
+                {formatSeenAt(status.last_seen_at)}
+              </span>
+            </div>
           )}
           {status?.last_error && (
             <span className="max-w-[260px] break-words text-[10px] font-bold leading-snug text-pop-red">
@@ -121,12 +140,67 @@ export function BlePanel({ status }: { status: BleStatus | undefined }) {
           ))}
         </div>
       )}
+      <div className="mt-3 grid gap-2 border-t border-ink/10 pt-2">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[10px] font-black tracking-widest text-ink-muted">
+            SERVERLESS CHECK
+          </span>
+          <span className="text-[10px] font-bold text-ink-muted">
+            DB {rawLogs.data?.length ?? 0}
+          </span>
+        </div>
+        {latestRawLog ? (
+          <div className="rounded-xl bg-white/[0.28] px-2 py-2">
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <span className="text-[10px] font-black text-pop-blue">
+                ローカルDB記録済み
+              </span>
+              <span className="font-mono text-[10px] font-bold text-ink-muted">
+                {formatSeenAt(latestRawLog.encountered_at)}
+              </span>
+            </div>
+            <code className="block break-all text-[10px] font-black leading-snug text-ink">
+              {latestRawLog.encountered_user_id}
+            </code>
+          </div>
+        ) : (
+          <p className="rounded-xl bg-white/[0.22] px-2 py-2 text-[10px] font-bold leading-snug text-ink-muted">
+            まだローカルDBにすれ違いIDはありません。2台でBLEを開始し、SEENまたはID取得が増えるか確認してください。
+          </p>
+        )}
+        {rawLogs.data && rawLogs.data.length > 1 && (
+          <div className="grid gap-1">
+            {rawLogs.data.slice(1, 5).map((log) => (
+              <div
+                key={log.log_id}
+                className="grid grid-cols-[64px_minmax(0,1fr)] gap-2 rounded-lg bg-white/[0.18] px-2 py-1 text-[10px] font-bold text-ink-muted"
+              >
+                <span className="font-mono">{formatSeenAt(log.encountered_at)}</span>
+                <code className="truncate font-mono">{log.encountered_user_id}</code>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </section>
   );
 }
 
-function shortUserId(value: string): string {
-  return value.length > 8 ? value.slice(-8) : value;
+function useRawEncounterLogs() {
+  return useQuery<RawEncounterLog[]>({
+    queryKey: ['ble', 'serverless-encounter-logs'],
+    queryFn: async () => {
+      if (!isTauri()) return [];
+      const db = await getDb();
+      return db.select<RawEncounterLog[]>(
+        `SELECT log_id, encountered_user_id, encountered_at, is_read
+         FROM encounter_logs
+         ORDER BY encountered_at DESC, log_id DESC
+         LIMIT 10`,
+      );
+    },
+    refetchInterval: 2000,
+  });
 }
 
 function formatSeenAt(value: number | null): string {
