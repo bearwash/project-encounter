@@ -2,7 +2,7 @@
 
 import { Outlines, useGLTF } from '@react-three/drei';
 import { useFrame, type ThreeElements } from '@react-three/fiber';
-import { memo, useMemo, useRef } from 'react';
+import { memo, Suspense, useMemo, useRef } from 'react';
 import {
   Color,
   BufferGeometry,
@@ -16,6 +16,7 @@ import {
 } from 'three';
 import { makeRng } from '@/lib/avatar/random';
 import { parseAvatarCode } from '@/lib/avatar/parse';
+import { GENERATED_HEAD_PRESETS } from './generatedHeadPresets';
 
 type GroupProps = ThreeElements['group'];
 
@@ -91,9 +92,8 @@ function StylizedPlazaAvatarImpl({
   const parts = useMemo(() => parseAvatarCode(avatarCode), [avatarCode]);
   const basePalette = useMemo(() => makePlazaPalette(parts, avatarCode), [parts, avatarCode]);
   const isSelfPlayer = userId === 'self-player';
-  const palette = useMemo(
-    () =>
-      ({
+  const palette = useMemo(() => {
+    const merged = {
         ...(isSelfPlayer
           ? {
               ...basePalette,
@@ -108,9 +108,12 @@ function StylizedPlazaAvatarImpl({
             }
           : basePalette),
         ...appearanceOverrides,
-      }) satisfies PlazaPalette,
-    [appearanceOverrides, basePalette, isSelfPlayer],
-  );
+      } satisfies PlazaPalette;
+    return {
+      ...merged,
+      ...GENERATED_HEAD_PRESETS[merged.hairShape],
+    } satisfies PlazaPalette;
+  }, [appearanceOverrides, basePalette, isSelfPlayer]);
 
   const bodyRef = useRef<Group>(null);
   const headRef = useRef<Group>(null);
@@ -202,23 +205,22 @@ function StylizedPlazaAvatarImpl({
         </group>
 
         <group ref={headRef}>
+          <mesh castShadow position={[0, 1.66, 0.01]} scale={[0.74, 0.76, 0.68]}>
+            <sphereGeometry args={[0.52, 28, 18]} />
+            <meshToonMaterial color={palette.skin} />
+            <Outlines thickness={0.032} color={INK} />
+          </mesh>
           {palette.headModelSrc ? (
-            <AvatarHeadModel
-              src={palette.headModelSrc}
-              scale={palette.headModelScale ?? 1}
-              position={palette.headModelPosition ?? [0, 1.17, 0.09]}
-              skinColor={palette.skin}
-              hairColor={palette.hair}
-            />
+            <Suspense fallback={<Hair shape={palette.hairShape} primary={palette.hair} secondary={palette.hairAlt} />}>
+              <AvatarHairModel
+                src={palette.headModelSrc}
+                scale={palette.headModelScale ?? 1}
+                position={palette.headModelPosition ?? [0, 1.64, 0.01]}
+                hairColor={palette.hair}
+              />
+            </Suspense>
           ) : (
-            <>
-              <mesh castShadow position={[0, 1.66, 0.01]} scale={[0.74, 0.76, 0.68]}>
-                <sphereGeometry args={[0.52, 28, 18]} />
-                <meshToonMaterial color={palette.skin} />
-                <Outlines thickness={0.032} color={INK} />
-              </mesh>
-              <Hair shape={palette.hairShape} primary={palette.hair} secondary={palette.hairAlt} />
-            </>
+            <Hair shape={palette.hairShape} primary={palette.hair} secondary={palette.hairAlt} />
           )}
           <Face shape={palette.face} />
           {palette.accessory && palette.accessory.kind !== 'none' && (
@@ -234,17 +236,15 @@ function StylizedPlazaAvatarImpl({
   );
 }
 
-function AvatarHeadModel({
+function AvatarHairModel({
   src,
   scale,
   position,
-  skinColor,
   hairColor,
 }: {
   src: string;
   scale: number;
   position: [number, number, number];
-  skinColor: string;
   hairColor: string;
 }) {
   const { scene } = useGLTF(src);
@@ -261,14 +261,14 @@ function AvatarHeadModel({
       meshLike.castShadow = true;
       meshLike.receiveShadow = true;
       meshLike.geometry = meshLike.geometry.clone();
-      trimGeneratedHeadBase(meshLike.geometry);
-      applyGeneratedHeadPalette(meshLike.geometry, skinColor, hairColor);
+      trimGeneratedHairModel(meshLike.geometry);
+      applyGeneratedHairPalette(meshLike.geometry, hairColor);
       meshLike.material = new MeshToonMaterial({
         vertexColors: true,
       });
     });
     return root;
-  }, [hairColor, scene, skinColor]);
+  }, [hairColor, scene]);
 
   return (
     <group position={position} scale={scale}>
@@ -277,52 +277,24 @@ function AvatarHeadModel({
   );
 }
 
-function applyGeneratedHeadPalette(geometry: Mesh['geometry'], skinColor: string, hairColor: string) {
+function applyGeneratedHairPalette(geometry: Mesh['geometry'], hairColor: string) {
   geometry.computeBoundingBox();
-  const box = geometry.boundingBox;
   const position = geometry.getAttribute('position');
-  if (!box || !position) return;
-
-  const size = new Vector3();
-  const center = new Vector3();
-  box.getSize(size);
-  box.getCenter(center);
-
-  const minY = box.min.y;
-  const faceCenter = new Vector3(
-    center.x,
-    minY + size.y * 0.43,
-    center.z + size.z * 0.02,
-  );
-  const faceRadius = new Vector3(size.x * 0.29, size.y * 0.27, size.z * 0.28);
-  const browLine = minY + size.y * 0.53;
-  const neckLine = minY + size.y * 0.16;
+  if (!position) return;
 
   const hair = new Color(hairColor);
-  const skin = new Color(skinColor);
   const colors = new Float32Array(position.count * 3);
 
   for (let i = 0; i < position.count; i += 1) {
-    const x = position.getX(i);
-    const y = position.getY(i);
-    const z = position.getZ(i);
-
-    const dx = (x - faceCenter.x) / faceRadius.x;
-    const dy = (y - faceCenter.y) / faceRadius.y;
-    const dz = (z - faceCenter.z) / faceRadius.z;
-    const faceMask = dx * dx + dy * dy + dz * dz <= 1.04;
-    const isSkin = y < neckLine || (faceMask && y < browLine);
-    const color = isSkin ? skin : hair;
-
-    colors[i * 3] = color.r;
-    colors[i * 3 + 1] = color.g;
-    colors[i * 3 + 2] = color.b;
+    colors[i * 3] = hair.r;
+    colors[i * 3 + 1] = hair.g;
+    colors[i * 3 + 2] = hair.b;
   }
 
   geometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
 }
 
-function trimGeneratedHeadBase(geometry: BufferGeometry) {
+function trimGeneratedHairModel(geometry: BufferGeometry) {
   const source = geometry.index ? geometry.toNonIndexed() : geometry.clone();
   source.computeBoundingBox();
   const box = source.boundingBox;
@@ -336,12 +308,33 @@ function trimGeneratedHeadBase(geometry: BufferGeometry) {
   const nextPosition: number[] = [];
   const nextNormal: number[] = [];
   const nextUv: number[] = [];
+  const size = new Vector3();
+  const center = new Vector3();
+  box.getSize(size);
+  box.getCenter(center);
+
+  const minY = box.min.y;
+  const faceCenter = new Vector3(center.x, minY + size.y * 0.42, box.max.z - size.z * 0.13);
+  const faceRadius = new Vector3(size.x * 0.43, size.y * 0.35, size.z * 0.3);
+  const browLine = minY + size.y * 0.66;
+
+  const isInsideFaceWindow = (x: number, y: number, z: number) => {
+    if (y > browLine) return false;
+    const dx = (x - faceCenter.x) / faceRadius.x;
+    const dy = (y - faceCenter.y) / faceRadius.y;
+    const dz = (z - faceCenter.z) / faceRadius.z;
+    return dx * dx + dy * dy + dz * dz <= 1.0;
+  };
 
   for (let i = 0; i < position.count; i += 3) {
     const y0 = position.getY(i);
     const y1 = position.getY(i + 1);
     const y2 = position.getY(i + 2);
     if (Math.max(y0, y1, y2) < cutY) continue;
+    const cx = (position.getX(i) + position.getX(i + 1) + position.getX(i + 2)) / 3;
+    const cy = (y0 + y1 + y2) / 3;
+    const cz = (position.getZ(i) + position.getZ(i + 1) + position.getZ(i + 2)) / 3;
+    if (isInsideFaceWindow(cx, cy, cz)) continue;
 
     for (let j = 0; j < 3; j += 1) {
       const idx = i + j;
@@ -805,7 +798,7 @@ function Face({ shape }: { shape: PlazaFaceShape }) {
 
   return (
     <group position={[0, 0, 0.45]}>
-      <mesh position={[0, 1.54, -0.01]} scale={[0.44, 0.34, 0.01]}>
+      <mesh position={[0, 1.53, -0.01]} scale={[0.36, 0.3, 0.01]}>
         <sphereGeometry args={[1, 20, 12]} />
         <meshBasicMaterial color="#F7D6B2" transparent opacity={0.22} />
       </mesh>
@@ -848,7 +841,7 @@ function Face({ shape }: { shape: PlazaFaceShape }) {
 /** 眉。短い濃いバー。 */
 function Brow({ x, tilt, raised }: { x: number; tilt: number; raised?: boolean }) {
   return (
-    <mesh position={[x, raised ? 1.76 : 1.71, 0]} rotation={[0, 0, tilt]} scale={[0.082, 0.018, 0.012]}>
+    <mesh position={[x, raised ? 1.73 : 1.68, 0]} rotation={[0, 0, tilt]} scale={[0.064, 0.014, 0.012]}>
       <boxGeometry args={[1, 1, 1]} />
       <meshBasicMaterial color={INK} />
     </mesh>
@@ -858,16 +851,16 @@ function Brow({ x, tilt, raised }: { x: number; tilt: number; raised?: boolean }
 /** 開き目（アーモンド型）。縦長にしてアニメ寄りに。 */
 function OpenEye({ x, big }: { x: number; big?: boolean }) {
   return (
-    <group position={[x, 1.6, 0]}>
-      <mesh scale={[0.068, big ? 0.1 : 0.088, 0.014]}>
+    <group position={[x, 1.58, 0]}>
+      <mesh scale={[0.052, big ? 0.08 : 0.068, 0.014]}>
         <sphereGeometry args={[1, 16, 12]} />
         <meshBasicMaterial color={EYE_WHITE} />
       </mesh>
-      <mesh position={[0, -0.006, 0.006]} scale={[0.03, big ? 0.052 : 0.044, 0.015]}>
+      <mesh position={[0, -0.005, 0.006]} scale={[0.023, big ? 0.042 : 0.035, 0.015]}>
         <sphereGeometry args={[1, 14, 10]} />
         <meshBasicMaterial color={INK} />
       </mesh>
-      <mesh position={[0.012, 0.018, 0.012]} scale={[0.008, 0.012, 0.006]}>
+      <mesh position={[0.01, 0.014, 0.012]} scale={[0.006, 0.009, 0.006]}>
         <sphereGeometry args={[1, 10, 8]} />
         <meshBasicMaterial color="#FFFFFF" />
       </mesh>
@@ -878,7 +871,7 @@ function OpenEye({ x, big }: { x: number; big?: boolean }) {
 /** 閉じ目（にっこり/ウインクのへの字弧）。横長の薄いレンズ。 */
 function ClosedEye({ x }: { x: number }) {
   return (
-    <mesh position={[x, 1.605, 0]} rotation={[0, 0, x < 0 ? -0.14 : 0.14]} scale={[0.076, 0.022, 0.012]}>
+    <mesh position={[x, 1.585, 0]} rotation={[0, 0, x < 0 ? -0.14 : 0.14]} scale={[0.058, 0.016, 0.012]}>
       <sphereGeometry args={[1, 14, 8]} />
       <meshBasicMaterial color={INK} />
     </mesh>
@@ -887,7 +880,7 @@ function ClosedEye({ x }: { x: number }) {
 
 function Cheek({ x }: { x: number }) {
   return (
-    <mesh position={[x, 1.46, 0]} scale={[0.05, 0.03, 0.01]}>
+    <mesh position={[x, 1.455, 0]} scale={[0.04, 0.024, 0.01]}>
       <sphereGeometry args={[1, 12, 8]} />
       <meshBasicMaterial color={BLUSH} transparent opacity={0.42} />
     </mesh>
@@ -897,11 +890,11 @@ function Cheek({ x }: { x: number }) {
 function SmileMouth() {
   return (
     <group position={[0, 1.38, 0]}>
-      <mesh scale={[0.09, 0.03, 0.01]}>
+      <mesh scale={[0.072, 0.024, 0.01]}>
         <sphereGeometry args={[1, 12, 8]} />
         <meshBasicMaterial color={INK} />
       </mesh>
-      <mesh position={[0, 0.012, 0.002]} scale={[0.058, 0.014, 0.01]}>
+      <mesh position={[0, 0.01, 0.002]} scale={[0.046, 0.012, 0.01]}>
         <sphereGeometry args={[1, 10, 8]} />
         <meshBasicMaterial color="#F7D6B2" />
       </mesh>

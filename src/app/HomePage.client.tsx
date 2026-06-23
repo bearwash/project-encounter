@@ -257,7 +257,11 @@ function HomePageFull() {
         {useSafePlaza ? (
           <SafePlaza residents={residents} />
         ) : (
-          <EncounterPlaza residents={residents} joiningIds={joiningIds} />
+          <EncounterPlaza
+            residents={residents}
+            joiningIds={joiningIds}
+            myAvatarCode={profile.data.avatar_code}
+          />
         )}
       </ClientErrorBoundary>
 

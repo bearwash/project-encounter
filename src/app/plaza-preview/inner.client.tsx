@@ -69,13 +69,11 @@ export default function PlazaPreviewPage() {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-4 p-5">
-      <header className="flex items-baseline justify-between">
-        <h1 className="text-2xl font-black tracking-wide text-pop-red">PLAZA PREVIEW</h1>
-        <span className="text-xs font-bold text-ink-muted">住人 {count} 人</span>
-      </header>
-
-      <div className="flex flex-wrap gap-2">
+    <main className="fixed inset-0 overflow-hidden bg-[#61c3bf]" data-app-ready="true">
+      <div className="pointer-events-auto absolute left-3 top-3 z-[60] flex max-w-[calc(100vw-24px)] flex-wrap items-center gap-2 rounded-full border border-white/25 bg-ink/20 px-2 py-2 opacity-0 shadow-[0_16px_36px_rgba(0,0,0,0.18)] backdrop-blur-md transition-opacity hover:opacity-100 focus-within:opacity-100">
+        <span className="px-2 text-[11px] font-black tracking-wider text-cream-soft">
+          {count}
+        </span>
         {COUNT_PRESETS.map((n) => (
           <button
             key={n}
@@ -85,10 +83,10 @@ export default function PlazaPreviewPage() {
               setJoiningIds([]);
             }}
             data-testid={`count-${n}`}
-            className={`rounded-toy border-2 px-3 py-1.5 text-xs font-black tracking-widest shadow-toy transition active:translate-y-[2px] active:shadow-none ${
+            className={`rounded-full border px-3 py-1.5 text-xs font-black tracking-widest transition active:translate-y-[2px] ${
               count === n
                 ? 'border-pop-red bg-pop-red text-cream-soft'
-                : 'border-cream-deep bg-cream-soft text-ink-soft'
+                : 'border-white/50 bg-cream-soft/90 text-ink-soft'
             }`}
           >
             {n}
@@ -97,18 +95,22 @@ export default function PlazaPreviewPage() {
         <button
           type="button"
           onClick={startJoinDemo}
-          className="rounded-toy border-2 border-pop-blue bg-cream-soft px-3 py-1.5 text-xs font-black tracking-widest text-pop-blue shadow-toy transition active:translate-y-[2px] active:shadow-none"
+          className="rounded-full border border-pop-blue bg-cream-soft/90 px-3 py-1.5 text-xs font-black tracking-widest text-pop-blue transition active:translate-y-[2px]"
           data-testid="join-demo"
         >
-          合流アニメを再生
+          JOIN
         </button>
       </div>
 
       <div
         key={generation}
-        className="h-[480px] overflow-hidden rounded-toy border border-cream-deep shadow-toy"
+        className="h-full w-full overflow-hidden"
       >
-        <EncounterPlaza residents={residents} joiningIds={joiningIds} />
+        <EncounterPlaza
+          residents={residents}
+          joiningIds={joiningIds}
+          myAvatarCode="b01_h04_o01_f03"
+        />
       </div>
     </main>
   );
