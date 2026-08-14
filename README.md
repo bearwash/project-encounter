@@ -27,7 +27,7 @@ BLE による物理的すれ違いを再現する、位置情報非依存のア�
 - **UI**: Next.js (App Router) + React + Tailwind CSS + @tanstack/react-query
 - **コア**: Rust (BLE: btleplug @ desktop、CoreBluetooth / Android Bluetooth は Tauri mobile plugin)
 - **DB ローカル**: SQLite (Tauri Plugin SQL)
-- **DB クラウド**: Supabase (Postgres + 匿名 Auth + RLS)
+- **DB クラウド**: Supabase (Postgres + Apple / Google / Email Auth + RLS)
 - **パッケージマネージャ**: pnpm
 
 ---
@@ -42,7 +42,7 @@ cp .env.example .env.local
 # 未設定でも mock モード (Rust 側 profile_fetch_remote) で動作
 ```
 
-Supabase 側のスキーマは [`docs/contracts/supabase-schema.sql`](docs/contracts/supabase-schema.sql) を Studio SQL Editor に貼って実行。Authentication > Providers で **Anonymous sign-ins を有効化**。
+Supabase 側のスキーマは [`docs/contracts/supabase-schema.sql`](docs/contracts/supabase-schema.sql) を Studio SQL Editor に貼って実行。Authentication > Providers で Apple / Google / Email (magic link) を設定する。初回起動では匿名セッションを自動作成しない。
 
 サーバーサイドの責務と、将来 Supabase 直結を API サーバーへ置き換える場合の契約は [`docs/specs/server-side.md`](docs/specs/server-side.md) と [`docs/contracts/server-api.md`](docs/contracts/server-api.md) を参照。
 
@@ -64,7 +64,7 @@ Supabase 実プロジェクトの疎通確認:
 NEXT_PUBLIC_SUPABASE_URL=... NEXT_PUBLIC_SUPABASE_ANON_KEY=... pnpm server:smoke
 ```
 
-`server:smoke` は anonymous sign-in、プロフィール upsert / resolve / delete、RLS による他人プロフィール更新拒否、DB 制約による不正プロフィール拒否まで確認する。
+`server:smoke` の既存契約検査はテスト用 anonymous session を使うため、本番 OAuth / magic-link と退会 Edge Function は別途 E2E 確認する。プロフィール upsert / resolve / delete、RLS による他人プロフィール更新拒否、DB 制約による不正プロフィール拒否を確認する。
 
 ### 1. 依存解決 / 整合チェック
 
@@ -103,6 +103,7 @@ iOS 環境:
 
 - [`docs/contracts/ios/Info.plist.snippet`](docs/contracts/ios/Info.plist.snippet) — Bluetooth 権限文 + 縦固定 + UIBackgroundModes
 - [`docs/contracts/ios/project.yml.snippet`](docs/contracts/ios/project.yml.snippet) — CoreBluetooth.framework 依存追加
+- [`docs/contracts/ios/project_encounter_iOS.entitlements.snippet.plist`](docs/contracts/ios/project_encounter_iOS.entitlements.snippet.plist) — Sign in with Apple（本番App IDで有効化後）
 
 手動で書き込む場所:
 
@@ -111,6 +112,8 @@ iOS 環境:
 3. `src-tauri/gen/apple/project.yml` を開く
 4. `targets > project_encounter_iOS > info > properties` に [`docs/contracts/ios/project.yml.snippet`](docs/contracts/ios/project.yml.snippet) の `UISupportedInterfaceOrientations` / `NSBluetoothAlwaysUsageDescription` / `UIBackgroundModes` を追加する
 5. 同じ `targets > project_encounter_iOS > dependencies` に `CoreBluetooth.framework` を追加する
+6. Apple Developer の App ID で Sign in with Apple を有効化し、生成された entitlements の `<dict>` に entitlement snippet を追加する
+7. Release では開発用の `NSAllowsArbitraryLoads` と `NSLocalNetworkUsageDescription` を削除し、HTTPS の本番URLだけを使う
 
 `pnpm tauri ios init` をやり直すと `src-tauri/gen/apple` が再生成されるため、この書き込みもやり直してください。
 
@@ -158,8 +161,8 @@ Supabase なしでも、BLE で相手の `user_id` を受信してローカル S
 手順:
 
 1. 2台の端末にアプリを入れる
-2. 初回の公開同意ダイアログは、サーバーなし確認だけなら `いまは始めない` でもよい
-3. それぞれプロフィールを1回保存して、端末内の `my_profile.user_id` を作る
+2. 開発用ログイン、または設定済みの Apple / Google / メールで明示ログインする
+3. 工房でコミュニティルールへ同意し、プロフィール公開を有効にして1回保存する
 4. ホーム右下の `?` を押して Dev パネルを開く
 5. BLE パネルで `開始` を押す
 6. 両端末の Bluetooth 権限を許可する
@@ -185,7 +188,7 @@ Supabase なしでも、BLE で相手の `user_id` を受信してローカル S
 | カテゴリ | 状態 |
 |---|---|
 | UI / 体験 (対面挨拶 / 広場 / プロフィール / ウォークモード) | 全機能実装済み |
-| Supabase 連携 (匿名 Auth / RLS / 同意 / 一括 fetch / バックオフ + トースト) | 実装済み |
+| Supabase 連携 (ゲスト開始 / 明示ログイン / RLS / 同意 / 一括 fetch) | 実装済み |
 | ローカル DB (SQLite + migration 0001 / 0002) | 実装済み |
 | 実 BLE Scan (btleplug @ desktop) | 実装済み |
 | iOS プロジェクト + Bluetooth 権限 + 縦固定 | 生成済み |

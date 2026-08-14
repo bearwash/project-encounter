@@ -2,8 +2,6 @@ mod ble;
 mod commands;
 mod db;
 
-use tauri::Manager;
-
 use crate::ble::BleService;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

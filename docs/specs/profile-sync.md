@@ -17,12 +17,12 @@ BLE で交換するのは `user_id` のみという ID-only ハイブリッド�
 
 ## 3. スコープ
 ### In Scope
-- Supabase クライアントの初期化と認証（匿名 Auth）
+- Supabase クライアントの初期化と明示ログイン（Apple / Google / メール）
 - 自プロフィールの PUT（保存ボタンで即同期）
 - 未取得 `user_id` 一覧に対する一括 GET（IN クエリ）
 - 取得結果を `users_cache` に UPSERT
 - `encounter_logs` を集計して `users_cache.encounter_count` を反映
-- 初回起動時の **公開同意ダイアログ**
+- 工房で公開を有効にする時の **公開同意 + コミュニティルール同意**
 - オフライン時のキューイングとリトライ
 
 ### Out of Scope
@@ -99,14 +99,15 @@ CREATE POLICY "自分のプロフィールのみ削除できる"
   USING (auth.uid() = id);
 ```
 
-> 命名注: ローカル DB では `user_id` カラム名を使うが、Supabase 側は Auth との結合を素直に表すため `id` カラム名を採用する（SQL 慣習）。両者が指す値は **同じ UUID** で、Supabase Auth が初回発行したものを永続的に共有する。
+> 命名注: ローカル DB では `user_id` カラム名を使うが、Supabase 側は Auth との結合を素直に表すため `id` カラム名を採用する（SQL 慣習）。両者が指す値は **同じ UUID** で、ユーザーが明示ログインした Supabase Auth アカウントの ID を共有する。
 
 ### 5.2 認証
-- Supabase の **匿名 Auth (Anonymous Sign-in)** を使用。
-- 初回起動時に `supabase.auth.signInAnonymously()` を呼び、返された UUID をそのまま `my_profile.user_id` に保存する（短縮や派生は行わない）。
+- 初回起動はゲスト。Supabase session を自動作成しない。
+- 工房・プロフィール編集・タワーの開始時に Apple / Google / メールで明示ログインし、返された非 anonymous UUID をそのまま `my_profile.user_id` に保存する（短縮や派生は行わない）。
+- 旧 anonymous session が残っていてもログイン済みとして扱わない。
 - BLE Advertise の Service Data には、この UUID をバイナリ 16 byte で送出する（[ble-handshake.md](ble-handshake.md) §4.2）。
-- セッショントークン（refresh token 等）は Tauri Secure Storage（または OS Keychain）に保存。
-- 端末再インストール時はリストアしない方針（[[architecture-id-only-ble-cloud-sync]] 参照、Phase 2 で SNS リカバリー検討）。
+- 現行は WebView localStorage に session を保存し、配布前に OS Keychain / Keystore への移行可否を最終監査する。
+- 同じプロバイダーの同じアカウントで再ログインすれば同一 UUID を復元する。
 
 ### 5.3 自プロフィール PUT
 プロフィール画面（[profile.md](profile.md)）で「保存」を押した瞬間に Supabase へ即同期する。
@@ -205,9 +206,9 @@ on_fetch_success(rows):
 3. **次回フォアグラウンド復帰時** に対面挨拶ポップアップが起動し、完璧な状態（名前・アバター・メッセージ揃い）で挨拶が始まる。
 4. 同時に広場ビューにも住人として現れる。
 
-### 5.7 公開同意ダイアログ（初回起動時）
+### 5.7 公開同意（工房で公開を有効にする時）
 
-初回起動時、プロフィール設定の前に表示する。
+初回起動はゲストのまま開始する。明示ログイン後、工房でプロフィール公開を有効にする時だけ、公開範囲とコミュニティルールを同じ画面で確認する。
 
 ```
 ┌──────────────────────────────────────────┐
@@ -224,19 +225,20 @@ on_fetch_success(rows):
 │                                          │
 │ 後から非公開・退会することもできます。   │
 │                                          │
-│           [同意して始める]               │
-│           [今は始めない]                  │
+│  [ ] コミュニティルールに同意する        │
+│  [ ] すれ違った相手へ公開する            │
+│           [見た目・名前・一言を保存]      │
 └──────────────────────────────────────────┘
 ```
 
-- 「同意して始める」 → プロフィール設定画面へ。Supabase 認証を実施。
-- 「今は始めない」 → アプリは起動するが BLE / Supabase の機能はオフ（プロフィール設定画面のみ閲覧可能）。
+- 公開オフ → 見た目・名前・一言は端末内だけに保存し、BLE / Supabase 公開は開始しない。
+- コミュニティルール同意 + 公開オン → Supabase へプロフィールを同期し、BLE 公開を開始できる。
 - 同意は `app_settings` テーブルに `cloud_profile_consent_at` として記録。
 
 ### 5.8 退会・削除
-- プロフィール画面の最下部に「アカウント削除」を配置。
-- 押下で確認ダイアログ → Supabase `profiles` から自身の行を DELETE → ローカル DB も初期化。
-- BLE は停止。`user_id` は失効する（再起動で新規 UUID 発行）。
+- 公開Webとアプリ内の `/account/delete` に「アカウント削除」を配置。
+- 本人確認後、`delete-account` Edge Function が Auth user を削除し、`profiles` は CASCADE 削除する。その後ローカル DB も初期化する。
+- BLE は停止。同じアカウントを復元せず、再利用には新規登録が必要となる。
 
 ### 5.9 エラー処理
 - 認証失敗 → 1 回だけ無人再認証を試行。失敗したらユーザーに明示エラー。
@@ -244,13 +246,13 @@ on_fetch_success(rows):
 - 部分失敗（一部 user_id だけ取得できなかった）→ 取得できた分だけ users_cache に保存。残りは次回再試行。
 
 ## 6. 受入基準
-- [ ] 初回起動時に公開同意ダイアログが表示され、同意なしには BLE / Supabase が起動しない
+- [x] 初回はゲストで開始し、工房の公開同意なしには BLE / Supabase 公開が起動しない
 - [ ] 同意後にプロフィールを保存すると、即座に Supabase の `users` テーブルに反映される
 - [ ] 別端末ですれ違うと、相手のプロフィールが Supabase 経由で取得され、`users_cache` に入る
 - [ ] オフライン時にすれ違っても、`encounter_logs` には保存されるが、ポップアップ / 広場には一切出ない
 - [ ] オンライン復帰後、未取得の `user_id` が一括取得され、次回フォアグラウンド復帰時にポップアップが起動する
 - [ ] アカウント削除を実行すると Supabase の自分の行が消え、ローカル DB も初期化される
-- [ ] 同意ダイアログで「今は始めない」を選んでも、アプリ自体はクラッシュせず最低限の UI を提供する
+- [x] 公開を選ばなくてもゲスト本編と端末内の工房プレビューを利用できる
 - [ ] すれ違い履歴は Supabase に一切送信されない（ネットワーク監視で確認）
 - [ ] レート制限を受けても自動的にバックオフして再試行する
 
@@ -263,11 +265,11 @@ on_fetch_success(rows):
 - [ ] レート制限超過時のフォールバック UI
 - [ ] チャンクサイズ（1 リクエスト 100 件）の妥当性検証
 - [ ] Phase 2 で SNS / Email リカバリーを導入するときのマイグレーション設計
-- [ ] 公開同意ダイアログのコピー文言の最終確定（特に法的観点）
+- [ ] 公開同意・コミュニティルール文言の法務最終確認
 
 ### 解消済み（参考）
 - ~~RLS の SELECT 公開範囲~~ → **認証済みのみ SELECT 可** に確定（§5.1）
-- ~~匿名 Auth 永続化方法~~ → **諦める。再インストール = 新生スタート** で確定
+- ~~起動時の匿名 session 自動作成~~ → **廃止。初回はゲスト、保護機能で明示ログイン** に確定
 - ~~プロフィール非公開モード~~ → **MVP では不要**（公開 or 退会の 2 択）
 - ~~アバター素材ホスティング~~ → **クライアント同梱**（[avatar.md](avatar.md)）
 
@@ -275,10 +277,10 @@ on_fetch_success(rows):
 
 | 項目 | 状況 |
 | --- | --- |
-| supabase-js クライアント + 匿名 Auth | ✅ src/lib/supabase/{client,auth}.ts |
+| supabase-js クライアント + 明示ログイン | ✅ src/features/auth + src/lib/supabase/{client,auth}.ts |
 | profiles upsert / single fetch / bulk fetch / delete | ✅ src/lib/supabase/profiles.ts |
 | `profile_fetch_remote` (Rust mock) | ✅ Supabase 未設定時のフォールバック |
-| 公開同意ダイアログ (cloud_profile_consent_at) | ✅ pending / granted / declined の 3 値、§5.7 通り |
+| 工房の公開同意 + コミュニティルール同意 | ✅ pending / granted / declined と規約同意を別々に保存、§5.7 通り |
 | 自プロフィール PUT + オフライン send queue (§5.3) | ✅ 簡易リトライ (起動時 + visibility 復帰時に flush) |
 | 退会・削除 (§5.8) | ✅ Supabase delete + local DB 初期化 |
 | Supabase スキーマ + RLS デプロイ用 SQL | ✅ docs/contracts/supabase-schema.sql |

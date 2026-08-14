@@ -40,7 +40,9 @@ export function getSupabase(): SupabaseClient | null {
         // Tauri 上でも browser localStorage に session を載せる
         persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: false,
+        // OAuth / magic-link の戻り URL から session を復元する。
+        // 匿名ユーザーの自動作成は AuthProvider 側でも行わない。
+        detectSessionInUrl: true,
         storage: window.localStorage,
         storageKey: 'project-encounter-supabase-auth',
       },

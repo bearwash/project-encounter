@@ -1,6 +1,5 @@
 // 仕様: docs/specs/profile.md §4.2
 // 契約: docs/contracts/db-schema.sql / docs/contracts/ble-payload.schema.json
-import { avatarCodeFromParts, DEFAULT_RESOLVED } from '@/lib/avatar/fallback';
 
 export type MyProfile = {
   user_id: string;
@@ -18,8 +17,6 @@ export const PROFILE_LIMITS = {
   MESSAGE_MAX: 30,
 } as const;
 
-// docs/specs/avatar.md §3.2: b{NN}_h{NN}_o{NN}_f{NN} 形式 (固定 15 文字)。
-// フォールバック先 (resolveAvatarCode) と一致させるため manifest.defaultCode から導出する。
-// 以前はここで 'b01_h01_o01_f01' をハードコードしており、未知コード時の
-// フォールバック見た目 (manifest 由来) と新規プロフィール初期値が食い違っていた。
-export const DEFAULT_AVATAR_CODE = avatarCodeFromParts(DEFAULT_RESOLVED);
+// Avatar presentation is being rebuilt from scratch. Keep the persisted field
+// shape stable until the new avatar system defines its replacement.
+export const DEFAULT_AVATAR_CODE = 'b01_h01_o01_f01';

@@ -50,6 +50,12 @@ export async function upsertMyProfile(p: {
   const sb = getSupabase();
   if (!sb) return;
 
+  const { data: sessionData } = await sb.auth.getSession();
+  const authUser = sessionData.session?.user;
+  if (!authUser || authUser.is_anonymous || authUser.id !== p.user_id) {
+    throw new Error('公開プロフィールIDがログイン中のアカウントと一致しません。');
+  }
+
   const { error } = await sb.from('profiles').upsert({
     id: p.user_id,
     display_name: p.display_name,

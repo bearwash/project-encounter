@@ -59,6 +59,7 @@ async function fetchUnread(): Promise<UnreadEncounter[]> {
        FROM encounter_logs l
        JOIN users_cache u ON u.user_id = l.encountered_user_id
        WHERE l.is_read = 0
+         AND NOT EXISTS (SELECT 1 FROM blocked_users b WHERE b.user_id = u.user_id)
        ORDER BY l.encountered_at ASC`,
     );
 
@@ -131,6 +132,7 @@ async function fetchHistory(): Promise<HistoryItem[]> {
          last_seen_at,
          last_seen_at AS last_encountered_at
        FROM users_cache
+       WHERE NOT EXISTS (SELECT 1 FROM blocked_users b WHERE b.user_id = users_cache.user_id)
        ORDER BY last_seen_at DESC`,
     );
     return rows;

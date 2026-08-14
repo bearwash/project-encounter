@@ -13,21 +13,23 @@ BLE で送出するペイロードの源泉であり、ここで決まった値�
 ## 3. スコープ
 ### In Scope
 - `display_name` / `avatar_code` / `message` の編集と保存
-- 初回起動時の必須入力（`user_id` 自動生成）
+- ゲスト開始と、編集開始時の明示ログイン（Auth UUID を `user_id` に使用）
 - 入力バリデーション（長さ・禁止文字）
 - 保存後は即座に BLE advertise ペイロードへ反映
 
 ### Out of Scope
-- SNS 連携、外部アカウント認証
+- フレンド、フォロー、チャット等の SNS 機能
 - アバターパーツの動的購入（[要件定義 §7 Phase 3](../要件定義.md)）
 - プロフィール画像のアップロード（アバターはパーツコードで表現）
 
 ## 4. 仕様詳細
 
 ### 4.1 `user_id` の生成と公開同意
-- 初回起動時に **公開同意ダイアログ** を表示（[profile-sync.md](profile-sync.md) §5.7）。同意なしには BLE / Supabase の機能はオフのまま。
-- 同意後、Supabase 匿名 Auth (`signInAnonymously`) を実行し、**返された UUID をそのまま `my_profile.user_id` に保存**。短縮や派生は行わない。
-- 以降は不変。再インストールで新規 UUID 扱い（[[architecture-id-only-ble-cloud-sync]] 参照）。
+- 初回起動はゲストとし、ホーム閲覧にログインやプロフィール入力を要求しない。
+- 工房・プロフィール編集・タワーを開く時に Apple / Google / メールの明示ログインを求める（開発ビルドのみテストログイン可）。
+- ログイン後、Supabase Auth が返す **非 anonymous の UUID をそのまま `my_profile.user_id` に保存**する。短縮や派生は行わない。
+- 公開同意とコミュニティルール同意が完了するまでは BLE advertise / Supabase 公開を開始しない。
+- 同じアカウントでは端末を替えても同じ UUID を使う。
 - BLE Advertise の Service Data は **この UUID をバイナリ 16 byte で送出**する（[contracts/ble-payload.schema.json](../contracts/ble-payload.schema.json), [ble-handshake.md](ble-handshake.md) §4.2）。
 
 ### 4.2 入力項目
@@ -61,7 +63,7 @@ BLE で送出するペイロードの源泉であり、ここで決まった値�
 > 注: BLE Advertise には `user_id` のみが乗る（[ble-handshake.md](ble-handshake.md)）。プロフィール本体は Supabase 経由で他端末に伝わるため、保存後の反映タイミングは「相手がフォアグラウンドに復帰したとき」になる。
 
 ## 5. 受入基準
-- [ ] 初回起動時、プロフィール未設定なら必ず設定画面に誘導される
+- [x] 初回起動はゲストでホームを表示し、工房・プロフィール編集・タワーだけログインを要求する
 - [ ] `user_id` がアプリ再起動後も保持される
 - [ ] 各項目の最大長を超える入力は保存できない（or 切り詰められる）
 - [ ] 保存後、次に送出される BLE ペイロードに新しい値が反映される

@@ -33,6 +33,7 @@ ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_display_name_vali
 ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_avatar_code_valid;
 ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_message_valid;
 ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_home_prefecture_valid;
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_public_text_safe;
 
 ALTER TABLE public.profiles
     ADD CONSTRAINT profiles_display_name_valid
@@ -65,6 +66,15 @@ ALTER TABLE public.profiles
         OR home_prefecture ~ '^(0[1-9]|[1-3][0-9]|4[0-7])$'
     ) NOT VALID;
 
+-- 公開欄への連絡先・URL・代表的な不適切表現をサーバー側でも拒否する。
+-- クライアントの即時フィードバックに加え、改変クライアントからの直接書き込みも防ぐ。
+ALTER TABLE public.profiles
+    ADD CONSTRAINT profiles_public_text_safe
+    CHECK (
+        lower(display_name || ' ' || COALESCE(message, '')) !~
+        '(https?://|www[.]|[[:alnum:]._%+-]+@[[:alnum:].-]+[.][[:alpha:]]{2,}|([0-9][[:space:]-]?){9,}|line[[:space:]]*id|discord|fuck|shit|bitch|nigg|死ね|しね|殺す|ころす|レイプ|セックス|ポルノ|きもい|クソ)'
+    ) NOT VALID;
+
 -- 既存行を検証して制約を有効化する。汚れた行がある制約は NOT VALID のまま残し
 -- WARNING を出す (デプロイは止めない。クリーンアップ後の再実行で有効化される)。
 DO $$
@@ -75,7 +85,8 @@ BEGIN
         'profiles_display_name_valid',
         'profiles_avatar_code_valid',
         'profiles_message_valid',
-        'profiles_home_prefecture_valid'
+        'profiles_home_prefecture_valid',
+        'profiles_public_text_safe'
     ] LOOP
         BEGIN
             EXECUTE format('ALTER TABLE public.profiles VALIDATE CONSTRAINT %I', c);
@@ -135,3 +146,29 @@ DROP TRIGGER IF EXISTS trg_profiles_touch_updated_at ON public.profiles;
 CREATE TRIGGER trg_profiles_touch_updated_at
     BEFORE UPDATE ON public.profiles
     FOR EACH ROW EXECUTE FUNCTION public.profiles_touch_updated_at();
+
+-- 公開プロフィールの通報。一般クライアントは自分名義で INSERT だけでき、
+-- 一覧参照・対応ステータス更新は運営者の service role / moderation tooling に限定する。
+CREATE TABLE IF NOT EXISTS public.content_reports (
+    id                    UUID PRIMARY KEY,
+    reporter_id           UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    reported_user_id      UUID NOT NULL,
+    display_name_snapshot TEXT NOT NULL,
+    message_snapshot      TEXT NOT NULL DEFAULT '',
+    reason                TEXT NOT NULL,
+    status                TEXT NOT NULL DEFAULT 'open',
+    created_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CHECK (char_length(display_name_snapshot) BETWEEN 1 AND 16),
+    CHECK (char_length(message_snapshot) <= 30),
+    CHECK (reason IN ('harassment', 'hate', 'sexual', 'personal_info', 'spam', 'other')),
+    CHECK (status IN ('open', 'reviewing', 'resolved', 'dismissed'))
+);
+
+ALTER TABLE public.content_reports ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "content_reports_insert_self" ON public.content_reports;
+CREATE POLICY "content_reports_insert_self"
+    ON public.content_reports
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (auth.uid() = reporter_id);

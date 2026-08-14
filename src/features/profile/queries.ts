@@ -64,21 +64,17 @@ async function saveProfile(rawInput: ProfileInput): Promise<MyProfile> {
     const db = await getDb();
     const now = Math.floor(Date.now() / 1000);
     const existing = await fetchProfile();
-    // 同意 (granted) がなければ Supabase は一切起動しない (要件 §6 / spec §5.7)
-    const syncToCloud = await canSyncToCloud();
+    // RequireAuth で明示ログイン済みなら、公開同意の有無にかかわらず Auth UUID を
+    // ローカル主キーにも使う。先に端末内保存して後から公開へ切り替えても、RLS の
+    // auth.uid() とプロフィール ID がずれないようにする。
+    const authUserId = await ensureAuthUserId().catch(() => null);
+    const syncToCloud = (await canSyncToCloud()) && authUserId !== null;
 
     // user_id の決定:
-    //   1. すでに my_profile に保存済みなら、それを保持
-    //   2. クラウド同期可 (設定済み + 同意済み) なら auth.uid() を使う (= サーバーと一致)
-    //   3. それ以外 (mock / 未同意) は randomUUID で発行 (ローカルのみ)
-    let userId = existing?.user_id;
-    if (!userId) {
-      if (syncToCloud) {
-        userId = (await ensureAuthUserId().catch(() => null)) ?? crypto.randomUUID();
-      } else {
-        userId = crypto.randomUUID();
-      }
-    }
+    //   1. 明示ログイン済みなら常に auth.uid() (= サーバーと一致)
+    //   2. Supabase 未設定のローカル検証だけ既存 ID / randomUUID を使う
+    const userId = authUserId ?? existing?.user_id ?? crypto.randomUUID();
+    const previousUserId = existing && existing.user_id !== userId ? existing.user_id : null;
 
     // ローカル先行 (spec §5.3 "ローカル先行")
     await db.execute(
@@ -99,6 +95,10 @@ async function saveProfile(rawInput: ProfileInput): Promise<MyProfile> {
         now,
       ],
     );
+    if (previousUserId) {
+      // 新しい行の保存成功後にだけ、旧ゲスト仕様の仮 UUID 行を取り除く。
+      await db.execute('DELETE FROM my_profile WHERE user_id = $1', [previousUserId]);
+    }
 
     // Supabase upsert (失敗時は profile_sync_queue へキューイング)。
     // 同意がなければ送信もキューイングもしない (ローカル保存のみ)。

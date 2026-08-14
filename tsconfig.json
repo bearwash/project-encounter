@@ -24,5 +24,5 @@
     "**/*.tsx",
     ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "src-tauri", "out", ".next"]
+  "exclude": ["node_modules", "src-tauri", "supabase/functions", "out", ".next"]
 }

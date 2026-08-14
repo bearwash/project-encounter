@@ -161,6 +161,69 @@ Rules:
 - プロフィール削除後もローカルの過去ログ処理は端末側責務。
 - Auth user 自体の削除は別 endpoint として扱う。
 
+### `DELETE /v1/me`
+
+現在の認証アカウントと、それに結び付く公開プロフィール・ウォレットを削除する。
+Supabase 構成では `supabase/functions/delete-account` が同等の境界になる。
+
+Response 204: body なし。
+
+Rules:
+
+- Bearer token から削除対象を決める。body の user ID は信用しない。
+- `auth.users` の削除により `profiles` は `ON DELETE CASCADE` で削除する。
+- 本番ウォレットを別サービスに置く場合、そのサービスの残高・購入関連データも同一処理で削除または法定保持へ分離する。
+- すれ違い履歴は端末内だけにあるため、クライアントがローカル DB を消去する。
+
+### `GET /v1/wallet`
+
+現在の認証ユーザーの本番コイン残高を返す。ユーザー ID は Bearer token から決める。
+
+Response 200:
+
+```json
+{ "balance": 650 }
+```
+
+### `POST /v1/purchases/verify`
+
+StoreKit / Google Play Billing が返した購入証明を検証し、消耗型コインを付与する。
+
+Request:
+
+```json
+{
+  "platform": "ios",
+  "productId": "com.projectencounter.coins.120",
+  "transactionId": "opaque-store-transaction-id",
+  "receipt": "opaque-store-signed-payload"
+}
+```
+
+Response 200:
+
+```json
+{ "accepted": true, "balance": 120 }
+```
+
+Rules:
+
+- Apple / Google のサーバー API で署名、商品、購入状態、環境を検証してから付与する。
+- 付与量と商品状態はサーバーの商品台帳から決め、クライアント値を信用しない。
+- `(platform, transactionId)` を一意にし、同じリクエストは二重付与せず同じ残高を返す。
+- Google Play の consumable は付与確定後に purchase token を consume / acknowledge する。
+- 認証ユーザーとストア transaction の紐付けを監査ログへ残すが、レシート全文を通常ログへ出さない。
+
+### `POST /v1/purchases/restore`
+
+端末ストアから再取得した購入証明を再検証し、サーバー台帳と残高を照合する。消耗型商品の再付与はせず、未処理 transaction だけを冪等に反映する。
+
+Response 200:
+
+```json
+{ "accepted": true, "balance": 650 }
+```
+
 ## 4. Error
 
 ```ts
@@ -191,6 +254,7 @@ type ErrorResponse = {
 | `PUT /v1/me/profile` | `profiles.upsert({ id: auth.uid(), ... })` |
 | `POST /v1/profiles/resolve` | `profiles.select(...).in('id', user_ids)` |
 | `DELETE /v1/me/profile` | `profiles.delete().eq('id', auth.uid())` |
+| `GET /v1/wallet` / purchase endpoints | 認証付き購入検証サービス（Supabase Edge Function または専用API） |
 
 ## 6. Non-Goals
 

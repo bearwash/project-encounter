@@ -9,12 +9,13 @@ import {
   missingUserIds,
 } from '../../scripts/lib/supabase-live-smoke.mjs';
 
-test('Supabase contract keeps profiles as the only cloud data model', () => {
+test('Supabase contract keeps encounter history off the cloud', () => {
   const contract = loadSupabaseContract();
   const failures = checkSupabaseContract(contract);
 
   assert.deepEqual(failures, []);
   assert.match(contract.schema, /CREATE TABLE IF NOT EXISTS public\.profiles/i);
+  assert.match(contract.schema, /CREATE TABLE IF NOT EXISTS public\.content_reports/i);
   assert.doesNotMatch(
     contract.schema,
     /CREATE TABLE IF NOT EXISTS public\.(encounter|encounter_logs|encounters)\b/i,
@@ -36,6 +37,9 @@ test('Supabase contract enforces profile validation at the database boundary', (
   assert.match(schema, /char_length\(message\) <= 30/);
   assert.match(schema, /profiles_home_prefecture_valid/);
   assert.match(schema, /home_prefecture ~ '\^\(0\[1-9\]\|\[1-3\]\[0-9\]\|4\[0-7\]\)\$'/);
+  assert.match(schema, /profiles_public_text_safe/);
+  assert.match(schema, /https\?:\/\//);
+  assert.match(schema, /content_reports_insert_self/);
 });
 
 test('Server API contract does not expose encounter upload endpoints', () => {
@@ -45,6 +49,8 @@ test('Server API contract does not expose encounter upload endpoints', () => {
   assert.match(api, /POST \/v1\/profiles\/resolve/);
   assert.match(api, /PUT \/v1\/me\/profile/);
   assert.match(api, /DELETE \/v1\/me\/profile/);
+  assert.match(api, /POST \/v1\/purchases\/verify/);
+  assert.match(api, /GET \/v1\/wallet/);
   assert.doesNotMatch(goalsOnly, /\/encounters?/);
 });
 

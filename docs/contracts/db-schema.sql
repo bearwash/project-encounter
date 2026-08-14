@@ -69,6 +69,64 @@ CREATE INDEX IF NOT EXISTS idx_encounter_logs_user_time
     ON encounter_logs (encountered_user_id, encountered_at DESC);
 
 -- ---------------------------------------------------------------------
+-- tower_dispatches : タワーで消費済みのすれ違いログ
+--   - encounter_logs の 1 行 = 出撃権 1 回。PRIMARY KEY で二重消費を防ぐ。
+--   - 同じ相手と複数回会った場合も log_id が別なので、それぞれ 1 回使える。
+--   - すれ違い履歴をテスト用に削除した場合は、対応する消費記録も削除する。
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS tower_dispatches (
+    encounter_log_id INTEGER PRIMARY KEY NOT NULL,
+    user_id           TEXT    NOT NULL,
+    dispatched_at     INTEGER NOT NULL,
+    highest_floor     INTEGER NOT NULL DEFAULT 1,
+    FOREIGN KEY (encounter_log_id)
+        REFERENCES encounter_logs (log_id)
+        ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_tower_dispatches_user
+    ON tower_dispatches (user_id, dispatched_at DESC);
+
+-- ---------------------------------------------------------------------
+-- dev_wallet_ledger : 開発・審査検証専用の 0 円コイン台帳
+--   本番 IAP の残高はサーバー側を正とし、このテーブルへ混在させない。
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS dev_wallet_ledger (
+    entry_id   TEXT    PRIMARY KEY NOT NULL,
+    user_id    TEXT    NOT NULL,
+    amount     INTEGER NOT NULL,
+    reason     TEXT    NOT NULL,
+    created_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_dev_wallet_ledger_user
+    ON dev_wallet_ledger (user_id, created_at DESC);
+
+-- ---------------------------------------------------------------------
+-- blocked_users / content_reports : 公開プロフィールの安全機能
+--   ブロックは端末内で即時反映し、相手を挨拶・広場・タワーから除外する。
+--   通報はまずローカルへ記録し、認証・通信可能なら moderation backend へ送る。
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS blocked_users (
+    user_id    TEXT    PRIMARY KEY NOT NULL,
+    blocked_at INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS content_reports (
+    report_id            TEXT    PRIMARY KEY NOT NULL,
+    reporter_id          TEXT    NOT NULL,
+    reported_user_id     TEXT    NOT NULL,
+    display_name_snapshot TEXT   NOT NULL,
+    message_snapshot     TEXT    NOT NULL DEFAULT '',
+    reason               TEXT    NOT NULL,
+    status               TEXT    NOT NULL DEFAULT 'pending',
+    created_at           INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_content_reports_status
+    ON content_reports (status, created_at);
+
+-- ---------------------------------------------------------------------
 -- profile_sync_queue : Supabase へ未送信のプロフィール変更（オフライン時の保留）
 --   - 自プロフィール保存ボタン押下時、ネットワーク不可なら 1 行 enqueue する。
 --   - オンライン復帰時に最新行 1 件だけ送信し、それ以前のキューは破棄する。
@@ -97,7 +155,7 @@ CREATE TABLE IF NOT EXISTS app_settings (
 
 INSERT OR IGNORE INTO app_settings (key, value) VALUES
     ('cooldown_sec',       '28800'),   -- 8 時間
-    ('schema_version',     '3');
+    ('schema_version',     '5');
 -- last_session_opened_at: 直近のアプリ起動時刻 (Unix epoch sec)。spec: encounter-popup.md §4.3
 -- cloud_profile_consent_at は同意時に Tauri 側から動的に INSERT する（デフォルトなし）。
 -- profile_fetch_retry_after / profile_fetch_retry_attempt:

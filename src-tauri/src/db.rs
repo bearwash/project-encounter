@@ -92,7 +92,7 @@ async fn ensure_schema(pool: &SqlitePool) -> Result<(), String> {
     .map_err(|e| format!("failed to ensure profile_sync_queue: {e}"))?;
     ensure_column(pool, "profile_sync_queue", "home_prefecture", "TEXT").await?;
 
-    sqlx::query("UPDATE app_settings SET value = '3' WHERE key = 'schema_version'")
+    sqlx::query("UPDATE app_settings SET value = '5' WHERE key = 'schema_version'")
         .execute(pool)
         .await
         .map_err(|e| format!("failed to update schema_version: {e}"))?;

@@ -6,6 +6,9 @@
   spec: docs/specs/ble-handshake.md / docs/要件定義.md §4.1, §6
 -->
 
+<!-- Google Play Billing。実決済版で One-time consumable products を使う。 -->
+<uses-permission android:name="com.android.vending.BILLING" />
+
 <!-- 旧 API 互換 (API 30 以前) -->
 <uses-permission android:name="android.permission.BLUETOOTH"
     android:maxSdkVersion="30" />

@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <rect x="24" y="24" width="976" height="976" rx="224" fill="#62c4bd"/>
+
+  <!-- The two avatars intentionally share one construction grid and outline weight. -->
+  <g stroke="#20383b" stroke-width="30" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Left avatar: current player -->
+    <path d="M76 1000L104 674Q110 611 174 581L414 581Q478 603 491 669L525 1000Z" fill="#263f42"/>
+    <path d="M151 598L294 657L431 592L455 630L305 710L128 636Z" fill="#ffd34d"/>
+    <path d="M405 588L466 626L263 1000H183Z" fill="#ffd34d"/>
+
+    <path d="M139 345Q134 218 246 167Q365 119 446 218Q489 270 463 448Q451 513 374 540L214 529Q145 489 139 345Z" fill="#262a34"/>
+    <path d="M199 249L365 232L426 286L414 438L353 504L230 493L176 430L182 295Z" fill="#f1c4b3"/>
+
+    <path d="M139 274Q91 282 84 348L89 408Q97 463 146 469L184 453L187 304L166 279Z" fill="#f3f1de"/>
+    <path d="M430 271Q480 276 488 339L484 405Q477 458 431 468L402 449L408 298Z" fill="#f3f1de"/>
+
+    <path d="M153 295L175 215L274 168L384 184L444 253L426 324L368 273L332 342L279 278L230 331L180 316Z" fill="#262a34"/>
+
+    <rect x="241" y="362" width="32" height="38" rx="5" fill="#20383b" stroke="none"/>
+    <rect x="345" y="358" width="32" height="38" rx="5" fill="#20383b" stroke="none"/>
+    <path d="M273 442Q309 455 346 439" fill="none" stroke-width="18"/>
+
+    <!-- Right avatar: encountered resident -->
+    <path d="M470 1000L511 760Q523 700 586 674L824 675Q884 698 902 756L958 1000Z" fill="#cf5748"/>
+    <path d="M574 684L704 731L835 681L868 720L709 786L548 724Z" fill="#f3f1de"/>
+    <path d="M832 681L887 721L692 1000H608Z" fill="#f3f1de"/>
+
+    <path d="M545 496Q550 382 661 341Q782 308 860 399Q908 454 883 608Q869 674 807 698L632 686Q560 647 545 496Z" fill="#4a302c"/>
+    <path d="M611 431L777 421L840 472L833 604L776 661L650 649L595 593L597 474Z" fill="#b9784e"/>
+
+    <path d="M558 458Q517 466 512 522L517 570Q525 616 561 621L590 603L591 483Z" fill="#f3f1de"/>
+    <path d="M845 456Q889 461 896 518L891 574Q884 619 848 625L820 606L822 483Z" fill="#f3f1de"/>
+
+    <path d="M570 478L588 402L674 350L797 371L857 429L845 505L798 468L759 522L704 470L663 513L609 484Z" fill="#4a302c"/>
+
+    <rect x="650" y="527" width="30" height="36" rx="5" fill="#20383b" stroke="none"/>
+    <rect x="750" y="523" width="30" height="36" rx="5" fill="#20383b" stroke="none"/>
+    <path d="M681 608Q714 621 749 606" fill="none" stroke-width="18"/>
+
+    <!-- One controlled accent marks the encounter. -->
+    <path d="M511 424L530 467L573 486L530 505L511 548L492 505L449 486L492 467Z" fill="#f3f1de" stroke-width="24"/>
+    <circle cx="511" cy="486" r="14" fill="#ffd34d" stroke="none"/>
+  </g>
+</svg>

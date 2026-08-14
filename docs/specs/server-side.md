@@ -21,7 +21,7 @@ MVP では Supabase (Auth + Postgres + RLS) をサーバーサイドとして扱
 
 ### In Scope
 
-- Anonymous Auth によるユーザー UUID 発行
+- Apple / Google / メールの明示ログインによるユーザー UUID 発行
 - 自プロフィールの作成・更新・削除
 - `user_id` 配列から公開プロフィールを一括取得
 - RLS による「自分のプロフィールだけ更新可能」制約
@@ -43,7 +43,7 @@ MVP では Supabase (Auth + Postgres + RLS) をサーバーサイドとして扱
 
 現行アプリは Supabase JS SDK で次を直接実行する。
 
-- `auth.signInAnonymously()`
+- `auth.getSession()` と OAuth / magic-link sign-in
 - `profiles.upsert()`
 - `profiles.select().in('id', ids)`
 - `profiles.delete().eq('id', myUserId)`
@@ -74,7 +74,7 @@ Supabase を置き換える場合は、[contracts/server-api.md](../contracts/se
 
 - Go + PostgreSQL
 - OpenAPI から TypeScript client を生成
-- JWT または匿名 device token ベース認証
+- JWT ベース認証
 
 ## 5. データモデル
 
@@ -139,7 +139,7 @@ MVP は同一リポジトリのまま進める。
 
 ## 8. 受入基準
 
-- [ ] Supabase の anonymous sign-in で UUID が発行され、ローカル `my_profile.user_id` に保存される
+- [x] ゲスト起動では session を作らず、明示ログイン後の非 anonymous UUID をローカル `my_profile.user_id` に保存する
 - [ ] プロフィール保存時に `profiles` が upsert される
 - [ ] `user_id[]` から公開プロフィールを 100 件単位で一括取得できる
 - [ ] 未公開・削除済みユーザーは response に含まれず、クライアントは表示しない
@@ -151,4 +151,4 @@ MVP は同一リポジトリのまま進める。
 
 - Thin API Server を Phase 1.5 で作るか、Phase 2 まで Supabase 直結にするか。
 - Supabase Auth session を OS keychain に移すか、現状の WebView localStorage にするか。
-- 退会時に auth user 自体を削除する管理 API を用意するか。
+- `delete-account` Edge Function を本番 deploy し、再認証が必要なケースを含めて実機確認する。

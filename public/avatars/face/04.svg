@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 96">
-  <g class="eyes">
-    <circle cx="-5" cy="-2" r="1.7" fill="#1a1a24"/>
-    <circle cx="-5.5" cy="-2.5" r="0.5" fill="#fff"/>
-    <path d="M2 -1 Q5 -4 8 -1" fill="none" stroke="#1a1a24" stroke-width="1.7" stroke-linecap="round"/>
-  </g>
-  <path d="M-5 5 Q0 9 5 5" fill="none" stroke="#1a1a24" stroke-width="1.6" stroke-linecap="round"/>
-</svg>

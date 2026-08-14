@@ -13,6 +13,7 @@ import { isTauri } from '@/lib/tauri/env';
 
 const KEY = ['profile', 'cloud-consent'] as const;
 const SETTING_KEY = 'cloud_profile_consent_at';
+const BROWSER_SETTING_KEY = 'project-encounter:cloud-profile-consent:v1';
 
 export type ConsentStatus = 'pending' | 'granted' | 'declined';
 
@@ -22,9 +23,14 @@ export type ConsentState = {
 };
 
 async function fetchConsent(): Promise<ConsentState> {
-  // ブラウザ単体 (pnpm dev) では SQLite がないため常に granted 扱いにして UI を確認できるようにする。
-  // 実際の同意保存は Tauri 上でのみ行われる。
-  if (!isTauri()) return { status: 'granted', consentedAt: null };
+  if (!isTauri()) {
+    const value = window.localStorage.getItem(BROWSER_SETTING_KEY);
+    if (value === null) return { status: 'pending', consentedAt: null };
+    const n = Number(value);
+    return n > 0
+      ? { status: 'granted', consentedAt: n }
+      : { status: 'declined', consentedAt: null };
+  }
   try {
     const db = await getDb();
     const rows = await db.select<{ value: string }[]>(
@@ -44,7 +50,14 @@ async function fetchConsent(): Promise<ConsentState> {
 }
 
 async function setConsent(status: ConsentStatus): Promise<void> {
-  if (!isTauri()) return;
+  if (!isTauri()) {
+    if (status === 'pending') window.localStorage.removeItem(BROWSER_SETTING_KEY);
+    else window.localStorage.setItem(
+      BROWSER_SETTING_KEY,
+      status === 'granted' ? String(Math.floor(Date.now() / 1000)) : '0',
+    );
+    return;
+  }
   const db = await getDb();
   if (status === 'pending') {
     // 撤回 (退会時)

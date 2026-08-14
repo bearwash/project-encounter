@@ -1,0 +1,6 @@
+<!-- Sign in with Apple を本番 bundle ID / App ID で有効化した後、
+     generated entitlements の <dict> 内へ追加する。 -->
+<key>com.apple.developer.applesignin</key>
+<array>
+    <string>Default</string>
+</array>

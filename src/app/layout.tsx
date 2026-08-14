@@ -1,34 +1,17 @@
 import type { Metadata, Viewport } from 'next';
-import { M_PLUS_Rounded_1c } from 'next/font/google';
-import { QueryProvider } from '@/lib/query/QueryProvider';
-import { BootFallback } from '@/components/BootFallback';
-import { DesignSwitcher } from '@/components/DesignSwitcher';
 import './globals.css';
-
-// 全体に丸みのあるポップなフォントを適用する。
-// 要件 §3.3 ノスタルジック・ポップ路線に合わせ、本文 (400/700) と
-// 見出し / スタンプ (800/900) を 1 ファミリで揃える。
-// `--font-rounded` を CSS 変数として export し、tailwind の
-// fontFamily.sans / fontFamily.display 両方から参照する。
-const rounded = M_PLUS_Rounded_1c({
-  subsets: ['latin'],
-  weight: ['400', '700', '800', '900'],
-  variable: '--font-rounded',
-  display: 'swap',
-});
+import AppProviders from './AppProviders';
 
 export const metadata: Metadata = {
   title: 'Project Encounter',
-  description: 'BLE すれ違いアバターアプリ',
+  description: '近くですれ違った旅人が広場に集まり、仲間としてタワーへ挑むアバターアプリ。',
   icons: {
-    icon: '/favicon.svg',
+    icon: '/favicon.png',
   },
 };
 
 export const viewport: Viewport = {
-  // ノスタルジック・ポップ路線 (要件 §3.3) に合わせ、アプリ基調の cream に合わせる。
-  // (旧 #000000 はダーク基調を想起させトーンと不整合だった)
-  themeColor: '#FAF1E0',
+  themeColor: '#63c2bc',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -41,37 +24,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ja" className={rounded.variable}>
-      <body className="min-h-screen bg-cream font-sans text-ink">
-        <div
-          id="boot-fallback"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 2147483647,
-            display: 'grid',
-            placeItems: 'center',
-            background: '#FAF1E0',
-            color: '#3B3024',
-            fontFamily:
-              'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-            fontWeight: 800,
-            letterSpacing: '0.04em',
-            textAlign: 'center',
-            padding: 24,
-          }}
-        >
-          <div>
-            <div style={{ fontSize: 18 }}>Project Encounter</div>
-            <div style={{ marginTop: 10, fontSize: 13, opacity: 0.72 }}>
-              起動中...
-            </div>
-          </div>
-        </div>
-        <BootFallback />
-        <QueryProvider>{children}</QueryProvider>
-        {process.env.NODE_ENV === 'development' && <DesignSwitcher />}
-      </body>
+    <html lang="ja">
+      <body><AppProviders>{children}</AppProviders></body>
     </html>
   );
 }

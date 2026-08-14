@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" viewBox="0 0 1024 500">
+  <defs>
+    <pattern id="grid" width="64" height="64" patternUnits="userSpaceOnUse">
+      <path d="M64 0H0V64" fill="none" stroke="#20383b" stroke-opacity=".08" stroke-width="2"/>
+    </pattern>
+    <filter id="rough"><feTurbulence baseFrequency=".018" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="4"/></filter>
+  </defs>
+  <rect width="1024" height="500" fill="#72c4bb"/>
+  <rect width="1024" height="500" fill="url(#grid)"/>
+  <circle cx="86" cy="78" r="56" fill="#b9efe7" opacity=".55"/>
+  <path d="M0 346Q205 302 419 348T1024 323V500H0Z" fill="#9bc678" stroke="#20383b" stroke-width="4"/>
+  <path d="M0 407L382 305L637 500H0Z" fill="#f7f7f2" stroke="#20383b" stroke-opacity=".32" stroke-width="4"/>
+  <path d="M1024 387L718 305L506 500H1024Z" fill="#f7f7f2" stroke="#20383b" stroke-opacity=".32" stroke-width="4"/>
+  <g filter="url(#rough)" stroke="#20383b" stroke-width="5" stroke-linejoin="round">
+    <path d="M775 300V126H929V300Z" fill="#e9ddba"/>
+    <path d="M799 126V78H905V126Z" fill="#e9ddba"/>
+    <path d="M827 78V41H877V78Z" fill="#f15e4a"/>
+    <path d="M824 300V250H880V300Z" fill="#6fb6ab"/>
+    <path d="M803 168H837V199H803ZM868 168H902V199H868Z" fill="#ffd34d"/>
+  </g>
+  <g transform="translate(517 283)" stroke="#20383b" stroke-width="5">
+    <ellipse cx="0" cy="99" rx="84" ry="18" fill="#20383b" opacity=".18" stroke="none"/>
+    <path d="M-42 24Q0-5 42 24L37 84Q0 105-37 84Z" fill="#f3f1de"/>
+    <circle cy="-11" r="43" fill="#f0c89f"/>
+    <path d="M-42-10Q-33-65 7-52Q47-50 44-3Q15-24-42-10Z" fill="#2f231d"/>
+    <path d="M-13-5h4m18 0h4" stroke-linecap="round"/>
+    <path d="M-10 15Q0 23 10 15" fill="none" stroke-linecap="round"/>
+    <path d="M-38 33L-62 69m100-36 24 36" stroke="#f15e4a" stroke-width="16" stroke-linecap="round"/>
+    <path d="M-23 87v30m46-30v30" stroke="#24496e" stroke-width="17" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(652 329) scale(.78)" stroke="#20383b" stroke-width="5">
+    <path d="M-42 24Q0-5 42 24L37 84Q0 105-37 84Z" fill="#70be63"/>
+    <circle cy="-11" r="43" fill="#d9a77a"/>
+    <path d="M-43-5Q-28-65 20-48Q46-38 43-2Q11-23-43-5Z" fill="#17191f"/>
+    <path d="M-13-5h4m18 0h4M-8 15Q0 20 8 15" fill="none" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(370 342) scale(.66)" stroke="#20383b" stroke-width="5">
+    <path d="M-42 24Q0-5 42 24L37 84Q0 105-37 84Z" fill="#31b8cf"/>
+    <circle cy="-11" r="43" fill="#f7d4b5"/>
+    <path d="M-43-5Q-19-58 29-41Q47-28 41 1Q8-26-43-5Z" fill="#c94743"/>
+    <path d="M-13-5h4m18 0h4M-8 15Q0 20 8 15" fill="none" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(70 115) rotate(-1)" filter="url(#rough)">
+    <rect width="566" height="178" fill="#fffdf0" stroke="#20383b" stroke-width="5"/>
+    <text x="39" y="45" fill="#d35043" font-family="monospace" font-size="16" font-weight="900" letter-spacing="3">MEET. GATHER. ADVENTURE.</text>
+    <text x="39" y="101" fill="#20383b" font-family="Arial Black, sans-serif" font-size="44" font-weight="900">すれ違いから、</text>
+    <text x="39" y="151" fill="#20383b" font-family="Arial Black, sans-serif" font-size="44" font-weight="900">小さな冒険へ。</text>
+  </g>
+</svg>
